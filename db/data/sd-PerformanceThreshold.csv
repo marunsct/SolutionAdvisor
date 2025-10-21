@@ -1,0 +1,6 @@
+ID;category;method;volumeLimit;sizeThreshold;frequencyLimit;responseTimeTarget;concurrencyLimit;cleanCoreLevel;whenExceeded;alternativeSolution;applicableObjectTypes;deploymentTypes;isActive
+11111111-1111-1111-1111-111111111111;Integration;OData API;5000;35MB;Real-time;5000;10;Level A;Consider batch processing or Enterprise Events;Use Enhanced IDOC for large volumes;I,C;Cloud Public,Private Cloud,On-Premise;true
+22222222-2222-2222-2222-222222222222;Integration;Enterprise Events;999999;10MB;Event-based;2000;50;Level A;Optimize event payload size;Split into multiple events;I,W;Cloud Public,Private Cloud;true
+33333333-3333-3333-3333-333333333333;Integration;Enhanced IDOC;100000;100MB;Batch;300000;5;Level B;Split into multiple batches;Consider asynchronous processing;I,C;Cloud Public,Private Cloud,On-Premise;true
+44444444-4444-4444-4444-444444444444;Reporting;Embedded Analytics;1000000;5GB;On-demand;10000;20;Level A;Use data aggregation or archiving;Consider HANA Native calculation views;R;Cloud Public,Private Cloud,On-Premise;true
+55555555-5555-5555-5555-555555555555;Workflow;SAP Workflow;10000;;Real-time;3000;100;Level A;Review workflow complexity;Optimize parallel processing;W;Cloud Public,Private Cloud,On-Premise;true

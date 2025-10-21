@@ -1,0 +1,5 @@
+ID;level;levelName;description;upgradeComplexity;maintenanceEffort;businessFlexibility;technicalRisk;cloudReadiness;technicalDebtMultiplier;cloudReadinessFactor;upgradeImpactMultiplier;isActive;displayOrder
+a1b2c3d4-e5f6-7890-abcd-ef1234567890;Level A;Fully Clean Core;Uses only standard SAP functionality without modifications;None;Low;High;Low;Cloud Ready;0.00;1.00;0.00;true;1
+b2c3d4e5-f6a7-8901-bcde-f12345678901;Level B;Enhanced Clean Core;Side-by-side extensions on BTP with standard S/4HANA core;Low;Medium;High;Medium;Partially;1.00;0.50;1.00;true;2
+c3d4e5f6-a7b8-9012-cdef-123456789012;Level C;Compliant Modifications;Modification with adherence to clean core principles;Medium;High;Medium;High;Limited;3.00;0.20;3.00;true;3
+d4e5f6a7-b8c9-0123-def1-234567890123;Level D;Not Recommended;Deep customizations with high upgrade impact;Very High;Very High;Low;Critical;Not Ready;5.00;0.00;5.00;true;4
