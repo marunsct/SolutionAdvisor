@@ -1,0 +1,153 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.AnalysesList"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f">
+    <Page
+        id="analysesListPage"
+        title="Clean Core Analyses"
+        showHeader="true">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <HeaderContainer
+                    id="analysesHeader"
+                    orientation="Horizontal"
+                    backgroundDesign="Transparent">
+                    <GenericTile
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Total Analyses"
+                        subheader="All Analyses">
+                        <TileContent>
+                            <NumericContent
+                                value="{viewModel>/analysesCount}"
+                                icon="sap-icon://activities"
+                                withMargin="false"/>
+                        </TileContent>
+                    </GenericTile>
+                    <GenericTile
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Level A"
+                        subheader="Fully Clean Core">
+                        <TileContent>
+                            <NumericContent
+                                value="{viewModel>/levelACount}"
+                                icon="sap-icon://accept"
+                                state="Success"
+                                withMargin="false"/>
+                        </TileContent>
+                    </GenericTile>
+                    <GenericTile
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Level B"
+                        subheader="Enhanced Clean Core">
+                        <TileContent>
+                            <NumericContent
+                                value="{viewModel>/levelBCount}"
+                                icon="sap-icon://future"
+                                state="Information"
+                                withMargin="false"/>
+                        </TileContent>
+                    </GenericTile>
+                    <GenericTile
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Level C"
+                        subheader="Compliant Modifications">
+                        <TileContent>
+                            <NumericContent
+                                value="{viewModel>/levelCCount}"
+                                icon="sap-icon://customize"
+                                state="Warning"
+                                withMargin="false"/>
+                        </TileContent>
+                    </GenericTile>
+                </HeaderContainer>
+                
+                <Table
+                    id="analysesTable"
+                    items="{
+                        path: '/Analyses',
+                        sorter: {
+                            path: 'analysisDate',
+                            descending: true
+                        }
+                    }"
+                    mode="SingleSelectMaster"
+                    selectionChange="onAnalysisSelect"
+                    growing="true"
+                    growingThreshold="20">
+                    <headerToolbar>
+                        <OverflowToolbar>
+                            <Title text="Analyses" level="H2"/>
+                            <ToolbarSpacer/>
+                            <SearchField
+                                id="searchField"
+                                width="200px"
+                                search="onSearch"
+                                placeholder="Search analyses..."/>
+                            <Button
+                                text="New Analysis"
+                                icon="sap-icon://add"
+                                type="Emphasized"
+                                press="onStartWizard"/>
+                            <Button
+                                text="Back to Projects"
+                                icon="sap-icon://navigation-left-arrow"
+                                press="onBackToProjects"/>
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    <columns>
+                        <Column width="10%">
+                            <Text text="RICEFW ID"/>
+                        </Column>
+                        <Column width="20%">
+                            <Text text="Object Name"/>
+                        </Column>
+                        <Column width="10%">
+                            <Text text="Type"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Clean Core Level"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Technical Debt"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Cloud Readiness"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Status"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Date"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem type="Navigation" press="onAnalysisSelect">
+                            <cells>
+                                <Text text="{ricefwId}"/>
+                                <ObjectIdentifier title="{objectName}" text="{objectDescription}"/>
+                                <Text text="{objectType}"/>
+                                <ObjectStatus
+                                    text="{finalRecommendation}"
+                                    state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
+                                <ProgressIndicator
+                                    percentValue="{technicalDebtScore}"
+                                    displayValue="{technicalDebtScore}"
+                                    state="{= ${technicalDebtScore} &lt; 30 ? 'Success' : ${technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"/>
+                                <ProgressIndicator
+                                    percentValue="{cloudReadinessScore}"
+                                    displayValue="{cloudReadinessScore}"
+                                    state="{= ${cloudReadinessScore} &gt; 70 ? 'Success' : ${cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"/>
+                                <ObjectStatus
+                                    text="{status}"
+                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
+                                <Text text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
