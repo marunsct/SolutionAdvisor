@@ -1,0 +1,22 @@
+{
+  "name": "solutionadvisor",
+  "version": "0.0.1",
+  "description": "SAP Solution Advisor",
+  "keywords": [
+    "ui5",
+    "openui5",
+    "sapui5"
+  ],
+  "main": "webapp/index.html",
+  "dependencies": {},
+  "devDependencies": {
+    "@ui5/cli": "^4.0.30",
+    "@sap/ux-ui5-tooling": "1",
+    "eslint": "9.38.0",
+    "@sap/eslint-plugin-ui5-jsdocs": "2.0.8",
+    "@sapui5/ts-types": "~1.141.2"
+  },
+  "scripts": {
+    "deploy-config": "npx -p @sap/ux-ui5-tooling fiori add deploy-config cf"
+  }
+}
