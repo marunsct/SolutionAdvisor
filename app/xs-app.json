@@ -1,4 +1,44 @@
 {
-  "authenticationMethod": "none",
-  "routes": []
+  "welcomeFile": "/app/solutionadvisor/webapp/index.html",
+  "authenticationMethod": "route",
+  "sessionTimeout": 60,
+  "routes": [
+    {
+      "source": "^/service/(.*)$",
+      "target": "$1",
+      "destination": "solutionadvisor-backend",
+      "authenticationType": "xsuaa",
+      "csrfProtection": true
+    },
+    {
+      "source": "^/app/solutionadvisor/(.*)$",
+      "target": "$1",
+      "localDir": "solutionadvisor/webapp",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/resources/(.*)$",
+      "target": "/resources/$1",
+      "authenticationType": "none",
+      "destination": "ui5"
+    },
+    {
+      "source": "^/test-resources/(.*)$",
+      "target": "/test-resources/$1",
+      "authenticationType": "none",
+      "destination": "ui5"
+    },
+    {
+      "source": "^(.*)$",
+      "target": "$1",
+      "localDir": ".",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    }
+  ],
+  "logout": {
+    "logoutEndpoint": "/do/logout",
+    "logoutPage": "/app/solutionadvisor/webapp/index.html"
+  }
 }

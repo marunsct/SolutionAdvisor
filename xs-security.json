@@ -1,20 +1,113 @@
 {
   "xsappname": "solutionadvisor",
-  "tenant-mode": "dedicated",
-  "description": "Security profile of called application",
+  "tenant-mode": "shared",
+  "description": "SAP Clean Core Solution Advisor - Security Configuration",
   "scopes": [
     {
-      "name": "uaa.user",
-      "description": "UAA"
+      "name": "$XSAPPNAME.TenantAdmin",
+      "description": "Tenant Administrator - Full access to project configuration, user management, and all analyses"
+    },
+    {
+      "name": "$XSAPPNAME.SolutionArchitect",
+      "description": "Solution Architect - Create, edit, and export clean core analyses with full scoring access"
+    },
+    {
+      "name": "$XSAPPNAME.Developer",
+      "description": "Developer/Consultant - Execute wizard, view results, and access examples"
+    },
+    {
+      "name": "$XSAPPNAME.ServiceProviderAdmin",
+      "description": "Service Provider Administrator - Cross-tenant analytics and master data management"
+    }
+  ],
+  "attributes": [
+    {
+      "name": "projectId",
+      "description": "Project assignment for attribute-based access control",
+      "valueType": "string"
+    },
+    {
+      "name": "tenantId",
+      "description": "Tenant identifier for multi-tenant isolation",
+      "valueType": "string"
     }
   ],
   "role-templates": [
     {
-      "name": "Token_Exchange",
-      "description": "UAA",
+      "name": "TenantAdministrator",
+      "description": "Full project and user management capabilities within tenant",
       "scope-references": [
-        "uaa.user"
+        "$XSAPPNAME.TenantAdmin"
+      ],
+      "attribute-references": [
+        "tenantId"
+      ]
+    },
+    {
+      "name": "SolutionArchitect",
+      "description": "Create and manage clean core analyses, export reports, configure projects",
+      "scope-references": [
+        "$XSAPPNAME.SolutionArchitect"
+      ],
+      "attribute-references": [
+        "projectId",
+        "tenantId"
+      ]
+    },
+    {
+      "name": "DeveloperConsultant",
+      "description": "Execute wizard, view analyses, access constraints and examples",
+      "scope-references": [
+        "$XSAPPNAME.Developer"
+      ],
+      "attribute-references": [
+        "projectId",
+        "tenantId"
+      ]
+    },
+    {
+      "name": "ServiceProviderAdministrator",
+      "description": "Cross-tenant operations, master data seeding, system monitoring",
+      "scope-references": [
+        "$XSAPPNAME.ServiceProviderAdmin"
       ]
     }
-  ]
+  ],
+  "role-collections": [
+    {
+      "name": "SolutionAdvisor_TenantAdmin",
+      "description": "Tenant Administrator role collection",
+      "role-template-references": [
+        "$XSAPPNAME.TenantAdministrator"
+      ]
+    },
+    {
+      "name": "SolutionAdvisor_Architect",
+      "description": "Solution Architect role collection",
+      "role-template-references": [
+        "$XSAPPNAME.SolutionArchitect"
+      ]
+    },
+    {
+      "name": "SolutionAdvisor_Developer",
+      "description": "Developer/Consultant role collection",
+      "role-template-references": [
+        "$XSAPPNAME.DeveloperConsultant"
+      ]
+    },
+    {
+      "name": "SolutionAdvisor_ServiceAdmin",
+      "description": "Service Provider Administrator role collection",
+      "role-template-references": [
+        "$XSAPPNAME.ServiceProviderAdministrator"
+      ]
+    }
+  ],
+  "oauth2-configuration": {
+    "redirect-uris": [
+      "https://*.applicationstudio.cloud.sap/**",
+      "https://*.hana.ondemand.com/**",
+      "http://localhost:4004/**"
+    ]
+  }
 }
