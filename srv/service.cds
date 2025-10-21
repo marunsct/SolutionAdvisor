@@ -8,7 +8,7 @@ service solutionAdvisorService {
     // Core Entities
     // ===============================
 
-    @odata.draft.enabled
+    // Projects entity - NOT draft-enabled to avoid composition conflict with draft-enabled Analyses
     @restrict: [
         {
             grant: '*',
@@ -27,10 +27,9 @@ service solutionAdvisorService {
             to   : 'Developer'
         }
     ]
-    entity Projects          as projection on my.ProjectConfiguration excluding {
-        analyses
-    };
+    entity Projects          as projection on my.ProjectConfiguration;
 
+    // Analyses entity - draft-enabled for user workflow
     @odata.draft.enabled
     @restrict: [
         {
@@ -53,11 +52,7 @@ service solutionAdvisorService {
             to   : 'Developer'
         }
     ]
-    entity Analyses          as projection on my.CleanCoreAnalysis excluding {
-        decisionPaths,
-        constraintsDisplayed,
-        examplesViewed
-    };
+    entity Analyses          as projection on my.CleanCoreAnalysis;
 
     @restrict: [{
         grant: 'READ',
@@ -227,12 +222,4 @@ service solutionAdvisorService {
         downloadUrl : String;
         filename    : String;
     };
-  
-  // Projects entity - NOT draft-enabled to avoid composition conflict
-  entity Projects as projection on my.ProjectConfiguration;
-  
-  // Analyses entity - draft-enabled for user workflow
-  @odata.draft.enabled
-  entity Analyses as projection on my.CleanCoreAnalysis;
-  
 }
