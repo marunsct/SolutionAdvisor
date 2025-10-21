@@ -1,0 +1,144 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.Wizard"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:core="sap.ui.core">
+    <Page
+        id="wizardPage"
+        title="New Clean Core Analysis"
+        showHeader="true"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+        <content>
+            <Wizard
+                id="cleanCoreWizard"
+                complete="onWizardComplete"
+                class="sapUiResponsiveMargin">
+                
+                <!-- Step 1: Project Selection -->
+                <WizardStep
+                    id="projectStep"
+                    title="Select Project"
+                    validated="false"
+                    activate="onProjectStepActivate">
+                    <VBox class="sapUiSmallMargin">
+                        <Label text="Select Project" required="true"/>
+                        <ComboBox
+                            id="projectComboBox"
+                            width="100%"
+                            placeholder="Choose a project..."
+                            selectionChange="onProjectSelect"
+                            items="{
+                                path: '/Projects',
+                                sorter: { path: 'projectName' }
+                            }">
+                            <core:Item
+                                key="{ID}"
+                                text="{projectName} - {clientName}"/>
+                        </ComboBox>
+                        <Text
+                            id="projectInfo"
+                            class="sapUiTinyMarginTop"
+                            text=""/>
+                    </VBox>
+                </WizardStep>
+                
+                <!-- Step 2: Object Information -->
+                <WizardStep
+                    id="objectStep"
+                    title="Object Information"
+                    validated="false"
+                    activate="onObjectStepActivate">
+                    <VBox class="sapUiSmallMargin">
+                        <Label text="RICEFW ID" required="true"/>
+                        <Input
+                            id="ricefwIdInput"
+                            width="300px"
+                            placeholder="e.g., I-0042-IMP"
+                            liveChange="onRicefwIdChange"
+                            description="Format: [RICEFYW]-[0-9]{4}-[A-Z]{3}"/>
+                        
+                        <Label text="Object Type" required="true" class="sapUiTinyMarginTop"/>
+                        <ComboBox
+                            id="objectTypeComboBox"
+                            width="300px"
+                            placeholder="Select object type..."
+                            selectionChange="onObjectTypeSelect"
+                            items="{
+                                path: '/ObjectTypes',
+                                sorter: { path: 'displayName' }
+                            }">
+                            <core:Item
+                                key="{objectType}"
+                                text="{displayName} ({objectCode})"/>
+                        </ComboBox>
+                        
+                        <Label text="Object Name" required="true" class="sapUiTinyMarginTop"/>
+                        <Input
+                            id="objectNameInput"
+                            width="100%"
+                            placeholder="Enter object name..."
+                            liveChange="onObjectNameChange"/>
+                        
+                        <Label text="Object Description" class="sapUiTinyMarginTop"/>
+                        <TextArea
+                            id="objectDescriptionInput"
+                            width="100%"
+                            rows="3"
+                            placeholder="Optional: Describe the object..."/>
+                    </VBox>
+                </WizardStep>
+                
+                <!-- Step 3: Ready to Start -->
+                <WizardStep
+                    id="readyStep"
+                    title="Ready to Start"
+                    validated="true">
+                    <VBox class="sapUiSmallMargin">
+                        <MessageStrip
+                            text="You will now be guided through a series of questions to determine the optimal Clean Core level for your object. Click 'Start Analysis' to begin."
+                            type="Information"
+                            showIcon="true"/>
+                        
+                        <VBox class="sapUiMediumMarginTop">
+                            <Title text="Summary" level="H3"/>
+                            <VBox class="sapUiTinyMarginTop">
+                                <Label text="Project:"/>
+                                <Text id="summaryProject" text="{wizardModel>/projectName}"/>
+                                
+                                <Label text="RICEFW ID:" class="sapUiTinyMarginTop"/>
+                                <Text id="summaryRicefwId" text="{wizardModel>/ricefwId}"/>
+                                
+                                <Label text="Object Type:" class="sapUiTinyMarginTop"/>
+                                <Text id="summaryObjectType" text="{wizardModel>/objectType}"/>
+                                
+                                <Label text="Object Name:" class="sapUiTinyMarginTop"/>
+                                <Text id="summaryObjectName" text="{wizardModel>/objectName}"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </WizardStep>
+            </Wizard>
+        </content>
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer/>
+                <Button
+                    text="Cancel"
+                    press="onCancel"/>
+                <Button
+                    id="wizardNextButton"
+                    text="Next"
+                    type="Emphasized"
+                    press="onNextStep"/>
+                <Button
+                    id="wizardStartButton"
+                    text="Start Analysis"
+                    type="Emphasized"
+                    visible="false"
+                    press="onStartAnalysis"/>
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

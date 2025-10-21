@@ -1,0 +1,135 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.ProjectDetails"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:core="sap.ui.core">
+    <Page
+        id="projectDetailsPage"
+        title="Project Details"
+        showHeader="true"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+        <content>
+            <ObjectHeader
+                id="projectHeader"
+                title="{projectName}"
+                number="{clientName}"
+                numberState="Information">
+                <statuses>
+                    <ObjectStatus
+                        text="{status}"
+                        state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
+                </statuses>
+                <attributes>
+                    <ObjectAttribute title="S/4HANA Flavor" text="{s4HanaFlavor}"/>
+                    <ObjectAttribute title="Business Criticality" text="{businessCriticality}"/>
+                    <ObjectAttribute title="Timeline" text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                </attributes>
+            </ObjectHeader>
+            
+            <IconTabBar
+                id="projectIconTabBar"
+                class="sapUiResponsiveContentPadding">
+                <items>
+                    <IconTabFilter
+                        text="General Information"
+                        key="general"
+                        icon="sap-icon://hint">
+                        <f:SimpleForm
+                            editable="false"
+                            layout="ResponsiveGridLayout"
+                            labelSpanXL="4"
+                            labelSpanL="3"
+                            labelSpanM="4"
+                            labelSpanS="12"
+                            adjustLabelSpan="false"
+                            emptySpanXL="0"
+                            emptySpanL="0"
+                            emptySpanM="0"
+                            emptySpanS="0"
+                            columnsXL="2"
+                            columnsL="2"
+                            columnsM="1"
+                            singleContainerFullSize="false">
+                            <f:content>
+                                <Label text="Client Name"/>
+                                <Text text="{clientName}"/>
+                                
+                                <Label text="Project Name"/>
+                                <Text text="{projectName}"/>
+                                
+                                <Label text="Project Type"/>
+                                <Text text="{projectType}"/>
+                                
+                                <Label text="Expected Duration"/>
+                                <Text text="{expectedDuration} months"/>
+                                
+                                <Label text="Status"/>
+                                <ObjectStatus
+                                    text="{status}"
+                                    state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
+                            </f:content>
+                        </f:SimpleForm>
+                    </IconTabFilter>
+                    
+                    <IconTabFilter
+                        text="Technical Configuration"
+                        key="technical"
+                        icon="sap-icon://settings">
+                        <f:SimpleForm
+                            editable="false"
+                            layout="ResponsiveGridLayout">
+                            <f:content>
+                                <Label text="S/4HANA Flavor"/>
+                                <Text text="{s4HanaFlavor}"/>
+                                
+                                <Label text="Available BTP Services"/>
+                                <Text text="{availableBTPServices}"/>
+                                
+                                <Label text="Third Party Services"/>
+                                <Text text="{thirdPartyServices}"/>
+                                
+                                <Label text="Technical Team Size"/>
+                                <Text text="{technicalTeamSize}"/>
+                            </f:content>
+                        </f:SimpleForm>
+                    </IconTabFilter>
+                    
+                    <IconTabFilter
+                        text="Governance"
+                        key="governance"
+                        icon="sap-icon://create-form">
+                        <f:SimpleForm
+                            editable="false"
+                            layout="ResponsiveGridLayout">
+                            <f:content>
+                                <Label text="Governance Model"/>
+                                <Text text="{governanceModel}"/>
+                                
+                                <Label text="Compliance Requirements"/>
+                                <Text text="{complianceRequirements}"/>
+                                
+                                <Label text="Business Criticality"/>
+                                <Text text="{businessCriticality}"/>
+                                
+                                <Label text="Budget Range"/>
+                                <Text text="{budgetRange}"/>
+                            </f:content>
+                        </f:SimpleForm>
+                    </IconTabFilter>
+                </items>
+            </IconTabBar>
+        </content>
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer/>
+                <Button
+                    text="New Analysis"
+                    icon="sap-icon://add"
+                    type="Emphasized"
+                    press="onNewAnalysis"/>
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

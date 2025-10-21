@@ -1,0 +1,187 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.AnalysisDetails"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:core="sap.ui.core"
+    xmlns:viz="sap.viz.ui5.controls">
+    <Page
+        id="analysisDetailsPage"
+        title="Analysis Details"
+        showHeader="true"
+        showNavButton="true"
+        navButtonPress="onNavBack">
+        <content>
+            <ObjectHeader
+                id="analysisHeader"
+                title="{objectName}"
+                number="{ricefwId}"
+                numberState="Information">
+                <statuses>
+                    <ObjectStatus
+                        text="{finalRecommendation}"
+                        state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
+                    <ObjectStatus
+                        text="{status}"
+                        state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
+                </statuses>
+                <attributes>
+                    <ObjectAttribute title="Object Type" text="{objectType}"/>
+                    <ObjectAttribute title="Risk Assessment" text="{riskAssessment}"/>
+                    <ObjectAttribute title="Analysis Date" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                </attributes>
+            </ObjectHeader>
+            
+            <!-- Scoring Dashboard -->
+            <Panel
+                headerText="Scoring Metrics Dashboard"
+                class="sapUiResponsiveMargin">
+                <VBox class="sapUiSmallMargin">
+                    <HBox justifyContent="SpaceAround">
+                        <VBox alignItems="Center" width="200px">
+                            <Title text="Technical Debt" level="H4"/>
+                            <ProgressIndicator
+                                percentValue="{technicalDebtScore}"
+                                displayValue="{technicalDebtScore}"
+                                state="{= ${technicalDebtScore} &lt; 30 ? 'Success' : ${technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"
+                                width="100%"
+                                height="40px"/>
+                            <Text text="Lower is better" class="sapUiTinyMarginTop"/>
+                        </VBox>
+                        
+                        <VBox alignItems="Center" width="200px">
+                            <Title text="Cloud Readiness" level="H4"/>
+                            <ProgressIndicator
+                                percentValue="{cloudReadinessScore}"
+                                displayValue="{cloudReadinessScore}"
+                                state="{= ${cloudReadinessScore} &gt; 70 ? 'Success' : ${cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"
+                                width="100%"
+                                height="40px"/>
+                            <Text text="Higher is better" class="sapUiTinyMarginTop"/>
+                        </VBox>
+                        
+                        <VBox alignItems="Center" width="200px">
+                            <Title text="Upgrade Impact" level="H4"/>
+                            <ProgressIndicator
+                                percentValue="{upgradeImpactScore}"
+                                displayValue="{upgradeImpactScore}"
+                                state="{= ${upgradeImpactScore} &lt; 30 ? 'Success' : ${upgradeImpactScore} &lt; 60 ? 'Warning' : 'Error' }"
+                                width="100%"
+                                height="40px"/>
+                            <Text text="Lower is better" class="sapUiTinyMarginTop"/>
+                        </VBox>
+                        
+                        <VBox alignItems="Center" width="200px">
+                            <Title text="Composite Health" level="H4"/>
+                            <ProgressIndicator
+                                percentValue="{compositeHealthScore}"
+                                displayValue="{compositeHealthScore}"
+                                state="{= ${compositeHealthScore} &gt; 70 ? 'Success' : ${compositeHealthScore} &gt; 40 ? 'Warning' : 'Error' }"
+                                width="100%"
+                                height="40px"/>
+                            <Text text="Overall Health" class="sapUiTinyMarginTop"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </Panel>
+            
+            <IconTabBar
+                id="analysisIconTabBar"
+                class="sapUiResponsiveContentPadding">
+                <items>
+                    <IconTabFilter
+                        text="Decision Results"
+                        key="results"
+                        icon="sap-icon://decision">
+                        <f:SimpleForm
+                            editable="false"
+                            layout="ResponsiveGridLayout">
+                            <f:content>
+                                <Label text="Recommended Clean Core Level"/>
+                                <ObjectStatus
+                                    text="{finalRecommendation}"
+                                    state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
+                                
+                                <Label text="Reasoning"/>
+                                <Text text="{finalReasoning}"/>
+                                
+                                <Label text="Estimated Effort"/>
+                                <Text text="{estimatedEffort} person-days"/>
+                                
+                                <Label text="Technical Complexity"/>
+                                <Text text="{technicalComplexity}"/>
+                                
+                                <Label text="Business Impact"/>
+                                <Text text="{businessImpact}"/>
+                            </f:content>
+                        </f:SimpleForm>
+                    </IconTabFilter>
+                    
+                    <IconTabFilter
+                        text="Object Details"
+                        key="object"
+                        icon="sap-icon://detail-view">
+                        <f:SimpleForm
+                            editable="false"
+                            layout="ResponsiveGridLayout">
+                            <f:content>
+                                <Label text="RICEFW ID"/>
+                                <Text text="{ricefwId}"/>
+                                
+                                <Label text="Object Type"/>
+                                <Text text="{objectType}"/>
+                                
+                                <Label text="Object Name"/>
+                                <Text text="{objectName}"/>
+                                
+                                <Label text="Description"/>
+                                <Text text="{objectDescription}"/>
+                                
+                                <Label text="Analysis Date"/>
+                                <Text text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                
+                                <Label text="Status"/>
+                                <ObjectStatus
+                                    text="{status}"
+                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
+                            </f:content>
+                        </f:SimpleForm>
+                    </IconTabFilter>
+                    
+                    <IconTabFilter
+                        text="Risk & Compliance"
+                        key="risk"
+                        icon="sap-icon://warning">
+                        <f:SimpleForm
+                            editable="false"
+                            layout="ResponsiveGridLayout">
+                            <f:content>
+                                <Label text="Risk Assessment"/>
+                                <ObjectStatus
+                                    text="{riskAssessment}"
+                                    state="{= ${riskAssessment} === 'Low' ? 'Success' : ${riskAssessment} === 'Medium' ? 'Warning' : 'Error' }"/>
+                                
+                                <Label text="Business Impact"/>
+                                <Text text="{businessImpact}"/>
+                                
+                                <Label text="Compliance Status"/>
+                                <ObjectStatus
+                                    text="{complianceStatus}"
+                                    state="{= ${complianceStatus} === 'Compliant' ? 'Success' : ${complianceStatus} === 'Requires Review' ? 'Warning' : 'Error' }"/>
+                            </f:content>
+                        </f:SimpleForm>
+                    </IconTabFilter>
+                </items>
+            </IconTabBar>
+        </content>
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer/>
+                <Button
+                    text="Export Flowchart"
+                    icon="sap-icon://download"
+                    press="onExportFlowchart"/>
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

@@ -67,7 +67,11 @@
       "minUI5Version": "1.141.2",
       "libs": {
         "sap.m": {},
-        "sap.ui.core": {}
+        "sap.ui.core": {},
+        "sap.ui.table": {},
+        "sap.ui.layout": {},
+        "sap.f": {},
+        "sap.ushell": {}
       }
     },
     "contentDensities": {
@@ -112,17 +116,66 @@
       },
       "routes": [
         {
-          "name": "RouteView1",
-          "pattern": ":?query:",
+          "name": "ProjectsList",
+          "pattern": "",
           "target": [
-            "TargetView1"
+            "ProjectsList"
+          ]
+        },
+        {
+          "name": "ProjectDetails",
+          "pattern": "Projects({key})",
+          "target": [
+            "ProjectDetails"
+          ]
+        },
+        {
+          "name": "AnalysesList",
+          "pattern": "Analyses",
+          "target": [
+            "AnalysesList"
+          ]
+        },
+        {
+          "name": "AnalysisDetails",
+          "pattern": "Analyses({key})",
+          "target": [
+            "AnalysisDetails"
+          ]
+        },
+        {
+          "name": "Wizard",
+          "pattern": "Wizard",
+          "target": [
+            "Wizard"
           ]
         }
       ],
       "targets": {
-        "TargetView1": {
-          "id": "View1",
-          "name": "View1"
+        "ProjectsList": {
+          "id": "ProjectsList",
+          "name": "ProjectsList",
+          "title": "Projects"
+        },
+        "ProjectDetails": {
+          "id": "ProjectDetails",
+          "name": "ProjectDetails",
+          "title": "Project Details"
+        },
+        "AnalysesList": {
+          "id": "AnalysesList",
+          "name": "AnalysesList",
+          "title": "Clean Core Analyses"
+        },
+        "AnalysisDetails": {
+          "id": "AnalysisDetails",
+          "name": "AnalysisDetails",
+          "title": "Analysis Details"
+        },
+        "Wizard": {
+          "id": "Wizard",
+          "name": "Wizard",
+          "title": "New Analysis Wizard"
         }
       }
     },

@@ -1,0 +1,7 @@
+ID;objectType;objectCode;displayName;description;iconName;complexity;avgAnalysisTime;questionCount;isActive
+e5f6a7b8-c9d0-1234-ef12-345678901234;Reports;R;Reports & Analytics;Custom reports and analytical solutions;sap-icon://chart-table-view;Moderate;15;8;true
+f6a7b8c9-d0e1-2345-f123-456789012345;Interfaces;I;Interfaces & Integrations;System-to-system integration points;sap-icon://it-system;High;20;12;true
+a7b8c9d0-e1f2-3456-1234-567890123456;Conversions;C;Data Conversions;Data migration and conversion programs;sap-icon://upload-to-cloud;High;18;10;true
+b8c9d0e1-f2a3-4567-2345-678901234567;Enhancements;E;Enhancements;Modifications to standard functionality;sap-icon://customize;High;25;15;true
+c9d0e1f2-a3b4-5678-3456-789012345678;Forms;F;Forms & Templates;Output forms and document templates;sap-icon://form;Low;10;6;true
+d0e1f2a3-b4c5-6789-4567-890123456789;Workflows;W;Workflows & Approvals;Business process workflows and approvals;sap-icon://workflow-tasks;Moderate;12;9;true

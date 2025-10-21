@@ -1,0 +1,119 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.ProjectsList"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f">
+    <Page
+        id="projectsListPage"
+        title="Projects"
+        showHeader="true">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <HeaderContainer
+                    id="projectsHeader"
+                    orientation="Horizontal"
+                    backgroundDesign="Transparent">
+                    <GenericTile
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Total Projects"
+                        subheader="All Projects"
+                        press="onTilePress">
+                        <TileContent>
+                            <NumericContent
+                                value="{/projectsCount}"
+                                icon="sap-icon://product"
+                                withMargin="false"/>
+                        </TileContent>
+                    </GenericTile>
+                    <GenericTile
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Active Projects"
+                        subheader="In Progress"
+                        press="onTilePress">
+                        <TileContent>
+                            <NumericContent
+                                value="{/activeProjectsCount}"
+                                icon="sap-icon://activity-individual"
+                                state="Success"
+                                withMargin="false"/>
+                        </TileContent>
+                    </GenericTile>
+                </HeaderContainer>
+                
+                <Table
+                    id="projectsTable"
+                    items="{
+                        path: '/Projects',
+                        sorter: {
+                            path: 'modifiedAt',
+                            descending: true
+                        }
+                    }"
+                    mode="SingleSelectMaster"
+                    selectionChange="onProjectSelect"
+                    growing="true"
+                    growingThreshold="20">
+                    <headerToolbar>
+                        <OverflowToolbar>
+                            <Title text="Projects" level="H2"/>
+                            <ToolbarSpacer/>
+                            <SearchField
+                                id="searchField"
+                                width="200px"
+                                search="onSearch"
+                                placeholder="Search projects..."/>
+                            <Button
+                                text="New Project"
+                                icon="sap-icon://create"
+                                type="Emphasized"
+                                press="onCreateProject"/>
+                            <Button
+                                text="View Analyses"
+                                icon="sap-icon://activities"
+                                press="onViewAnalyses"/>
+                        </OverflowToolbar>
+                    </headerToolbar>
+                    <columns>
+                        <Column>
+                            <Text text="Client Name"/>
+                        </Column>
+                        <Column>
+                            <Text text="Project Name"/>
+                        </Column>
+                        <Column>
+                            <Text text="Project Type"/>
+                        </Column>
+                        <Column>
+                            <Text text="S/4HANA Flavor"/>
+                        </Column>
+                        <Column>
+                            <Text text="Status"/>
+                        </Column>
+                        <Column>
+                            <Text text="Timeline"/>
+                        </Column>
+                        <Column>
+                            <Text text="Business Criticality"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem type="Navigation" press="onProjectSelect">
+                            <cells>
+                                <ObjectIdentifier title="{clientName}"/>
+                                <Text text="{projectName}"/>
+                                <Text text="{projectType}"/>
+                                <Text text="{s4HanaFlavor}"/>
+                                <ObjectStatus
+                                    text="{status}"
+                                    state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
+                                <Text text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <Text text="{businessCriticality}"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
