@@ -100,40 +100,69 @@ sap.ui.define([
         },
 
         onExportFlowchartPNG() {
-            if (!this._currentSvg) {
-                MessageToast.show("Please view the flowchart first");
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis data available");
                 return;
             }
             
-            const oContext = this.getView().getBindingContext();
             const oAnalysis = oContext.getObject();
             const filename = `flowchart_${oAnalysis.ricefwId}.png`;
             
-            try {
-                FlowchartGenerator.exportAsPNG(this._currentSvg, filename);
-                MessageToast.show("Flowchart exported as PNG");
-            } catch (error) {
-                console.error("Failed to export PNG:", error);
-                MessageToast.show("Failed to export PNG");
-            }
+            this.getView().setBusy(true);
+            
+            FlowchartGenerator.exportAsPNG("flowchartSvgContainer", filename)
+                .then(() => {
+                    this.getView().setBusy(false);
+                    MessageToast.show("Flowchart exported as PNG");
+                })
+                .catch((error) => {
+                    this.getView().setBusy(false);
+                    console.error("Failed to export PNG:", error);
+                    MessageToast.show("Failed to export PNG");
+                });
         },
         
         onExportFlowchartPDF() {
-            if (!this._currentSvg) {
-                MessageToast.show("Please view the flowchart first");
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis data available");
                 return;
             }
             
+            const oAnalysis = oContext.getObject();
+            const filename = `flowchart_${oAnalysis.ricefwId}.pdf`;
+            
+            this.getView().setBusy(true);
+            
+            FlowchartGenerator.exportAsPDF("flowchartSvgContainer", oAnalysis, filename)
+                .then(() => {
+                    this.getView().setBusy(false);
+                    MessageToast.show("Flowchart exported as PDF");
+                })
+                .catch((error) => {
+                    this.getView().setBusy(false);
+                    console.error("Failed to export PDF:", error);
+                    MessageToast.show("Failed to export PDF");
+                });
+        },
+
+        onExportFlowchartSVG() {
             const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis data available");
+                return;
+            }
+            
             const oAnalysis = oContext.getObject();
             const filename = `flowchart_${oAnalysis.ricefwId}`;
             
             try {
-                FlowchartGenerator.exportAsPDF(this._currentSvg, filename);
-                MessageToast.show("Flowchart exported as SVG (PDF export requires additional libraries)");
+                FlowchartGenerator.exportAsSVG("flowchartSvgContainer", filename);
+                MessageToast.show("Flowchart exported as SVG");
             } catch (error) {
-                console.error("Failed to export PDF:", error);
-                MessageToast.show("Failed to export PDF");
+                console.error("Failed to export SVG:", error);
+                MessageToast.show("Failed to export SVG");
             }
         }
     });
