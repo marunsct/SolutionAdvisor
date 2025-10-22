@@ -60,7 +60,14 @@
                     validated="false"
                     activate="onObjectStepActivate">
                     <VBox id="objectStepVBox" class="sapUiSmallMargin">
-                        <Label id="ricefwIdLabel" text="RICEFW ID" required="true"/>
+                        <HBox alignItems="Center" justifyContent="SpaceBetween">
+                            <Label id="ricefwIdLabel" text="RICEFW ID" required="true"/>
+                            <Button
+                                icon="sap-icon://hint"
+                                tooltip="Show detailed hint"
+                                press="onShowDetailedHint"
+                                type="Transparent"/>
+                        </HBox>
                         <Input
                             id="ricefwIdInput"
                             width="300px"
@@ -141,6 +148,18 @@
         </content>
         <footer>
             <OverflowToolbar id="wizardFooter" >
+                <Button
+                    id="ricefwHistoryButton"
+                    text="View History"
+                    icon="sap-icon://history"
+                    press="onShowRicefwHistory"
+                    visible="{= ${wizardModel>/ricefwId} !== '' }"/>
+                <Button
+                    id="saveDraftButton"
+                    text="Save Draft"
+                    icon="sap-icon://save"
+                    press="onSaveDraft"
+                    visible="{= ${wizardModel>/projectID} !== '' }"/>
                 <ToolbarSpacer id="wizardFooterSpacer"/>
                 <Button id="wizardCancelButton"
                     text="Cancel"

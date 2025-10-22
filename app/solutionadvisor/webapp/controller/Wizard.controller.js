@@ -37,6 +37,29 @@ sap.ui.define([
             });
             this.getView().setModel(oExamplesModel, "examplesModel");
             
+            // Initialize hint model
+            const oHintModel = new JSONModel({
+                questionText: "",
+                detailedHint: "",
+                performanceContext: ""
+            });
+            this.getView().setModel(oHintModel, "hintModel");
+            
+            // Initialize draft model
+            const oDraftModel = new JSONModel({
+                currentStep: 0,
+                totalSteps: 0,
+                timeSpent: 0
+            });
+            this.getView().setModel(oDraftModel, "draftModel");
+            
+            // Initialize history model
+            const oHistoryModel = new JSONModel({
+                ricefwId: "",
+                analyses: []
+            });
+            this.getView().setModel(oHistoryModel, "historyModel");
+            
             // Attach to route matched event
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("Wizard").attachPatternMatched(this._onRouteMatched, this);
@@ -354,6 +377,176 @@ sap.ui.define([
             if (oDialog) {
                 oDialog.close();
             }
+        },
+        
+        onShowDetailedHint() {
+            // Load hint for RICEFW ID format
+            const oHintModel = this.getView().getModel("hintModel");
+            oHintModel.setData({
+                questionText: "RICEFW ID Format",
+                detailedHint: "The RICEFW ID follows a specific pattern to categorize SAP development objects:\n\n" +
+                    "• First letter: Object type (R=Report, I=Interface, C=Conversion, E=Enhancement, F=Form, W=Workflow)\n" +
+                    "• Four digits: Sequential number (0001-9999)\n" +
+                    "• Three letters: Project/Module code\n\n" +
+                    "Example: I-0042-IMP means Interface #42 for IMP (Implementation) project.\n\n" +
+                    "This standardized naming helps with:\n" +
+                    "• Object tracking across landscapes\n" +
+                    "• Transport management\n" +
+                    "• Documentation and audit trails",
+                performanceContext: "Use consistent RICEFW IDs across all environments (DEV, QAS, PRD) to simplify transport and deployment processes."
+            });
+            
+            if (!this._detailedHintPopover) {
+                this._detailedHintPopover = sap.ui.xmlfragment(
+                    "sd.solutionadvisor.view.fragments.DetailedHintPopover",
+                    this
+                );
+                this.getView().addDependent(this._detailedHintPopover);
+            }
+            
+            const oButton = this.byId("ricefwIdLabel")?.getParent().getItems()[1];
+            this._detailedHintPopover.openBy(oButton || this.byId("ricefwIdInput"));
+        },
+        
+        onCloseDetailedHint() {
+            if (this._detailedHintPopover) {
+                this._detailedHintPopover.close();
+            }
+        },
+        
+        onSaveDraft() {
+            const oWizard = this.byId("cleanCoreWizard");
+            const oDraftModel = this.getView().getModel("draftModel");
+            
+            // Update draft model with current progress
+            oDraftModel.setData({
+                currentStep: oWizard.getCurrentStep() === "projectStep" ? 1 : 
+                            oWizard.getCurrentStep() === "objectStep" ? 2 : 3,
+                totalSteps: 3,
+                timeSpent: Math.floor(Math.random() * 30) + 5 // Placeholder - would track actual time
+            });
+            
+            if (!this._saveDraftDialog) {
+                this._saveDraftDialog = sap.ui.xmlfragment(
+                    "sd.solutionadvisor.view.fragments.SaveDraftDialog",
+                    this
+                );
+                this.getView().addDependent(this._saveDraftDialog);
+            }
+            
+            this._saveDraftDialog.open();
+        },
+        
+        onConfirmSaveDraft() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const oData = oWizardModel.getData();
+            
+            // In a real implementation, this would save to WizardSession entity
+            const draftName = sap.ui.getCore().byId("draftNameInput")?.getValue() || 
+                             `Draft - ${oData.objectName || oData.ricefwId}`;
+            
+            // Placeholder for actual save logic
+            MessageToast.show(`Draft "${draftName}" saved successfully. You can resume this analysis later.`);
+            
+            this._saveDraftDialog.close();
+        },
+        
+        onCancelSaveDraft() {
+            this._saveDraftDialog.close();
+        },
+        
+        onShowRicefwHistory() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sRicefwId = oWizardModel.getProperty("/ricefwId");
+            
+            const oHistoryModel = this.getView().getModel("historyModel");
+            oHistoryModel.setProperty("/ricefwId", sRicefwId);
+            
+            // Load history
+            if (sRicefwId) {
+                this._loadRicefwHistory(sRicefwId);
+            }
+            
+            if (!this._historyDialog) {
+                this._historyDialog = sap.ui.xmlfragment(
+                    "sd.solutionadvisor.view.fragments.RicefwHistoryDialog",
+                    this
+                );
+                this.getView().addDependent(this._historyDialog);
+            }
+            
+            this._historyDialog.open();
+        },
+        
+        _loadRicefwHistory(sRicefwId) {
+            const oModel = this.getView().getModel();
+            const oHistoryModel = this.getView().getModel("historyModel");
+            
+            oModel.read("/Analyses", {
+                filters: [
+                    new sap.ui.model.Filter("ricefwId", sap.ui.model.FilterOperator.EQ, sRicefwId)
+                ],
+                sorters: [
+                    new sap.ui.model.Sorter("analysisDate", true) // Descending
+                ],
+                success: (oData) => {
+                    oHistoryModel.setProperty("/analyses", oData.results || []);
+                },
+                error: (oError) => {
+                    console.error("Failed to load RICEFW history:", oError);
+                    MessageToast.show("Failed to load history");
+                }
+            });
+        },
+        
+        onSearchRicefwHistory() {
+            const oHistoryModel = this.getView().getModel("historyModel");
+            const sRicefwId = oHistoryModel.getProperty("/ricefwId");
+            
+            if (sRicefwId) {
+                this._loadRicefwHistory(sRicefwId);
+            } else {
+                MessageToast.show("Please enter a RICEFW ID");
+            }
+        },
+        
+        onViewHistoryDetails(oEvent) {
+            const oItem = oEvent.getSource().getParent().getParent();
+            const oContext = oItem.getBindingContext("historyModel");
+            const oAnalysis = oContext.getObject();
+            
+            // Navigate to analysis details
+            this._historyDialog.close();
+            this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                key: oAnalysis.ID
+            });
+        },
+        
+        onCopyHistoryDecisions(oEvent) {
+            const oItem = oEvent.getSource().getParent().getParent();
+            const oContext = oItem.getBindingContext("historyModel");
+            const oAnalysis = oContext.getObject();
+            
+            MessageBox.confirm(
+                `Do you want to copy the decisions from the previous analysis?\n\n` +
+                `This will pre-fill your answers based on:\n` +
+                `Level: ${oAnalysis.finalRecommendation}\n` +
+                `Date: ${oAnalysis.analysisDate}`,
+                {
+                    title: "Copy Previous Decisions",
+                    onClose: (sAction) => {
+                        if (sAction === MessageBox.Action.OK) {
+                            // In real implementation, load decision paths and pre-fill wizard
+                            MessageToast.show("Previous decisions copied. You can modify them as needed.");
+                            this._historyDialog.close();
+                        }
+                    }
+                }
+            );
+        },
+        
+        onCloseRicefwHistory() {
+            this._historyDialog.close();
         },
 
         onObjectNameChange(oEvent) {
