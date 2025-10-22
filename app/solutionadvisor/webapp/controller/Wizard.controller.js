@@ -15,9 +15,58 @@ sap.ui.define([
                 ricefwId: "",
                 objectType: "",
                 objectName: "",
-                objectDescription: ""
+                objectDescription: "",
+                autoSelectedProject: false
             });
             this.getView().setModel(oWizardModel, "wizardModel");
+            
+            // Attach to route matched event
+            const oRouter = this.getOwnerComponent().getRouter();
+            oRouter.getRoute("Wizard").attachPatternMatched(this._onRouteMatched, this);
+        },
+
+        _onRouteMatched(oEvent) {
+            const oArgs = oEvent.getParameter("arguments");
+            const sProjectId = oArgs.projectId;
+            
+            if (sProjectId) {
+                // Project was pre-selected from project list
+                this._autoSelectProject(sProjectId);
+            } else {
+                // Reset wizard if no project selected
+                const oWizardModel = this.getView().getModel("wizardModel");
+                oWizardModel.setProperty("/projectID", "");
+                oWizardModel.setProperty("/projectName", "");
+                oWizardModel.setProperty("/autoSelectedProject", false);
+                this.byId("projectStep").setValidated(false);
+            }
+        },
+
+        _autoSelectProject(sProjectId) {
+            // Load project details and auto-select
+            const oModel = this.getView().getModel();
+            oModel.read("/Projects('" + sProjectId + "')", {
+                success: (oData) => {
+                    const oWizardModel = this.getView().getModel("wizardModel");
+                    oWizardModel.setProperty("/projectID", oData.ID);
+                    oWizardModel.setProperty("/projectName", oData.projectName);
+                    oWizardModel.setProperty("/autoSelectedProject", true);
+                    
+                    // Display project info
+                    const sInfo = `S/4HANA: ${oData.s4HanaFlavor} | Criticality: ${oData.businessCriticality}`;
+                    this.byId("projectInfo").setText(sInfo);
+                    
+                    // Validate step and auto-advance
+                    this.byId("projectStep").setValidated(true);
+                    
+                    // Auto-advance to next step
+                    const oWizard = this.byId("cleanCoreWizard");
+                    oWizard.nextStep();
+                },
+                error: (oError) => {
+                    console.error("Failed to load project:", oError);
+                }
+            });
         },
 
         onProjectStepActivate() {
@@ -176,7 +225,20 @@ sap.ui.define([
         },
 
         onNavBack() {
-            this.getOwnerComponent().getRouter().navTo("AnalysesList");
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sProjectId = oWizardModel.getProperty("/projectID");
+            const sProjectName = oWizardModel.getProperty("/projectName");
+            
+            if (sProjectId) {
+                // Navigate back to analyses list with project context
+                this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                    projectId: sProjectId,
+                    projectName: encodeURIComponent(sProjectName)
+                });
+            } else {
+                // Navigate back to project list
+                this.getOwnerComponent().getRouter().navTo("ProjectsList");
+            }
         }
     });
 });

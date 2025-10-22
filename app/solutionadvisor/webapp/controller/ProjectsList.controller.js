@@ -84,10 +84,12 @@ sap.ui.define([
             const oItem = oEvent.getParameter("listItem") || oEvent.getSource();
             const oContext = oItem.getBindingContext();
             const sProjectId = oContext.getProperty("ID");
+            const sProjectName = oContext.getProperty("projectName");
 
-            // Navigate to project details
-            this.getOwnerComponent().getRouter().navTo("ProjectDetails", {
-                key: sProjectId
+            // Navigate to analyses list with project context
+            this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                projectId: sProjectId,
+                projectName: encodeURIComponent(sProjectName)
             });
         },
 
@@ -96,8 +98,30 @@ sap.ui.define([
             // TODO: Open create project dialog
         },
 
-        onViewAnalyses() {
-            this.getOwnerComponent().getRouter().navTo("AnalysesList");
+        onEditProject() {
+            const oTable = this.byId("projectsTable");
+            const aSelectedItems = oTable.getSelectedItems();
+            
+            if (aSelectedItems.length === 0) {
+                MessageToast.show("Please select a project to edit");
+                return;
+            }
+            
+            const oContext = aSelectedItems[0].getBindingContext();
+            const sProjectId = oContext.getProperty("ID");
+            
+            // Navigate to project details for editing
+            this.getOwnerComponent().getRouter().navTo("ProjectDetails", {
+                key: sProjectId
+            });
+        },
+        
+        onViewAllAnalyses() {
+            // Navigate to all analyses without project filter
+            this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                projectId: "all",
+                projectName: "All Projects"
+            });
         },
 
         onTilePress() {

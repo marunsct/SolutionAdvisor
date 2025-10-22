@@ -131,7 +131,7 @@
         },
         {
           "name": "AnalysesList",
-          "pattern": "Analyses",
+          "pattern": "Analyses/:projectId:/:projectName:",
           "target": [
             "AnalysesList"
           ]
@@ -145,7 +145,7 @@
         },
         {
           "name": "Wizard",
-          "pattern": "Wizard",
+          "pattern": "Wizard/:projectId:",
           "target": [
             "Wizard"
           ]

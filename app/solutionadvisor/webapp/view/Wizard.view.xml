@@ -23,12 +23,21 @@
                     validated="false"
                     activate="onProjectStepActivate">
                     <VBox id="projectStepVBox" class="sapUiSmallMargin">
+                        <MessageStrip
+                            id="projectAutoSelectedInfo"
+                            visible="{wizardModel>/autoSelectedProject}"
+                            text="Project automatically selected from previous screen"
+                            type="Success"
+                            showIcon="true"
+                            class="sapUiSmallMarginBottom"/>
                         <Label id="projectLabel" text="Select Project" required="true"/>
                         <ComboBox
                             id="projectComboBox"
                             width="100%"
                             placeholder="Choose a project..."
                             selectionChange="onProjectSelect"
+                            enabled="{= !${wizardModel>/autoSelectedProject} }"
+                            selectedKey="{wizardModel>/projectID}"
                             items="{
                                 path: '/Projects',
                                 sorter: { path: 'projectName' }
