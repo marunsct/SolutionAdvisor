@@ -145,7 +145,7 @@
         },
         {
           "name": "Wizard",
-          "pattern": "Wizard/:projectId:",
+          "pattern": "Wizard/:projectId:/:sessionId:",
           "target": [
             "Wizard"
           ]

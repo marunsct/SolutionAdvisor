@@ -64,6 +64,7 @@ sap.ui.define([
             this._wizardStartTime = new Date();
             this._sessionId = null;
             this._analysisId = null;
+            this._answeredQuestions = {};
             
             // Attach to route matched event
             const oRouter = this.getOwnerComponent().getRouter();
@@ -73,17 +74,17 @@ sap.ui.define([
         _onRouteMatched(oEvent) {
             const oArgs = oEvent.getParameter("arguments");
             const sProjectId = oArgs.projectId;
+            const sSessionId = oArgs.sessionId;
             
-            if (sProjectId) {
+            if (sSessionId) {
+                // Resume from saved session
+                this._resumeSession(sSessionId);
+            } else if (sProjectId && sProjectId !== "resume") {
                 // Project was pre-selected from project list
                 this._autoSelectProject(sProjectId);
             } else {
                 // Reset wizard if no project selected
-                const oWizardModel = this.getView().getModel("wizardModel");
-                oWizardModel.setProperty("/projectID", "");
-                oWizardModel.setProperty("/projectName", "");
-                oWizardModel.setProperty("/autoSelectedProject", false);
-                this.byId("projectStep").setValidated(false);
+                this._resetWizard();
             }
         },
 
@@ -112,6 +113,143 @@ sap.ui.define([
                     console.error("Failed to load project:", oError);
                 }
             });
+        },
+
+        /**
+         * Resume wizard from saved session
+         * @param {string} sSessionId - Session ID to resume
+         */
+        _resumeSession: function(sSessionId) {
+            const oModel = this.getView().getModel();
+            const oWizardModel = this.getView().getModel("wizardModel");
+            
+            this.getView().setBusy(true);
+            
+            // Load session data with expanded analysis
+            oModel.read(`/WizardSessions('${sSessionId}')`, {
+                urlParameters: {
+                    "$expand": "analysis"
+                },
+                success: (oSession) => {
+                    if (!oSession) {
+                        MessageBox.error("Session not found or has expired");
+                        this.getView().setBusy(false);
+                        this._resetWizard();
+                        return;
+                    }
+                    
+                    // Store session ID
+                    this._sessionId = sSessionId;
+                    this._analysisId = oSession.analysis_ID;
+                    
+                    // Parse answered path to restore previous answers
+                    const answeredPath = JSON.parse(oSession.answeredPath || "[]");
+                    this._answeredQuestions = answeredPath.reduce((acc, item) => {
+                        acc[item.questionId] = item;
+                        return acc;
+                    }, {});
+                    
+                    // Load full analysis data to populate wizard fields
+                    oModel.read(`/Analyses('${oSession.analysis_ID}')`, {
+                        urlParameters: {
+                            "$expand": "projectConfig"
+                        },
+                        success: (oAnalysis) => {
+                            // Restore wizard model data
+                            oWizardModel.setData({
+                                projectID: oAnalysis.projectConfig_ID,
+                                projectName: oAnalysis.projectConfig?.projectName || "",
+                                ricefwId: oAnalysis.ricefwId,
+                                objectType: oAnalysis.objectType,
+                                objectName: oAnalysis.objectName,
+                                objectDescription: oAnalysis.objectDescription || "",
+                                autoSelectedProject: true
+                            });
+                            
+                            // Restore UI input fields
+                            this.byId("ricefwIdInput")?.setValue(oAnalysis.ricefwId);
+                            this.byId("objectTypeComboBox")?.setSelectedKey(oAnalysis.objectType);
+                            this.byId("objectNameInput")?.setValue(oAnalysis.objectName);
+                            this.byId("objectDescriptionInput")?.setValue(oAnalysis.objectDescription || "");
+                            
+                            // Mark completed steps as validated
+                            this.byId("projectStep").setValidated(true);
+                            this.byId("objectStep").setValidated(true);
+                            
+                            // Restore wizard to current step
+                            const oWizard = this.byId("cleanCoreWizard");
+                            const iCurrentStep = oSession.currentStep || 1;
+                            
+                            // Navigate wizard to the saved step
+                            if (iCurrentStep >= 1) {
+                                oWizard.setCurrentStep(this.byId("projectStep"));
+                            }
+                            if (iCurrentStep >= 2) {
+                                oWizard.nextStep();
+                            }
+                            if (iCurrentStep >= 3) {
+                                oWizard.nextStep();
+                            }
+                            
+                            // Update session status from Paused to Active
+                            oModel.update(`/WizardSessions('${sSessionId}')`, {
+                                sessionStatus: "Active",
+                                lastActivity: new Date().toISOString()
+                            }, {
+                                success: () => {
+                                    this.getView().setBusy(false);
+                                    MessageToast.show(`Draft resumed successfully from step ${iCurrentStep}`, {
+                                        duration: 3000
+                                    });
+                                },
+                                error: (oError) => {
+                                    this.getView().setBusy(false);
+                                    console.error("Failed to update session status:", oError);
+                                    // Continue anyway, just log the error
+                                }
+                            });
+                        },
+                        error: (oError) => {
+                            this.getView().setBusy(false);
+                            MessageBox.error("Failed to load analysis data");
+                            console.error("Failed to load analysis:", oError);
+                            this._resetWizard();
+                        }
+                    });
+                },
+                error: (oError) => {
+                    this.getView().setBusy(false);
+                    MessageBox.error("Failed to restore draft session");
+                    console.error("Failed to load session:", oError);
+                    this._resetWizard();
+                }
+            });
+        },
+
+        /**
+         * Reset wizard to initial state
+         */
+        _resetWizard: function() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            oWizardModel.setData({
+                projectID: "",
+                projectName: "",
+                ricefwId: "",
+                objectType: "",
+                objectName: "",
+                objectDescription: "",
+                autoSelectedProject: false
+            });
+            
+            this.byId("projectStep").setValidated(false);
+            this.byId("objectStep").setValidated(false);
+            
+            const oWizard = this.byId("cleanCoreWizard");
+            oWizard.discardProgress(this.byId("projectStep"));
+            
+            this._sessionId = null;
+            this._analysisId = null;
+            this._answeredQuestions = {};
         },
 
         onProjectStepActivate() {
@@ -765,7 +903,8 @@ sap.ui.define([
                 currentStep: oDraftModel.getProperty("/currentStep"),
                 totalSteps: oDraftModel.getProperty("/totalSteps"),
                 timeSpentTotal: oDraftModel.getProperty("/timeSpent") * 60, // Convert to seconds
-                lastActivity: new Date().toISOString()
+                lastActivity: new Date().toISOString(),
+                draftName: sDraftName || `Draft - ${new Date().toLocaleDateString()}`
             };
             
             // Update the session via OData
