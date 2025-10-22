@@ -71,7 +71,8 @@
         "sap.ui.table": {},
         "sap.ui.layout": {},
         "sap.f": {},
-        "sap.ushell": {}
+        "sap.ushell": {},
+        "sap.viz": {}
       }
     },
     "contentDensities": {
@@ -149,6 +150,13 @@
           "target": [
             "Wizard"
           ]
+        },
+        {
+          "name": "AnalyticsDashboard",
+          "pattern": "analytics",
+          "target": [
+            "AnalyticsDashboard"
+          ]
         }
       ],
       "targets": {
@@ -176,6 +184,11 @@
           "id": "Wizard",
           "name": "Wizard",
           "title": "New Analysis Wizard"
+        },
+        "AnalyticsDashboard": {
+          "id": "AnalyticsDashboard",
+          "name": "AnalyticsDashboard",
+          "title": "Analytics Dashboard"
         }
       }
     },

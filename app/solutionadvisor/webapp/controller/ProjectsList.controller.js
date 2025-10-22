@@ -266,6 +266,11 @@ sap.ui.define([
             this._loadCounts();
             const oTable = this.byId("projectsTable");
             oTable.getBinding("items").refresh();
+        },
+
+        onNavigateToAnalytics() {
+            // Navigate to analytics dashboard
+            this.getOwnerComponent().getRouter().navTo("AnalyticsDashboard");
         }
     });
 });

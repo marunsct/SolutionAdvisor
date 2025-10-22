@@ -274,4 +274,42 @@ service solutionAdvisorService {
         status          : String;
         s4HanaFlavor    : String;
     };
+
+    /**
+     * Get analytics dashboard data
+     */
+    function getAnalyticsData() returns {
+        technicalDebtScore   : Integer;
+        cloudReadinessScore  : Integer;
+        upgradeImpactScore   : Integer;
+        compositeHealthScore : Integer;
+        totalAnalyses        : Integer;
+        levelDistribution    : array of {
+            level      : String;
+            count      : Integer;
+            percentage : Integer;
+        };
+        trendData            : array of {
+            month          : String;
+            technicalDebt  : Integer;
+            cloudReadiness : Integer;
+            upgradeImpact  : Integer;
+            analysisCount  : Integer;
+        };
+        riskMatrixData       : array of {
+            id        : String;
+            ricefwId  : String;
+            level     : String;
+            x         : Integer;
+            y         : Integer;
+            size      : Integer;
+        };
+        topObjects           : array of {
+            id              : String;
+            ricefwId        : String;
+            objectType      : String;
+            complexityScore : Integer;
+            level           : String;
+        };
+    };
 }

@@ -3,6 +3,7 @@ const DecisionEngine = require('./lib/decision-engine-consolidated');
 const ScoringService = require('./lib/scoring-service');
 const ConstraintsService = require('./lib/constraints-service');
 const ExamplesService = require('./lib/examples-service');
+const AnalyticsService = require('./lib/analytics-service');
 
 module.exports = cds.service.impl(async function () {
     const {
@@ -20,6 +21,7 @@ module.exports = cds.service.impl(async function () {
     const scoringService = new ScoringService(this);
     const constraintsService = new ConstraintsService(this);
     const examplesService = new ExamplesService(this);
+    const analyticsService = new AnalyticsService();
 
     // ===============================
     // Tenant Context Enforcement
@@ -552,6 +554,19 @@ module.exports = cds.service.impl(async function () {
                     console.error('Error enriching analysis with scores:', error);
                 }
             }
+        }
+    });
+
+    /**
+     * Get Analytics Data - Aggregated dashboard data
+     */
+    this.on('getAnalyticsData', async (req) => {
+        try {
+            const analyticsData = await analyticsService.getAnalyticsData();
+            return analyticsData;
+        } catch (error) {
+            console.error('Error getting analytics data:', error);
+            return req.error(500, 'Failed to retrieve analytics data: ' + error.message);
         }
     });
 });
