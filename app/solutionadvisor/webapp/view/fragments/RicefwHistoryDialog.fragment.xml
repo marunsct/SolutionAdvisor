@@ -1,0 +1,88 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog
+        id="ricefwHistoryDialog"
+        title="RICEFW ID History"
+        contentWidth="700px"
+        contentHeight="500px">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <MessageStrip
+                    text="View previous analyses for this RICEFW ID to track evolution and reuse decisions"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <HBox class="sapUiSmallMarginBottom" alignItems="Center">
+                    <Label text="RICEFW ID:" class="sapUiTinyMarginEnd"/>
+                    <Input
+                        id="ricefwHistoryInput"
+                        value="{historyModel>/ricefwId}"
+                        placeholder="Enter RICEFW ID..."
+                        width="300px"
+                        submit=".onSearchRicefwHistory"/>
+                    <Button
+                        text="Search"
+                        icon="sap-icon://search"
+                        press=".onSearchRicefwHistory"
+                        class="sapUiTinyMarginBegin"/>
+                </HBox>
+                
+                <Table
+                    id="historyTable"
+                    items="{historyModel>/analyses}"
+                    growing="true"
+                    growingThreshold="10"
+                    noDataText="No previous analyses found for this RICEFW ID">
+                    <columns>
+                        <Column width="150px">
+                            <Text text="Date"/>
+                        </Column>
+                        <Column>
+                            <Text text="Object Name"/>
+                        </Column>
+                        <Column width="120px">
+                            <Text text="Level"/>
+                        </Column>
+                        <Column width="100px">
+                            <Text text="Status"/>
+                        </Column>
+                        <Column width="100px">
+                            <Text text="Actions"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{historyModel>analysisDate}"/>
+                                <ObjectIdentifier title="{historyModel>objectName}" text="{historyModel>objectType}"/>
+                                <ObjectStatus
+                                    text="{historyModel>finalRecommendation}"
+                                    state="{= ${historyModel>finalRecommendation} === 'Level A' ? 'Success' : ${historyModel>finalRecommendation} === 'Level B' ? 'Information' : 'Warning' }"/>
+                                <ObjectStatus
+                                    text="{historyModel>status}"
+                                    state="{= ${historyModel>status} === 'Completed' ? 'Success' : 'Warning' }"/>
+                                <HBox>
+                                    <Button
+                                        icon="sap-icon://display"
+                                        tooltip="View Details"
+                                        press=".onViewHistoryDetails"
+                                        type="Transparent"/>
+                                    <Button
+                                        icon="sap-icon://copy"
+                                        tooltip="Copy Decisions"
+                                        press=".onCopyHistoryDecisions"
+                                        type="Transparent"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Close" press=".onCloseRicefwHistory"/>
+        </beginButton>
+    </Dialog>
+</core:FragmentDefinition>

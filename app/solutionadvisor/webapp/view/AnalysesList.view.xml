@@ -6,10 +6,17 @@
     xmlns:f="sap.f">
     <Page
         id="analysesListPage"
-        title="Clean Core Analyses"
+        title="{= ${viewModel>/isFiltered} ? 'Analyses for ' + ${viewModel>/projectName} : 'Clean Core Analyses' }"
         showHeader="true">
         <content>
             <VBox class="sapUiSmallMargin">
+                <MessageStrip
+                    id="projectFilterInfo"
+                    visible="{viewModel>/isFiltered}"
+                    text="Showing analyses for project: {viewModel>/projectName}"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
                 <HeaderContainer
                     id="analysesHeader"
                     orientation="Horizontal"

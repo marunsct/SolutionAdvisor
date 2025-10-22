@@ -1,0 +1,80 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards">
+    <Panel
+        id="constraintsPanel"
+        headerText="Performance Thresholds &amp; Constraints"
+        expandable="true"
+        expanded="true"
+        class="sapUiResponsiveMargin">
+        <content>
+            <VBox>
+                <MessageStrip
+                    text="These constraints are automatically displayed based on your selections and project context"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <!-- Performance Constraints Section -->
+                <VBox visible="{= ${constraintsModel>/performanceConstraints}.length > 0 }">
+                    <Title text="Performance Thresholds" level="H4" class="sapUiTinyMarginTop"/>
+                    <List
+                        items="{constraintsModel>/performanceConstraints}"
+                        noDataText="No performance constraints apply to this context">
+                        <StandardListItem
+                            title="{constraintsModel>category} - {constraintsModel>method}"
+                            description="Volume: {constraintsModel>volumeLimit} records | Size: {constraintsModel>sizeThreshold} | Frequency: {constraintsModel>frequencyLimit}"
+                            info="{constraintsModel>cleanCoreLevel}"
+                            infoState="{= ${constraintsModel>cleanCoreLevel} === 'Level A' ? 'Success' : ${constraintsModel>cleanCoreLevel} === 'Level B' ? 'Information' : 'Warning' }"
+                            type="Navigation"
+                            press=".onShowConstraintDetails">
+                            <customData>
+                                <core:CustomData key="guidance" value="{constraintsModel>whenExceeded}"/>
+                                <core:CustomData key="alternative" value="{constraintsModel>alternativeSolution}"/>
+                            </customData>
+                        </StandardListItem>
+                    </List>
+                </VBox>
+                
+                <!-- Deployment Constraints Section -->
+                <VBox visible="{= ${constraintsModel>/deploymentConstraints}.length > 0 }" class="sapUiSmallMarginTop">
+                    <Title text="Deployment Constraints" level="H4" class="sapUiTinyMarginTop"/>
+                    <List
+                        items="{constraintsModel>/deploymentConstraints}"
+                        noDataText="No deployment constraints apply">
+                        <StandardListItem
+                            title="{constraintsModel>title}"
+                            description="{constraintsModel>description}"
+                            info="{constraintsModel>severity}"
+                            infoState="{= ${constraintsModel>severity} === 'Critical' ? 'Error' : ${constraintsModel>severity} === 'High' ? 'Warning' : 'Information' }"/>
+                    </List>
+                </VBox>
+                
+                <!-- Compliance Constraints Section -->
+                <VBox visible="{= ${constraintsModel>/complianceConstraints}.length > 0 }" class="sapUiSmallMarginTop">
+                    <Title text="Compliance &amp; Regulatory Constraints" level="H4" class="sapUiTinyMarginTop"/>
+                    <List
+                        items="{constraintsModel>/complianceConstraints}"
+                        noDataText="No compliance constraints apply">
+                        <StandardListItem
+                            title="{constraintsModel>standard} - {constraintsModel>requirement}"
+                            description="{constraintsModel>description}"
+                            info="{constraintsModel>impact}"
+                            infoState="Warning"
+                            icon="sap-icon://shield"/>
+                    </List>
+                </VBox>
+                
+                <!-- No Constraints Message -->
+                <MessageStrip
+                    visible="{= ${constraintsModel>/performanceConstraints}.length === 0 &amp;&amp; ${constraintsModel>/deploymentConstraints}.length === 0 &amp;&amp; ${constraintsModel>/complianceConstraints}.length === 0 }"
+                    text="No specific constraints identified for the current context. Continue with standard best practices."
+                    type="Success"
+                    showIcon="true"
+                    class="sapUiSmallMarginTop"/>
+            </VBox>
+        </content>
+    </Panel>
+</core:FragmentDefinition>

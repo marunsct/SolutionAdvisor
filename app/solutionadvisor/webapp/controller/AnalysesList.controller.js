@@ -14,9 +14,16 @@ sap.ui.define([
                 analysesCount: 0,
                 levelACount: 0,
                 levelBCount: 0,
-                levelCCount: 0
+                levelCCount: 0,
+                projectId: null,
+                projectName: "",
+                isFiltered: false
             });
             this.getView().setModel(oViewModel, "viewModel");
+            
+            // Attach to route matched event
+            const oRouter = this.getOwnerComponent().getRouter();
+            oRouter.getRoute("AnalysesList").attachPatternMatched(this._onRouteMatched, this);
             
             // Load counts when model is available
             const oModel = this.getView().getModel();
@@ -31,6 +38,55 @@ sap.ui.define([
             }
         },
 
+        _onRouteMatched(oEvent) {
+            const oArgs = oEvent.getParameter("arguments");
+            const sProjectId = oArgs.projectId;
+            const sProjectName = decodeURIComponent(oArgs.projectName || "");
+            
+            const oViewModel = this.getView().getModel("viewModel");
+            
+            if (sProjectId && sProjectId !== "all") {
+                // Set project filter
+                oViewModel.setProperty("/projectId", sProjectId);
+                oViewModel.setProperty("/projectName", sProjectName);
+                oViewModel.setProperty("/isFiltered", true);
+                
+                // Apply filter to table
+                this._applyProjectFilter(sProjectId);
+            } else {
+                // Clear project filter
+                oViewModel.setProperty("/projectId", null);
+                oViewModel.setProperty("/projectName", "All Projects");
+                oViewModel.setProperty("/isFiltered", false);
+                
+                // Clear filter from table
+                const oTable = this.byId("analysesTable");
+                if (oTable) {
+                    const oBinding = oTable.getBinding("items");
+                    if (oBinding) {
+                        oBinding.filter([]);
+                    }
+                }
+            }
+            
+            // Reload counts with filter
+            this._loadCounts();
+        },
+
+        _applyProjectFilter(sProjectId) {
+            const oTable = this.byId("analysesTable");
+            if (!oTable) return;
+            
+            const oBinding = oTable.getBinding("items");
+            if (!oBinding) return;
+            
+            const aFilters = [
+                new Filter("projectConfig_ID", FilterOperator.EQ, sProjectId)
+            ];
+            
+            oBinding.filter(aFilters);
+        },
+
         _loadCounts() {
             const oModel = this.getView().getModel();
             if (!oModel) {
@@ -38,9 +94,17 @@ sap.ui.define([
             }
             
             const oViewModel = this.getView().getModel("viewModel");
+            const sProjectId = oViewModel.getProperty("/projectId");
+            
+            // Build base filters for project context
+            const aBaseFilters = [];
+            if (sProjectId && sProjectId !== "all") {
+                aBaseFilters.push(new Filter("projectConfig_ID", FilterOperator.EQ, sProjectId));
+            }
 
             // Get total analyses count
             oModel.read("/Analyses/$count", {
+                filters: aBaseFilters,
                 success: (oData) => {
                     oViewModel.setProperty("/analysesCount", oData || 0);
                 },
@@ -50,8 +114,9 @@ sap.ui.define([
             });
 
             // Get Level A count
+            const aLevelAFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level A")];
             oModel.read("/Analyses/$count", {
-                filters: [new Filter("finalRecommendation", FilterOperator.EQ, "Level A")],
+                filters: aLevelAFilters,
                 success: (oData) => {
                     oViewModel.setProperty("/levelACount", oData || 0);
                 },
@@ -61,8 +126,9 @@ sap.ui.define([
             });
 
             // Get Level B count
+            const aLevelBFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level B")];
             oModel.read("/Analyses/$count", {
-                filters: [new Filter("finalRecommendation", FilterOperator.EQ, "Level B")],
+                filters: aLevelBFilters,
                 success: (oData) => {
                     oViewModel.setProperty("/levelBCount", oData || 0);
                 },
@@ -72,8 +138,9 @@ sap.ui.define([
             });
 
             // Get Level C count
+            const aLevelCFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level C")];
             oModel.read("/Analyses/$count", {
-                filters: [new Filter("finalRecommendation", FilterOperator.EQ, "Level C")],
+                filters: aLevelCFilters,
                 success: (oData) => {
                     oViewModel.setProperty("/levelCCount", oData || 0);
                 }
@@ -112,8 +179,19 @@ sap.ui.define([
         },
 
         onStartWizard() {
-            // Navigate to wizard
-            this.getOwnerComponent().getRouter().navTo("Wizard");
+            // Get project context
+            const oViewModel = this.getView().getModel("viewModel");
+            const sProjectId = oViewModel.getProperty("/projectId");
+            
+            if (sProjectId && sProjectId !== "all") {
+                // Navigate to wizard with project context
+                this.getOwnerComponent().getRouter().navTo("Wizard", {
+                    projectId: sProjectId
+                });
+            } else {
+                // Navigate to wizard without project context (will need to select project)
+                this.getOwnerComponent().getRouter().navTo("Wizard");
+            }
         },
 
         onBackToProjects() {

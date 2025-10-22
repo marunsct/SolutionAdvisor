@@ -50,8 +50,8 @@
                             descending: true
                         }
                     }"
-                    mode="SingleSelectMaster"
-                    selectionChange="onProjectSelect"
+                    mode="{= ${device>/system/phone} ? 'None' : 'SingleSelectMaster'}"
+                    itemPress="onProjectSelect"
                     growing="true"
                     growingThreshold="20">
                     <headerToolbar>
@@ -64,14 +64,19 @@
                                 search="onSearch"
                                 placeholder="Search projects..."/>
                             <Button
+                                text="Edit Project"
+                                icon="sap-icon://edit"
+                                press="onEditProject"
+                                visible="{= ${user>/isAdmin} !== false }"/>
+                            <Button
                                 text="New Project"
                                 icon="sap-icon://create"
                                 type="Emphasized"
                                 press="onCreateProject"/>
                             <Button
-                                text="View Analyses"
+                                text="View All Analyses"
                                 icon="sap-icon://activities"
-                                press="onViewAnalyses"/>
+                                press="onViewAllAnalyses"/>
                         </OverflowToolbar>
                     </headerToolbar>
                     <columns>

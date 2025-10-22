@@ -1,0 +1,35 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Popover
+        id="detailedHintPopover"
+        placement="Right"
+        showHeader="true"
+        title="Detailed Hint"
+        contentWidth="400px">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <VBox class="sapUiSmallMarginBottom">
+                    <Label text="Question Context:" design="Bold"/>
+                    <Text text="{hintModel>/questionText}" class="sapUiTinyMarginTop"/>
+                </VBox>
+                
+                <VBox class="sapUiSmallMarginBottom">
+                    <Label text="Detailed Guidance:" design="Bold"/>
+                    <Text text="{hintModel>/detailedHint}" class="sapUiTinyMarginTop"/>
+                </VBox>
+                
+                <VBox visible="{= ${hintModel>/performanceContext} !== null &amp;&amp; ${hintModel>/performanceContext} !== '' }">
+                    <Label text="Performance Considerations:" design="Bold"/>
+                    <Text text="{hintModel>/performanceContext}" class="sapUiTinyMarginTop"/>
+                </VBox>
+            </VBox>
+        </content>
+        <footer>
+            <Toolbar>
+                <ToolbarSpacer/>
+                <Button text="Close" press=".onCloseDetailedHint"/>
+            </Toolbar>
+        </footer>
+    </Popover>
+</core:FragmentDefinition>
