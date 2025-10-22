@@ -4,8 +4,9 @@ sap.ui.define([
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
-    "sap/m/MessageBox"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) => {
+    "sap/m/MessageBox",
+    "sap/ui/core/Fragment"
+], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Fragment) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.ProjectsList", {
@@ -137,14 +138,19 @@ sap.ui.define([
             
             // Open create project dialog
             if (!this._createProjectDialog) {
-                this._createProjectDialog = sap.ui.xmlfragment(
-                    "sd.solutionadvisor.view.fragments.CreateProjectDialog",
-                    this
-                );
-                this.getView().addDependent(this._createProjectDialog);
+                Fragment.load({
+                    name: "sd.solutionadvisor.view.fragments.CreateProjectDialog",
+                    controller: this
+                }).then((oDialog) => {
+                    // Fragment.load might return an array, get the actual dialog control
+                    const oActualDialog = Array.isArray(oDialog) ? oDialog[oDialog.length - 1] : oDialog;
+                    this._createProjectDialog = oActualDialog;
+                    this.getView().addDependent(this._createProjectDialog);
+                    this._createProjectDialog.open();
+                });
+            } else {
+                this._createProjectDialog.open();
             }
-            
-            this._createProjectDialog.open();
         },
         
         onCreateProjectConfirm() {
@@ -181,39 +187,48 @@ sap.ui.define([
                 budgetRange: oData.budgetRange || ""
             };
             
-            // Create project via OData service
+            // Create project via OData V4 service (ListBinding.create)
             const oModel = this.getView().getModel();
-            oModel.create("/Projects", oNewProject, {
-                success: (oCreatedProject) => {
+            const oTable = this.byId("projectsTable");
+            // Prefer the table binding if available (ensures automatic refresh)
+            const oListBinding = (oTable && oTable.getBinding && oTable.getBinding("items"))
+                ? oTable.getBinding("items")
+                : oModel.bindList("/Projects");
+
+            try {
+                const oContext = oListBinding.create(oNewProject); // returns a Context immediately
+
+                oContext.created().then(() => {
+                    // Fetch created object
+                    return oContext.requestObject();
+                }).then((oCreatedProject) => {
                     MessageToast.show("Project '" + oCreatedProject.projectName + "' created successfully!");
+
+                    // Close dialog
                     this._createProjectDialog.close();
-                    
-                    // Refresh the table
-                    const oTable = this.byId("projectsTable");
-                    oTable.getBinding("items").refresh();
-                    
-                    // Reload counts
-                    this._loadCounts();
-                    
-                    // Navigate to the new project's analyses
-                    this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                        projectId: oCreatedProject.ID,
-                        projectName: encodeURIComponent(oCreatedProject.projectName)
-                    });
-                },
-                error: (oError) => {
-                    let sErrorMessage = "Failed to create project";
-                    try {
-                        const oErrorResponse = JSON.parse(oError.responseText);
-                        if (oErrorResponse.error && oErrorResponse.error.message) {
-                            sErrorMessage = oErrorResponse.error.message;
-                        }
-                    } catch (e) {
-                        // Use default error message
+
+                    // Refresh bindings and counts
+                    if (oTable && oTable.getBinding("items")) {
+                        oTable.getBinding("items").refresh();
                     }
-                    MessageBox.error(sErrorMessage);
-                }
-            });
+                    this._loadCounts();
+
+                    // Navigate to the new project's analyses
+                    if (oCreatedProject && oCreatedProject.ID) {
+                        this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                            projectId: oCreatedProject.ID,
+                            projectName: encodeURIComponent(oCreatedProject.projectName || oData.projectName)
+                        });
+                    }
+                }).catch((oError) => {
+                    // Creation was rejected by the server or canceled
+                    const sMsg = (oError && (oError.message || oError.toString())) || "Failed to create project";
+                    MessageBox.error(sMsg);
+                });
+            } catch (oError) {
+                const sMsg = (oError && (oError.message || oError.toString())) || "Failed to create project";
+                MessageBox.error(sMsg);
+            }
         },
         
         onCancelCreateProject() {
