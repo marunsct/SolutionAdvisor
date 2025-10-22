@@ -25,7 +25,7 @@
     "start": "cds-serve",
     "start-local": "npm run generate-entry-point && npm run cds-watch",
     "generate-entry-point": "dev-cap-tools gen-entrypoint",
-    "cds-watch": "cds watch --open",
+    "cds-watch": "cds watch --profile hybrid",
     "watch-solutionadvisor": "cds watch --open sd.solutionadvisor/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
