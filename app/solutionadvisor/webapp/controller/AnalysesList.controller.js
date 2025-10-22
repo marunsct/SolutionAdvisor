@@ -238,11 +238,11 @@ sap.ui.define([
         },
 
         _resumeWizard(sAnalysisId, oSession) {
-            // Navigate to wizard with session ID
-            // This would require updating the Wizard route to accept sessionId parameter
-            // For now, just navigate to wizard
-            this.getOwnerComponent().getRouter().navTo("Wizard");
-            MessageToast.show("Resume functionality will be implemented in the wizard");
+            // Navigate to wizard with session ID for resume
+            this.getOwnerComponent().getRouter().navTo("Wizard", {
+                projectId: "resume", // Special flag to indicate resume mode
+                sessionId: oSession.ID
+            });
         },
 
         onStartWizard() {

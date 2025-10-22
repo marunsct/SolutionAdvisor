@@ -168,6 +168,7 @@ entity WizardSession : cuid, managed {
     // User Context
     startedBy               : String(200);
     timeSpentTotal          : Integer; // Total time in seconds
+    draftName               : String(200); // Optional user-friendly name for saved draft
 
     // Multi-tenancy
     tenant                  : String(36) not null;
