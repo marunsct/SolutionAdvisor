@@ -1,14 +1,14 @@
 const cds = require('@sap/cds');
-const DecisionEngine = require('./lib/decision-engine');
+const DecisionEngine = require('./lib/decision-engine-consolidated');
 const ScoringService = require('./lib/scoring-service');
 const ConstraintsService = require('./lib/constraints-service');
 const ExamplesService = require('./lib/examples-service');
 
 module.exports = cds.service.impl(async function () {
-    const { 
-        Projects, 
-        Analyses, 
-        DecisionPaths, 
+    const {
+        Projects,
+        Analyses,
+        DecisionPaths,
         WizardSessions,
         QuestionFlows,
         ConstraintLogs,
@@ -28,11 +28,11 @@ module.exports = cds.service.impl(async function () {
     this.before('*', (req) => {
         // Add tenant context to all operations
         const tenant = req.user?.tenant || 'default';
-        
+
         if (req.data && !req.data.tenant) {
             req.data.tenant = tenant;
         }
-        
+
         // For queries, add tenant filter
         if (req.query && req.query.SELECT) {
             // This would be enhanced with proper tenant filtering in production
@@ -50,7 +50,7 @@ module.exports = cds.service.impl(async function () {
     this.on('startWizard', async (req) => {
         const { projectID, ricefwId, objectType, objectName } = req.data;
         const tenant = req.user?.tenant || 'default';
-        
+
         try {
             // Validate RICEFW ID format
             const ricefwPattern = /^[RICEFYW]-[0-9]{4}-[A-Z]{3}$/;
@@ -70,13 +70,13 @@ module.exports = cds.service.impl(async function () {
                 status: 'In Progress',
                 tenant: tenant
             };
-            
+
             await INSERT.into(Analyses).entries(analysis);
 
             // Create wizard session
             const sessionID = cds.utils.uuid();
             const totalSteps = await decisionEngine.getTotalSteps(objectType);
-            
+
             const session = {
                 ID: sessionID,
                 analysis_ID: analysisID,
@@ -89,12 +89,12 @@ module.exports = cds.service.impl(async function () {
                 tenant: tenant,
                 answeredPath: '[]'
             };
-            
+
             await INSERT.into(WizardSessions).entries(session);
 
             // Get first question
             const firstQuestion = await decisionEngine.getFirstQuestion(objectType);
-            
+
             // Update session with first question
             await UPDATE(WizardSessions)
                 .set({ currentQuestionId: firstQuestion.questionId })
@@ -115,22 +115,22 @@ module.exports = cds.service.impl(async function () {
      * Submit Answer - Process answer and get next question
      */
     this.on('submitAnswer', async (req) => {
-        const { 
-            sessionID, 
-            questionId, 
-            selectedAnswer, 
-            answerIndex, 
-            userComments, 
-            timeSpent 
+        const {
+            sessionID,
+            questionId,
+            selectedAnswer,
+            answerIndex,
+            userComments,
+            timeSpent
         } = req.data;
-        
+
         const tenant = req.user?.tenant || 'default';
 
         try {
             // Get session
             const session = await SELECT.one.from(WizardSessions)
                 .where({ ID: sessionID, tenant: tenant });
-            
+
             if (!session) {
                 return req.error(404, 'Wizard session not found');
             }
@@ -155,7 +155,7 @@ module.exports = cds.service.impl(async function () {
                 answeredBy: req.user?.id || 'anonymous',
                 tenant: tenant
             };
-            
+
             await INSERT.into(DecisionPaths).entries(decisionPath);
 
             // Get analysis to determine object type
@@ -164,8 +164,8 @@ module.exports = cds.service.impl(async function () {
 
             // Get next question or completion
             const nextStep = await decisionEngine.getNextQuestion(
-                questionId, 
-                selectedAnswer, 
+                questionId,
+                selectedAnswer,
                 analysis.objectType
             );
 
@@ -182,7 +182,7 @@ module.exports = cds.service.impl(async function () {
             if (nextStep.isComplete) {
                 // Wizard complete - calculate scores
                 const scores = await scoringService.calculateScores(session.analysis_ID);
-                
+
                 // Update analysis with final results
                 await UPDATE(Analyses)
                     .set({
@@ -242,11 +242,11 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('getRelevantConstraints', async (req) => {
         const { objectType, deploymentType, volumeLevel } = req.data;
-        
+
         try {
             return await constraintsService.getRelevantConstraints(
-                objectType, 
-                deploymentType, 
+                objectType,
+                deploymentType,
                 volumeLevel
             );
         } catch (error) {
@@ -260,11 +260,11 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('getContextualExamples', async (req) => {
         const { objectType, scenario, keywords } = req.data;
-        
+
         try {
             return await examplesService.getContextualExamples(
-                objectType, 
-                scenario, 
+                objectType,
+                scenario,
                 keywords
             );
         } catch (error) {
@@ -278,7 +278,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('calculateScores', async (req) => {
         const { analysisID } = req.data;
-        
+
         try {
             return await scoringService.calculateScores(analysisID);
         } catch (error) {
@@ -293,11 +293,11 @@ module.exports = cds.service.impl(async function () {
     this.on('resumeWizard', async (req) => {
         const { sessionID } = req.data;
         const tenant = req.user?.tenant || 'default';
-        
+
         try {
             const session = await SELECT.one.from(WizardSessions)
                 .where({ ID: sessionID, tenant: tenant });
-            
+
             if (!session) {
                 return req.error(404, 'Wizard session not found');
             }
@@ -333,12 +333,12 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('exportFlowchart', async (req) => {
         const { analysisID, format } = req.data;
-        
+
         try {
             // This is a placeholder - actual implementation would generate SVG/PNG/PDF
             const filename = `flowchart_${analysisID}.${format}`;
             const downloadUrl = `/exports/${filename}`;
-            
+
             return {
                 downloadUrl: downloadUrl,
                 filename: filename
@@ -355,16 +355,16 @@ module.exports = cds.service.impl(async function () {
     this.on('assignUserToProject', async (req) => {
         const { projectId, userId, userEmail, userName, role } = req.data;
         const tenant = req.user?.tenant || 'default';
-        
+
         try {
             // Check if user already assigned
             const existing = await SELECT.one.from(ProjectUsers)
                 .where({ project_ID: projectId, userId: userId, tenant: tenant });
-            
+
             if (existing) {
                 return req.error(409, `User ${userName} is already assigned to this project`);
             }
-            
+
             // Create assignment
             const newAssignmentId = cds.utils.uuid();
             const newAssignment = {
@@ -377,9 +377,9 @@ module.exports = cds.service.impl(async function () {
                 accessLevel: role === 'Admin' ? 'Admin' : 'Write',
                 tenant: tenant
             };
-            
+
             await INSERT.into(ProjectUsers).entries(newAssignment);
-            
+
             return {
                 ID: newAssignmentId,
                 message: `User ${userName} added successfully`
@@ -396,11 +396,11 @@ module.exports = cds.service.impl(async function () {
     this.on('removeUserFromProject', async (req) => {
         const { projectUserId } = req.data;
         const tenant = req.user?.tenant || 'default';
-        
+
         try {
             await DELETE.from(ProjectUsers)
                 .where({ ID: projectUserId, tenant: tenant });
-            
+
             return {
                 success: true,
                 message: 'User removed successfully'
@@ -417,7 +417,7 @@ module.exports = cds.service.impl(async function () {
     this.on('getAccessibleProjects', async (req) => {
         const user = req.user?.id || 'anonymous';
         const tenant = req.user?.tenant || 'default';
-        
+
         try {
             // If admin, return all projects
             if (req.user?.is('Admin')) {
@@ -426,21 +426,21 @@ module.exports = cds.service.impl(async function () {
                     .columns('ID', 'projectName', 'clientName', 'status', 's4HanaFlavor');
                 return projects;
             }
-            
+
             // Otherwise, return only assigned projects
             const userProjects = await SELECT.from(ProjectUsers)
                 .where({ userId: user, tenant: tenant });
-            
+
             const projectIds = userProjects.map(up => up.project_ID);
-            
+
             if (projectIds.length === 0) {
                 return [];
             }
-            
+
             const projects = await SELECT.from(Projects)
                 .where({ ID: { in: projectIds }, tenant: tenant })
                 .columns('ID', 'projectName', 'clientName', 'status', 's4HanaFlavor');
-            
+
             return projects;
         } catch (error) {
             console.error('Error getting accessible projects:', error);
@@ -466,14 +466,14 @@ module.exports = cds.service.impl(async function () {
      */
     this.before('CREATE', Projects, async (req) => {
         const tenant = req.user?.tenant || 'default';
-        
+
         // Ensure ID is set (CAP should do this automatically, but let's be explicit)
         if (!req.data.ID) {
             req.data.ID = cds.utils.uuid();
         }
-        
+
         req.data.tenant = tenant;
-        
+
         // Ensure timeline is in correct format (YYYY-MM-DD)
         if (req.data.timeline) {
             const date = new Date(req.data.timeline);
@@ -481,7 +481,7 @@ module.exports = cds.service.impl(async function () {
                 req.data.timeline = date.toISOString().split('T')[0];
             }
         }
-        
+
         // Set default values for optional fields
         req.data.status = req.data.status || 'Active';
         req.data.expectedDuration = req.data.expectedDuration || 0;
@@ -534,9 +534,9 @@ module.exports = cds.service.impl(async function () {
      */
     this.after('READ', Analyses, async (analyses) => {
         if (!analyses) return;
-        
+
         const analysesList = Array.isArray(analyses) ? analyses : [analyses];
-        
+
         for (const analysis of analysesList) {
             // Calculate scores if not already present
             if (analysis.finalRecommendation && !analysis.technicalDebtScore) {

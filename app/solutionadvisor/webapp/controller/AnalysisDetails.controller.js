@@ -3,8 +3,10 @@ sap.ui.define([
     "sap/ui/core/routing/History",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
-    "sd/solutionadvisor/utils/FlowchartGenerator"
-], (Controller, History, JSONModel, MessageToast, FlowchartGenerator) => {
+    "sd/solutionadvisor/utils/FlowchartGenerator",
+    "sd/solutionadvisor/utils/ErrorHandler",
+    "sap/base/Log"
+], (Controller, History, JSONModel, MessageToast, FlowchartGenerator, ErrorHandler, Log) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysisDetails", {
@@ -21,18 +23,98 @@ sap.ui.define([
 
         _onObjectMatched(oEvent) {
             const sAnalysisId = oEvent.getParameter("arguments").key;
-            this.getView().bindElement({
-                path: `/Analyses('${sAnalysisId}')`,
-                parameters: {
-                    expand: "projectConfig,decisionPaths"
-                },
-                events: {
-                    dataReceived: () => {
-                        // Generate flowchart after data is loaded
-                        this._generateFlowchart();
+            
+            // Check if we're in mock mode and the ID starts with "mock-"
+            if (this.getOwnerComponent().mockAnalysisService && sAnalysisId.startsWith("mock-")) {
+                // Create a mock analysis object
+                const oMockAnalysis = this._createMockAnalysisObject(sAnalysisId);
+                
+                // Create a JSONModel with the mock data
+                const oModel = new JSONModel(oMockAnalysis);
+                this.getView().setModel(oModel, "mockAnalysis");
+                
+                // Set mock binding context
+                this.getView().bindElement({
+                    path: "/",
+                    model: "mockAnalysis"
+                });
+                
+                // Generate flowchart with mock data
+                setTimeout(() => {
+                    this._generateFlowchart(oMockAnalysis);
+                }, 100);
+            } else {
+                // Real backend data
+                this.getView().bindElement({
+                    path: `/Analyses('${sAnalysisId}')`,
+                    parameters: {
+                        expand: "projectConfig,decisionPaths"
+                    },
+                    events: {
+                        dataReceived: () => {
+                            // Generate flowchart after data is loaded
+                            this._generateFlowchart();
+                        }
                     }
-                }
-            });
+                });
+            }
+        },
+        
+        /**
+         * Create a mock analysis object for testing without backend
+         * @param {string} sAnalysisId - The analysis ID
+         * @returns {object} Mock analysis object
+         * @private
+         */
+        _createMockAnalysisObject(sAnalysisId) {
+            return {
+                ID: sAnalysisId,
+                ricefwId: "I-0042-MOCK",
+                objectType: "Interface",
+                objectName: "Mock Analysis Interface",
+                recommendedLevel: "B",
+                technicalDebtScore: 65,
+                cloudReadinessScore: 78,
+                upgradeImpactScore: 45,
+                createdAt: new Date().toISOString(),
+                createdBy: "Mock User",
+                modifiedAt: new Date().toISOString(),
+                modifiedBy: "Mock User",
+                projectConfig: {
+                    ID: "mock-project-1",
+                    name: "Mock Project",
+                    clientName: "Mock Client",
+                    s4HanaFlavor: "Cloud Public",
+                    complianceRequirements: ["GDPR", "SOX"],
+                    createdAt: new Date().toISOString()
+                },
+                decisionPaths: [
+                    {
+                        ID: "path-1",
+                        questionId: "Q1",
+                        questionText: "What type of interface is this?",
+                        answerId: "A1-1",
+                        answerText: "Real-time synchronous",
+                        step: 1
+                    },
+                    {
+                        ID: "path-2",
+                        questionId: "Q2",
+                        questionText: "Is this interface part of standard SAP delivered content?",
+                        answerId: "A2-2",
+                        answerText: "No, it's custom",
+                        step: 2
+                    },
+                    {
+                        ID: "path-3",
+                        questionId: "Q3",
+                        questionText: "Are there existing BTP services for this purpose?",
+                        answerId: "A3-1",
+                        answerText: "Yes",
+                        step: 3
+                    }
+                ]
+            };
         },
         
         _onTabSelect(oEvent) {
@@ -45,7 +127,34 @@ sap.ui.define([
             }
         },
         
-        _generateFlowchart() {
+        _generateFlowchart(oMockData) {
+            // If mock data is provided directly, use it
+            if (oMockData) {
+                try {
+                    FlowchartGenerator.generateFlowchart(oMockData, "flowchartSvgContainer");
+                    this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    return;
+                } catch (error) {
+                    Log.error("Failed to generate flowchart from mock data:", error);
+                    ErrorHandler.showServiceError(error, "Failed to generate flowchart");
+                    return;
+                }
+            }
+            
+            // Check if we're in mock mode with mock model
+            if (this.getView().getModel("mockAnalysis")) {
+                const oAnalysis = this.getView().getModel("mockAnalysis").getData();
+                try {
+                    FlowchartGenerator.generateFlowchart(oAnalysis, "flowchartSvgContainer");
+                    this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                } catch (error) {
+                    Log.error("Failed to generate flowchart from mock model:", error);
+                    ErrorHandler.showServiceError(error, "Failed to generate flowchart");
+                }
+                return;
+            }
+            
+            // Normal backend data flow
             const oContext = this.getView().getBindingContext();
             if (!oContext) return;
             
@@ -69,12 +178,12 @@ sap.ui.define([
                     FlowchartGenerator.generateFlowchart(analysisData, "flowchartSvgContainer");
                     this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
                 } catch (error) {
-                    console.error("Failed to generate flowchart:", error);
-                    MessageToast.show("Failed to generate flowchart");
+                    Log.error("Failed to generate flowchart:", error);
+                    ErrorHandler.showServiceError(error, "Failed to generate flowchart");
                 }
             }).catch((oError) => {
-                console.error("Failed to load decision paths:", oError);
-                MessageToast.show("Failed to load decision paths");
+                Log.error("Failed to load decision paths:", oError);
+                ErrorHandler.showServiceError(oError, "Failed to load decision paths");
             });
         },
 
@@ -120,8 +229,8 @@ sap.ui.define([
                 })
                 .catch((error) => {
                     this.getView().setBusy(false);
-                    console.error("Failed to export PNG:", error);
-                    MessageToast.show("Failed to export PNG");
+                    Log.error("Failed to export PNG:", error);
+                    ErrorHandler.showServiceError(error, "Failed to export PNG");
                 });
         },
         
@@ -144,8 +253,8 @@ sap.ui.define([
                 })
                 .catch((error) => {
                     this.getView().setBusy(false);
-                    console.error("Failed to export PDF:", error);
-                    MessageToast.show("Failed to export PDF");
+                    Log.error("Failed to export PDF:", error);
+                    ErrorHandler.showServiceError(error, "Failed to export PDF");
                 });
         },
 
@@ -163,8 +272,8 @@ sap.ui.define([
                 FlowchartGenerator.exportAsSVG("flowchartSvgContainer", filename);
                 MessageToast.show("Flowchart exported as SVG");
             } catch (error) {
-                console.error("Failed to export SVG:", error);
-                MessageToast.show("Failed to export SVG");
+                Log.error("Failed to export SVG:", error);
+                ErrorHandler.showServiceError(error, "Failed to export SVG");
             }
         }
     });

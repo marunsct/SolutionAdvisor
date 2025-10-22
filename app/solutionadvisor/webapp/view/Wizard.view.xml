@@ -144,6 +144,143 @@
                         </VBox>
                     </VBox>
                 </WizardStep>
+
+                <!-- Step 4: Dynamic Questions -->
+                <WizardStep
+                    id="questionStep"
+                    title="Analysis Questions"
+                    validated="false"
+                    visible="{= !!${wizardModel>/currentQuestion}}">
+                    
+                    <!-- Question Panel -->
+                    <Panel id="questionPanel" 
+                        visible="{= !!${wizardModel>/currentQuestion} &amp;&amp; !${wizardModel>/finalRecommendation}}">
+                        <VBox id="questionVBox" class="sapUiMediumMargin">
+                            <!-- Progress Indicator -->
+                            <HBox id="progressHBox" alignItems="Center" justifyContent="SpaceBetween" class="sapUiSmallMarginBottom">
+                                <Title id="stepTitle" text="Step {wizardModel>/currentStep} of {wizardModel>/totalSteps}" level="H4"/>
+                                <ProgressIndicator
+                                    id="wizardProgressIndicator"
+                                    width="200px"
+                                    percentValue="{= ${wizardModel>/totalSteps} > 0 ? Math.round((${wizardModel>/currentStep} / ${wizardModel>/totalSteps}) * 100) : 0}"
+                                    displayValue="{= ${wizardModel>/totalSteps} > 0 ? Math.round((${wizardModel>/currentStep} / ${wizardModel>/totalSteps}) * 100) + '%' : '0%'}"
+                                    state="{= ${wizardModel>/currentStep} === ${wizardModel>/totalSteps} ? 'Success' : 'None'}"/>
+                            </HBox>
+                            
+                            <!-- Question Title -->
+                            <Title id="questionTitle" text="{wizardModel>/currentQuestion/questionText}" level="H2" class="sapUiMediumMarginBottom"/>
+                            
+                            <!-- Question Hint -->
+                            <Text id="questionHint" text="{wizardModel>/currentQuestion/hint}" class="sapUiSmallMarginBottom"/>
+                            
+                            <!-- Answer Options -->
+                            <VBox id="answerOptionsBox" class="sapUiMediumMarginTop sapUiMediumMarginBottom">
+                                <RadioButtonGroup 
+                                    id="answerOptionsGroup"
+                                    selectedIndex="{wizardModel>/selectedAnswerIndex}"
+                                    columns="1"
+                                    select="onAnswerSelect"
+                                    enabled="{= !${wizardModel>/questionCompleted}}">
+                                    <buttons>
+                                        <RadioButton 
+                                            id="answerOption"
+                                            text="{wizardModel>label}" 
+                                            tooltip="{wizardModel>description}"
+                                            class="sapUiSmallMarginBottom"/>
+                                    </buttons>
+                                </RadioButtonGroup>
+                            </VBox>
+                            
+                            <!-- Action Buttons -->
+                            <HBox id="actionButtonsHBox" alignItems="Center" class="sapUiSmallMarginTop">
+                                <Button id="detailedHintButton"
+                                    text="Show Detailed Hint" 
+                                    icon="sap-icon://hint" 
+                                    press="onShowDetailedHint" 
+                                    class="sapUiTinyMarginEnd"
+                                    visible="{= !!${wizardModel>/currentQuestion/detailedHint}}"/>
+                                <Button id="nextQuestionButton"
+                                    text="Next Question" 
+                                    type="Emphasized" 
+                                    enabled="{= ${wizardModel>/selectedAnswerIndex} >= 0 &amp;&amp; !${wizardModel>/questionCompleted}}"
+                                    press="onSubmitAnswer" 
+                                    class="sapUiTinyMarginEnd"/>
+                            </HBox>
+                        </VBox>
+                    </Panel>
+
+                    <!-- Final Recommendation Panel -->
+                    <Panel id="recommendationPanel" 
+                        visible="{= !!${wizardModel>/finalRecommendation}}">
+                        <VBox id="recommendationVBox" class="sapUiMediumMargin">
+                            <MessageStrip
+                                id="completionMessage"
+                                text="Analysis Complete!"
+                                type="Success"
+                                showIcon="true"
+                                class="sapUiMediumMarginBottom"/>
+                            
+                            <Title id="recommendationLevelTitle" text="Recommended Clean Core Level" level="H2" class="sapUiSmallMarginBottom"/>
+                            <Title id="recommendationLevel" text="{wizardModel>/finalRecommendation}" level="H3" 
+                                class="sapUiSmallMarginBottom sapUiSuccessText"/>
+                            <Text id="recommendationReasoning" text="{wizardModel>/finalReasoning}" class="sapUiMediumMarginBottom"/>
+                            
+                            <!-- Scoring Dashboard -->
+                            <Title id="scoringTitle" text="Scoring Metrics" level="H4" class="sapUiSmallMarginBottom"/>
+                            <HBox id="scoresHBox" class="sapUiMediumMarginBottom" wrap="Wrap">
+                                <VBox id="technicalDebtBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                                    <Label id="technicalDebtLabel" text="Technical Debt Score" class="sapUiTinyMarginBottom"/>
+                                    <ProgressIndicator 
+                                        id="technicalDebtIndicator"
+                                        percentValue="{wizardModel>/scores/technicalDebt}" 
+                                        displayValue="{wizardModel>/scores/technicalDebt}%" 
+                                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : 
+                                                ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"/>
+                                    <Text id="technicalDebtHelp" text="Lower is better" class="sapUiTinyText"/>
+                                </VBox>
+                                
+                                <VBox id="cloudReadinessBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                                    <Label id="cloudReadinessLabel" text="Cloud Readiness Score" class="sapUiTinyMarginBottom"/>
+                                    <ProgressIndicator 
+                                        id="cloudReadinessIndicator"
+                                        percentValue="{wizardModel>/scores/cloudReadiness}" 
+                                        displayValue="{wizardModel>/scores/cloudReadiness}%" 
+                                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : 
+                                                ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"/>
+                                    <Text id="cloudReadinessHelp" text="Higher is better" class="sapUiTinyText"/>
+                                </VBox>
+                                
+                                <VBox id="upgradeImpactBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                                    <Label id="upgradeImpactLabel" text="Upgrade Impact Score" class="sapUiTinyMarginBottom"/>
+                                    <ProgressIndicator 
+                                        id="upgradeImpactIndicator"
+                                        percentValue="{wizardModel>/scores/upgradeImpact}" 
+                                        displayValue="{wizardModel>/scores/upgradeImpact}%" 
+                                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : 
+                                                ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"/>
+                                    <Text id="upgradeImpactHelp" text="Lower is better" class="sapUiTinyText"/>
+                                </VBox>
+                                
+                                <VBox id="compositeHealthBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                                    <Label id="compositeHealthLabel" text="Composite Health Score" class="sapUiTinyMarginBottom"/>
+                                    <ProgressIndicator 
+                                        id="compositeHealthIndicator"
+                                        percentValue="{wizardModel>/scores/compositeHealth}" 
+                                        displayValue="{wizardModel>/scores/compositeHealth}%" 
+                                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : 
+                                                ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"/>
+                                    <Text id="compositeHealthHelp" text="Higher is better" class="sapUiTinyText"/>
+                                </VBox>
+                            </HBox>
+
+                            <Button id="viewDetailsButton"
+                                text="View Analysis Details" 
+                                type="Emphasized" 
+                                press="onViewAnalysisDetails"
+                                class="sapUiMediumMarginTop"/>
+                        </VBox>
+                    </Panel>
+                </WizardStep>
             </Wizard>
         </content>
         <footer>

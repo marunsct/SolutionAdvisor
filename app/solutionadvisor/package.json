@@ -11,14 +11,14 @@
   "dependencies": {
     "d3": "^7.9.0",
     "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.2"
+    "jspdf": "^3.0.3"
   },
   "devDependencies": {
-    "@ui5/cli": "^4.0.30",
-    "@sap/ux-ui5-tooling": "1",
-    "eslint": "9.38.0",
     "@sap/eslint-plugin-ui5-jsdocs": "2.0.8",
-    "@sapui5/ts-types": "~1.141.2"
+    "@sap/ux-ui5-tooling": "1",
+    "@sapui5/ts-types": "~1.141.2",
+    "@ui5/cli": "^4.0.30",
+    "eslint": "9.38.0"
   },
   "scripts": {
     "deploy-config": "npx -p @sap/ux-ui5-tooling fiori add deploy-config cf"
