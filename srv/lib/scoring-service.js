@@ -55,55 +55,103 @@ class ScoringService {
 
     /**
      * Calculate Technical Debt Score (0-100)
+     * Formula: TDS = Σ (Level Weight × Complexity Factor) / Analysis Count × 100
+     * Level weights: A=0.00, B=1.00, C=3.00, D=5.00
      * Lower is better - 0 means no technical debt
      */
     calculateTechnicalDebt(decisionPaths, level) {
-        const baseScore = 10; // Base score
-        const complexityFactor = decisionPaths.length * 0.5; // More questions = more complexity
-        const levelMultiplier = level.technicalDebtMultiplier || 1;
+        if (!decisionPaths || decisionPaths.length === 0) {
+            return 0.00;
+        }
         
-        const score = Math.min(100, baseScore + complexityFactor * levelMultiplier);
+        const levelWeight = level.technicalDebtMultiplier || this.getLevelWeightByName(level.level);
+        let totalWeightedScore = 0;
+        
+        for (const step of decisionPaths) {
+            // Complexity factor based on time spent (normalized to 0-2 range)
+            const complexityFactor = step.timeSpentSeconds ? Math.min(2, step.timeSpentSeconds / 60) : 1.0;
+            totalWeightedScore += levelWeight * complexityFactor;
+        }
+        
+        const score = Math.min(100, (totalWeightedScore / decisionPaths.length) * 100);
         return parseFloat(score.toFixed(2));
     }
 
     /**
      * Calculate Cloud Readiness Score (0-100%)
+     * Formula: CRS = (Count_Level_A + 0.5 × Count_Level_B) / Total × 100
      * Higher is better - 100 means fully cloud ready
      */
     calculateCloudReadiness(analysis, level) {
-        const levelFactor = level.cloudReadinessFactor || 0.5;
-        const deploymentBonus = this.getDeploymentBonus(analysis.projectConfig);
+        // Based on final recommendation level
+        const levelScores = {
+            'Level A': 100,
+            'Level B': 75,
+            'Level C': 50,
+            'Level D': 25
+        };
         
-        const score = Math.min(100, levelFactor * 100 + deploymentBonus);
+        const baseScore = levelScores[analysis.finalRecommendation] || 50;
+        const levelFactor = level.cloudReadinessFactor || 0.5;
+        
+        // Apply level factor and ensure score is between 0-100
+        const score = Math.min(100, Math.max(0, baseScore * levelFactor * 2));
         return parseFloat(score.toFixed(2));
     }
 
     /**
      * Calculate Upgrade Impact Score (0-100)
+     * Formula: UIS = Σ (Level Weight × Custom Code Lines) / Total Lines × 100
+     * Note: Since we don't track code lines, we use decision path complexity as proxy
      * Lower is better - 0 means no upgrade impact
      */
     calculateUpgradeImpact(decisionPaths, level) {
-        const baseScore = 5;
-        const customizationDepth = decisionPaths.length * 0.3;
-        const levelMultiplier = level.upgradeImpactMultiplier || 1;
+        if (!decisionPaths || decisionPaths.length === 0) {
+            return 0.00;
+        }
         
-        const score = Math.min(100, baseScore + customizationDepth * levelMultiplier);
+        const levelWeight = level.upgradeImpactMultiplier || this.getLevelWeightByName(level.level);
+        
+        // Estimate complexity based on number of decisions and user comments
+        let totalComplexity = 0;
+        for (const step of decisionPaths) {
+            // Base complexity of 1, increased if user added comments (indicating complexity)
+            const stepComplexity = step.userComments && step.userComments.length > 0 ? 1.5 : 1.0;
+            totalComplexity += levelWeight * stepComplexity;
+        }
+        
+        const score = Math.min(100, (totalComplexity / decisionPaths.length) * 20);
         return parseFloat(score.toFixed(2));
+    }
+    
+    /**
+     * Get standard level weights
+     */
+    getLevelWeightByName(levelName) {
+        const weights = {
+            'Level A': 0.00,
+            'Level B': 1.00,
+            'Level C': 3.00,
+            'Level D': 5.00
+        };
+        return weights[levelName] || 1.00;
     }
 
     /**
      * Calculate Composite Health Score (0-100)
+     * Formula: CHS = (100 - TDS) × 0.4 + CRS × 0.3 + (100 - UIS) × 0.3
      * Higher is better - weighted average of all scores
+     * Weights: Technical Debt 40%, Cloud Readiness 30%, Upgrade Impact 30%
      */
     calculateCompositeHealth(technicalDebt, cloudReadiness, upgradeImpact) {
-        // Invert technical debt and upgrade impact (lower is better)
+        // Invert technical debt and upgrade impact (lower is better for these)
         const invertedTechnicalDebt = 100 - technicalDebt;
         const invertedUpgradeImpact = 100 - upgradeImpact;
         
-        // Weighted average: 30% tech debt, 40% cloud readiness, 30% upgrade impact
+        // Weighted average: 40% tech debt, 30% cloud readiness, 30% upgrade impact
         const composite = (
-            invertedTechnicalDebt * 0.3 +
-            cloudReadiness * 0.4 +
+            invertedTechnicalDebt * 0.4 +
+            cloudReadiness * 0.3 +
             invertedUpgradeImpact * 0.3
         );
         

@@ -95,6 +95,86 @@ class DecisionEngine {
         
         return objectTypeDef ? objectTypeDef.questionCount : 10; // Default to 10 if not found
     }
+
+    /**
+     * Check if question should be skipped based on project configuration
+     */
+    async shouldSkipQuestion(questionId, projectConfig) {
+        const { QuestionFlow } = cds.entities('sd');
+        
+        const question = await SELECT.one.from(QuestionFlow)
+            .where({ questionId });
+        
+        if (!question || !question.performanceContext) {
+            return false;
+        }
+        
+        try {
+            const conditions = JSON.parse(question.performanceContext);
+            
+            // Check if question is specific to deployment type
+            if (conditions.deploymentTypes && projectConfig.s4HanaFlavor) {
+                const deploymentTypes = Array.isArray(conditions.deploymentTypes) 
+                    ? conditions.deploymentTypes 
+                    : conditions.deploymentTypes.split(',').map(t => t.trim());
+                
+                if (!deploymentTypes.includes(projectConfig.s4HanaFlavor)) {
+                    return true; // Skip if deployment type doesn't match
+                }
+            }
+            
+            // Check if question is specific to compliance requirements
+            if (conditions.complianceRequirements && projectConfig.complianceRequirements) {
+                const requiredCompliance = Array.isArray(conditions.complianceRequirements)
+                    ? conditions.complianceRequirements
+                    : conditions.complianceRequirements.split(',').map(c => c.trim());
+                
+                const projectCompliance = projectConfig.complianceRequirements.split(',').map(c => c.trim());
+                
+                // Check if any required compliance matches project compliance
+                const hasMatch = requiredCompliance.some(rc => projectCompliance.includes(rc));
+                if (!hasMatch) {
+                    return true; // Skip if no compliance match
+                }
+            }
+            
+            return false; // Don't skip
+        } catch (error) {
+            console.error('Error parsing conditional logic:', error);
+            return false; // Don't skip on error
+        }
+    }
+
+    /**
+     * Validate navigation rules JSON structure
+     */
+    validateNavigationRules(navigationRules, questionId) {
+        try {
+            const rules = typeof navigationRules === 'string' 
+                ? JSON.parse(navigationRules) 
+                : navigationRules;
+            
+            // Check that rules is an object
+            if (typeof rules !== 'object' || rules === null) {
+                throw new Error(`Navigation rules must be an object for question ${questionId}`);
+            }
+            
+            // Check each rule has either nextQuestion or finalAnswer
+            for (const [answer, rule] of Object.entries(rules)) {
+                if (!rule.nextQuestion && !rule.finalAnswer) {
+                    throw new Error(
+                        `Navigation rule for answer "${answer}" in question ${questionId} ` +
+                        `must have either nextQuestion or finalAnswer`
+                    );
+                }
+            }
+            
+            return true;
+        } catch (error) {
+            console.error(`Validation error for question ${questionId}:`, error);
+            return false;
+        }
+    }
 }
 
 module.exports = DecisionEngine;
