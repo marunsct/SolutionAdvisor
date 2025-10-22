@@ -307,7 +307,7 @@ sap.ui.define([
             this._validateObjectStep();
         },
         
-        _loadConstraints(sObjectType) {
+        _loadConstraints(sObjectType, sVolumeLevel = "Medium") {
             const oModel = this.getView().getModel();
             const oConstraintsModel = this.getView().getModel("constraintsModel");
             const oWizardModel = this.getView().getModel("wizardModel");
@@ -315,39 +315,61 @@ sap.ui.define([
             // Get project details for deployment type
             const sProjectId = oWizardModel.getProperty("/projectID");
             
-            // Load performance thresholds
-            const aThresholdFilters = [
-                new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType),
-                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
-            ];
-            const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
+            if (!sProjectId || !sObjectType) {
+                console.warn("Cannot load constraints without project and object type");
+                return;
+            }
             
-            oThresholdBinding.requestContexts().then((aContexts) => {
-                const aThresholds = aContexts.map(ctx => ctx.getObject());
-                oConstraintsModel.setProperty("/performanceConstraints", aThresholds);
-            }).catch((oError) => {
-                console.error("Failed to load performance constraints:", oError);
-            });
+            // Load project data first to get deployment type
+            const oProjectBinding = oModel.bindContext("/Projects('" + sProjectId + "')");
             
-            // Load deployment constraints (if project is selected)
-            if (sProjectId) {
-                const oProjectBinding = oModel.bindContext("/Projects('" + sProjectId + "')");
-                oProjectBinding.requestObject().then((oProjectData) => {
+            oProjectBinding.requestObject().then((oProjectData) => {
+                const sDeploymentType = oProjectData.s4HanaFlavor || "Cloud Public";
+                
+                // Call backend service getRelevantConstraints
+                const sPath = "/getRelevantConstraints(objectType='" + sObjectType + 
+                              "',deploymentType='" + sDeploymentType + 
+                              "',volumeLevel='" + sVolumeLevel + "')";
+                
+                const oFunctionBinding = oModel.bindContext(sPath);
+                
+                oFunctionBinding.execute().then(() => {
+                    const oResult = oFunctionBinding.getBoundContext().getObject();
+                    
+                    // The function returns an array of constraints
+                    const aConstraints = oResult.value || [];
+                    oConstraintsModel.setProperty("/performanceConstraints", aConstraints);
+                    
+                    // Also load deployment and compliance constraints (client-side logic)
                     const aDeploymentConstraints = this._getDeploymentConstraints(
-                        oProjectData.s4HanaFlavor,
+                        sDeploymentType,
                         sObjectType
                     );
                     oConstraintsModel.setProperty("/deploymentConstraints", aDeploymentConstraints);
                     
-                    // Load compliance constraints
                     const aComplianceConstraints = this._getComplianceConstraints(
                         oProjectData.complianceRequirements
                     );
                     oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
+                    
                 }).catch((oError) => {
-                    console.error("Failed to load project data:", oError);
+                    console.error("Failed to call getRelevantConstraints function:", oError);
+                    
+                    // Fallback to direct query if function fails
+                    const aThresholdFilters = [
+                        new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
+                        new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+                    ];
+                    const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
+                    
+                    oThresholdBinding.requestContexts().then((aContexts) => {
+                        const aThresholds = aContexts.map(ctx => ctx.getObject());
+                        oConstraintsModel.setProperty("/performanceConstraints", aThresholds);
+                    });
                 });
-            }
+            }).catch((oError) => {
+                console.error("Failed to load project data:", oError);
+            });
         },
         
         _getDeploymentConstraints(sDeployment, sObjectType) {
@@ -416,21 +438,43 @@ sap.ui.define([
             return constraints;
         },
         
-        _loadExamples(sObjectType) {
+        _loadExamples(sObjectType, sScenario = "", sKeywords = "") {
             const oModel = this.getView().getModel();
             const oExamplesModel = this.getView().getModel("examplesModel");
             
-            const aExampleFilters = [
-                new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
-                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
-            ];
-            const oExampleBinding = oModel.bindList("/RealWorldExamples", null, null, aExampleFilters);
+            if (!sObjectType) {
+                console.warn("Cannot load examples without object type");
+                return;
+            }
             
-            oExampleBinding.requestContexts().then((aContexts) => {
-                const aExamples = aContexts.map(ctx => ctx.getObject());
+            // Call backend service getContextualExamples
+            const sPath = "/getContextualExamples(objectType='" + sObjectType + 
+                          "',scenario='" + encodeURIComponent(sScenario) + 
+                          "',keywords='" + encodeURIComponent(sKeywords) + "')";
+            
+            const oFunctionBinding = oModel.bindContext(sPath);
+            
+            oFunctionBinding.execute().then(() => {
+                const oResult = oFunctionBinding.getBoundContext().getObject();
+                
+                // The function returns an array of examples
+                const aExamples = oResult.value || [];
                 oExamplesModel.setProperty("/examples", aExamples);
+                
             }).catch((oError) => {
-                console.error("Failed to load examples:", oError);
+                console.error("Failed to call getContextualExamples function:", oError);
+                
+                // Fallback to direct query if function fails
+                const aExampleFilters = [
+                    new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
+                    new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+                ];
+                const oExampleBinding = oModel.bindList("/RealWorldExamples", null, null, aExampleFilters);
+                
+                oExampleBinding.requestContexts().then((aContexts) => {
+                    const aExamples = aContexts.map(ctx => ctx.getObject());
+                    oExamplesModel.setProperty("/examples", aExamples);
+                });
             });
         },
         

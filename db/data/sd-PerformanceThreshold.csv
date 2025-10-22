@@ -4,3 +4,26 @@ ID;category;method;volumeLimit;sizeThreshold;frequencyLimit;responseTimeTarget;c
 33333333-3333-3333-3333-333333333333;Integration;Enhanced IDOC;100000;100MB;Batch;300000;5;Level B;Split into multiple batches;Consider asynchronous processing;I,C;Cloud Public,Private Cloud,On-Premise;true
 44444444-4444-4444-4444-444444444444;Reporting;Embedded Analytics;1000000;5GB;On-demand;10000;20;Level A;Use data aggregation or archiving;Consider HANA Native calculation views;R;Cloud Public,Private Cloud,On-Premise;true
 55555555-5555-5555-5555-555555555555;Workflow;SAP Workflow;10000;;Real-time;3000;100;Level A;Review workflow complexity;Optimize parallel processing;W;Cloud Public,Private Cloud,On-Premise;true
+66666666-6666-6666-6666-666666666666;Integration;REST API High Volume;10000;50MB;Real-time;3000;20;Level A;Implement pagination and caching;Use BTP Integration Suite for transformation;I;Cloud Public,Private Cloud;true
+77777777-7777-7777-7777-777777777777;Integration;SOAP API;2000;20MB;Real-time;8000;5;Level B;Consider migrating to REST or OData;Use BTP for SOAP-to-REST conversion;I;On-Premise,Private Cloud;true
+88888888-8888-8888-8888-888888888888;Integration;File Transfer;1000000;5GB;Batch;600000;3;Level C;Split large files or use streaming;Consider BTP Integration Suite file handling;I,C;Cloud Public,Private Cloud,On-Premise;true
+99999999-9999-9999-9999-999999999999;DataMigration;LSMW;100000;1GB;One-time;3600000;1;Level A;Use Migration Cockpit for larger volumes;Parallel processing with custom programs;C;Cloud Public,Private Cloud,On-Premise;true
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa;DataMigration;Migration Cockpit;1000000;10GB;One-time;7200000;5;Level A;Split into multiple migration runs;Use staging tables for validation;C;Cloud Public,Private Cloud,On-Premise;true
+bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb;DataMigration;Custom Programs;5000000;50GB;One-time;14400000;10;Level B;Implement parallel processing;Use database partitioning;C;Cloud Public,Private Cloud,On-Premise;true
+cccccccc-cccc-cccc-cccc-cccccccccccc;Reporting;SAP Analytics Cloud;10000000;20GB;On-demand;5000;50;Level A;Use live data connection instead of import;Optimize data model and aggregations;R;Cloud Public,Private Cloud;true
+dddddddd-dddd-dddd-dddd-dddddddddddd;Reporting;Custom ABAP Reports;500000;2GB;Batch;60000;5;Level C;Migrate to CDS views and Fiori;Use background processing;R;On-Premise,Private Cloud;true
+eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee;Reporting;Query Designer;100000;500MB;Ad-hoc;15000;10;Level B;Use SAP Analytics Cloud for self-service;Create pre-aggregated views;R;Cloud Public,Private Cloud,On-Premise;true
+ffffffff-ffff-ffff-ffff-ffffffffffff;Enhancement;BADI Implementation;;;;;Level A;Consider Key User Extensibility;Use Side-by-Side extensions on BTP;E;Cloud Public,Private Cloud,On-Premise;true
+10000000-0000-0000-0000-000000000001;Enhancement;User Exit;;;;;Level B;Migrate to BADI or implicit enhancements;Replace with standard functionality;E;On-Premise,Private Cloud;true
+20000000-0000-0000-0000-000000000002;Enhancement;Code Modification;;;;;Level D;Refactor to use extensibility framework;Register in SCFD;E;On-Premise;true
+30000000-0000-0000-0000-000000000003;Enhancement;Custom ABAP Objects;50000;500MB;;30000;5;Level C;Use OData APIs instead of custom tables;Implement via BTP CAP services;E;On-Premise,Private Cloud;true
+40000000-0000-0000-0000-000000000004;Forms;Adobe Forms;10000;100MB;Batch;20000;10;Level B;Simplify form layout;Use Smart Forms for simple output;F;Cloud Public,Private Cloud,On-Premise;true
+50000000-0000-0000-0000-000000000005;Forms;Smart Forms;50000;200MB;Batch;15000;15;Level A;Optimize layout and data retrieval;Consider migration to Adobe Forms;F;Cloud Public,Private Cloud,On-Premise;true
+60000000-0000-0000-0000-000000000006;Forms;SAP Fiori Web Forms;100000;;Real-time;3000;50;Level A;Implement client-side validation;Use OData batch operations;F;Cloud Public,Private Cloud;true
+70000000-0000-0000-0000-000000000007;Forms;Email Notifications;100000;10MB;Real-time;5000;100;Level A;Use BTP Event Mesh for high volume;Implement email templates;F;Cloud Public,Private Cloud;true
+80000000-0000-0000-0000-000000000008;Workflow;BTP Workflow Management;50000;;Real-time;5000;200;Level A;Optimize workflow steps;Use parallel processing;W;Cloud Public,Private Cloud;true
+90000000-0000-0000-0000-000000000009;Workflow;Build Process Automation;100000;;Real-time;8000;100;Level A;Review decision rules complexity;Use AI decisioning capabilities;W;Cloud Public,Private Cloud;true
+a0000000-0000-0000-0000-000000000001;Workflow;Custom Workflow;20000;;Real-time;10000;20;Level C;Migrate to standard BTP Workflow;Refactor to use standard patterns;W;On-Premise,Private Cloud;true
+b0000000-0000-0000-0000-000000000002;Integration;Database Direct Access;100000;1GB;Batch;60000;10;Level D;Use CDS views or OData APIs;Refactor to use released APIs;I,E;On-Premise;true
+c0000000-0000-0000-0000-000000000003;Performance;HANA Calculation View;50000000;10GB;On-demand;5000;50;Level A;Optimize joins and aggregations;Use data aging and archiving;R,I;Cloud Public,Private Cloud,On-Premise;true
+d0000000-0000-0000-0000-000000000004;Performance;CDS View with Associations;10000000;5GB;On-demand;8000;30;Level A;Limit association depth;Use buffering for master data;R,I,E;Cloud Public,Private Cloud,On-Premise;true
