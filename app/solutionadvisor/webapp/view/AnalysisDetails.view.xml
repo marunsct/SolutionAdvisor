@@ -171,6 +171,20 @@
                             </f:content>
                         </f:SimpleForm>
                     </IconTabFilter>
+                    
+                    <IconTabFilter
+                        text="Decision Flowchart"
+                        key="flowchart"
+                        icon="sap-icon://org-chart">
+                        <VBox class="sapUiSmallMargin" height="600px">
+                            <MessageStrip
+                                text="Visual representation of the decision path taken during analysis"
+                                type="Information"
+                                showIcon="true"
+                                class="sapUiSmallMarginBottom"/>
+                            <core:HTML id="flowchartContainer" content="&lt;div id='flowchartSvgContainer' style='width: 100%; height: 100%; background-color: #fafafa;'&gt;&lt;/div&gt;"/>
+                        </VBox>
+                    </IconTabFilter>
                 </items>
             </IconTabBar>
         </content>
@@ -178,9 +192,17 @@
             <OverflowToolbar>
                 <ToolbarSpacer/>
                 <Button
-                    text="Export Flowchart"
-                    icon="sap-icon://download"
-                    press="onExportFlowchart"/>
+                    text="View Flowchart"
+                    icon="sap-icon://org-chart"
+                    press="onViewFlowchart"/>
+                <Button
+                    text="Export PNG"
+                    icon="sap-icon://camera"
+                    press="onExportFlowchartPNG"/>
+                <Button
+                    text="Export PDF"
+                    icon="sap-icon://pdf-attachment"
+                    press="onExportFlowchartPDF"/>
             </OverflowToolbar>
         </footer>
     </Page>

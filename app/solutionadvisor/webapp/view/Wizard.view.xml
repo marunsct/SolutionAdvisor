@@ -126,6 +126,15 @@
                                 <Text id="summaryObjectName" text="{wizardModel>/objectName}"/>
                             </VBox>
                         </VBox>
+                        
+                        <!-- Add Constraints and Examples Panels -->
+                        <VBox class="sapUiMediumMarginTop">
+                            <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel" type="XML"/>
+                        </VBox>
+                        
+                        <VBox class="sapUiMediumMarginTop">
+                            <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.ExamplesPanel" type="XML"/>
+                        </VBox>
                     </VBox>
                 </WizardStep>
             </Wizard>

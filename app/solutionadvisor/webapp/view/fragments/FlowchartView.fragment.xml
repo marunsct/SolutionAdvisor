@@ -1,0 +1,153 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:html="http://www.w3.org/1999/xhtml">
+    <Dialog
+        id="flowchartDialog"
+        title="Decision Path Flowchart - {flowchartModel>/analysisName}"
+        contentWidth="90%"
+        contentHeight="90%"
+        verticalScrolling="false"
+        horizontalScrolling="false"
+        draggable="true"
+        resizable="true">
+        <customHeader>
+            <Bar>
+                <contentLeft>
+                    <Title text="Decision Path Flowchart - {flowchartModel>/analysisName}" level="H4"/>
+                </contentLeft>
+                <contentRight>
+                    <Button
+                        icon="sap-icon://download"
+                        tooltip="Export as PNG"
+                        press=".onExportFlowchartPNG"/>
+                    <Button
+                        icon="sap-icon://pdf-attachment"
+                        tooltip="Export as PDF"
+                        press=".onExportFlowchartPDF"/>
+                    <Button
+                        icon="sap-icon://decline"
+                        tooltip="Close"
+                        press=".onCloseFlowchartDialog"/>
+                </contentRight>
+            </Bar>
+        </customHeader>
+        <content>
+            <VBox height="100%" width="100%">
+                <!-- Toolbar for flowchart controls -->
+                <Toolbar>
+                    <ToolbarSpacer/>
+                    <Button
+                        icon="sap-icon://zoom-in"
+                        tooltip="Zoom In"
+                        press=".onZoomIn"/>
+                    <Button
+                        icon="sap-icon://zoom-out"
+                        tooltip="Zoom Out"
+                        press=".onZoomOut"/>
+                    <Button
+                        icon="sap-icon://refresh"
+                        tooltip="Reset Zoom"
+                        press=".onResetZoom"/>
+                    <ToolbarSpacer/>
+                </Toolbar>
+                
+                <!-- SVG Container for Flowchart -->
+                <ScrollContainer
+                    id="flowchartScrollContainer"
+                    height="100%"
+                    width="100%"
+                    horizontal="true"
+                    vertical="true">
+                    <html:div id="flowchartSvgContainer" style="width: 100%; height: 100%; min-height: 600px; background-color: #fafafa;">
+                        <!-- SVG will be dynamically inserted here -->
+                    </html:div>
+                </ScrollContainer>
+                
+                <!-- Legend -->
+                <Panel
+                    id="flowchartLegend"
+                    headerText="Legend"
+                    expandable="true"
+                    expanded="false"
+                    width="100%">
+                    <HBox class="sapUiSmallMargin" wrap="Wrap">
+                        <VBox class="sapUiTinyMarginEnd">
+                            <HBox alignItems="Center">
+                                <html:div style="width: 20px; height: 20px; background-color: #e8f5e9; border: 2px solid #4caf50; margin-right: 8px;"></html:div>
+                                <Text text="Level A - Fully Clean Core"/>
+                            </HBox>
+                        </VBox>
+                        <VBox class="sapUiTinyMarginEnd">
+                            <HBox alignItems="Center">
+                                <html:div style="width: 20px; height: 20px; background-color: #e3f2fd; border: 2px solid #2196f3; margin-right: 8px;"></html:div>
+                                <Text text="Level B - Enhanced Clean Core"/>
+                            </HBox>
+                        </VBox>
+                        <VBox class="sapUiTinyMarginEnd">
+                            <HBox alignItems="Center">
+                                <html:div style="width: 20px; height: 20px; background-color: #fff3e0; border: 2px solid #ff9800; margin-right: 8px;"></html:div>
+                                <Text text="Level C - Compliant Modifications"/>
+                            </HBox>
+                        </VBox>
+                        <VBox class="sapUiTinyMarginEnd">
+                            <HBox alignItems="Center">
+                                <html:div style="width: 20px; height: 20px; background-color: #ffebee; border: 2px solid #f44336; margin-right: 8px;"></html:div>
+                                <Text text="Level D - Legacy Customizations"/>
+                            </HBox>
+                        </VBox>
+                        <VBox class="sapUiTinyMarginEnd">
+                            <HBox alignItems="Center">
+                                <html:div style="width: 20px; height: 20px; background-color: #fff; border: 2px solid #757575; margin-right: 8px; border-radius: 10px;"></html:div>
+                                <Text text="Decision Point"/>
+                            </HBox>
+                        </VBox>
+                        <VBox class="sapUiTinyMarginEnd">
+                            <HBox alignItems="Center">
+                                <html:div style="width: 30px; height: 2px; background-color: #333; margin-right: 8px;"></html:div>
+                                <Text text="Decision Path"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </Panel>
+                
+                <!-- Analysis Summary -->
+                <Panel
+                    id="flowchartSummary"
+                    headerText="Analysis Summary"
+                    expandable="true"
+                    expanded="false"
+                    width="100%">
+                    <VBox class="sapUiSmallMargin">
+                        <HBox justifyContent="SpaceBetween">
+                            <VBox>
+                                <Label text="Final Recommendation:" design="Bold"/>
+                                <ObjectStatus
+                                    text="{flowchartModel>/finalRecommendation}"
+                                    state="{= ${flowchartModel>/finalRecommendation} === 'Level A' ? 'Success' : ${flowchartModel>/finalRecommendation} === 'Level B' ? 'Information' : 'Warning' }"/>
+                            </VBox>
+                            <VBox>
+                                <Label text="Total Steps:" design="Bold"/>
+                                <Text text="{flowchartModel>/totalSteps}"/>
+                            </VBox>
+                            <VBox>
+                                <Label text="Technical Debt Score:" design="Bold"/>
+                                <ObjectNumber
+                                    number="{flowchartModel>/technicalDebtScore}"
+                                    unit="%"
+                                    state="{= ${flowchartModel>/technicalDebtScore} &lt; 30 ? 'Success' : ${flowchartModel>/technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"/>
+                            </VBox>
+                            <VBox>
+                                <Label text="Cloud Readiness:" design="Bold"/>
+                                <ObjectNumber
+                                    number="{flowchartModel>/cloudReadinessScore}"
+                                    unit="%"
+                                    state="{= ${flowchartModel>/cloudReadinessScore} &gt; 70 ? 'Success' : ${flowchartModel>/cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </Panel>
+            </VBox>
+        </content>
+    </Dialog>
+</core:FragmentDefinition>

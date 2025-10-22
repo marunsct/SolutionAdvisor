@@ -1,0 +1,165 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards">
+    <Panel
+        id="examplesPanel"
+        headerText="Real-World Implementation Examples"
+        expandable="true"
+        expanded="true"
+        class="sapUiResponsiveMargin">
+        <content>
+            <VBox>
+                <MessageStrip
+                    text="These examples are matched to your scenario and can guide your implementation approach"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <HBox class="sapUiSmallMarginBottom" alignItems="Center">
+                    <Label text="Filter by Industry:" class="sapUiTinyMarginEnd"/>
+                    <ComboBox
+                        id="industryFilter"
+                        width="200px"
+                        selectedKey="{examplesModel>/selectedIndustry}"
+                        selectionChange=".onIndustryFilterChange">
+                        <items>
+                            <core:Item key="" text="All Industries"/>
+                            <core:Item key="Retail" text="Retail"/>
+                            <core:Item key="Manufacturing" text="Manufacturing"/>
+                            <core:Item key="Healthcare" text="Healthcare"/>
+                            <core:Item key="Finance" text="Finance"/>
+                            <core:Item key="Utilities" text="Utilities"/>
+                            <core:Item key="Logistics" text="Logistics"/>
+                        </items>
+                    </ComboBox>
+                    <ToolbarSpacer/>
+                    <Label text="Filter by Level:" class="sapUiTinyMarginEnd"/>
+                    <SegmentedButton
+                        id="levelFilter"
+                        selectedKey="{examplesModel>/selectedLevel}"
+                        selectionChange=".onLevelFilterChange">
+                        <items>
+                            <SegmentedButtonItem key="" text="All"/>
+                            <SegmentedButtonItem key="Level A" text="Level A"/>
+                            <SegmentedButtonItem key="Level B" text="Level B"/>
+                            <SegmentedButtonItem key="Level C" text="Level C"/>
+                            <SegmentedButtonItem key="Level D" text="Level D"/>
+                        </items>
+                    </SegmentedButton>
+                </HBox>
+                
+                <List
+                    id="examplesList"
+                    items="{examplesModel>/examples}"
+                    noDataText="No examples found for the current context. Try adjusting filters or continue without examples.">
+                    <CustomListItem type="Navigation" press=".onShowExampleDetails">
+                        <VBox class="sapUiSmallMargin">
+                            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="{examplesModel>title}" level="H5"/>
+                                <HBox>
+                                    <ObjectStatus
+                                        text="{examplesModel>cleanCoreLevel}"
+                                        state="{= ${examplesModel>cleanCoreLevel} === 'Level A' ? 'Success' : ${examplesModel>cleanCoreLevel} === 'Level B' ? 'Information' : 'Warning' }"/>
+                                    <Label text="{examplesModel>industry}" class="sapUiTinyMarginBegin"/>
+                                </HBox>
+                            </HBox>
+                            <Text text="{examplesModel>scenario}" class="sapUiTinyMarginTop"/>
+                            <VBox class="sapUiTinyMarginTop">
+                                <Label text="Challenge:" design="Bold"/>
+                                <Text text="{examplesModel>challengeDescription}" maxLines="2"/>
+                            </VBox>
+                            <VBox class="sapUiTinyMarginTop">
+                                <Label text="Solution Approach:" design="Bold"/>
+                                <Text text="{examplesModel>solutionDescription}" maxLines="2"/>
+                            </VBox>
+                            <HBox class="sapUiTinyMarginTop">
+                                <Label text="Volume: " design="Bold"/>
+                                <Text text="{examplesModel>volumeHandled}" class="sapUiTinyMarginEnd"/>
+                                <Label text="Performance: " design="Bold"/>
+                                <Text text="{examplesModel>performanceAchieved}"/>
+                            </HBox>
+                            <Link
+                                text="View full details"
+                                press=".onShowExampleDetails"
+                                class="sapUiTinyMarginTop"/>
+                        </VBox>
+                    </CustomListItem>
+                </List>
+                
+                <!-- No Examples Message -->
+                <MessageStrip
+                    visible="{= ${examplesModel>/examples}.length === 0 }"
+                    text="No real-world examples found for this specific context. You can proceed with standard implementation guidelines."
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginTop"/>
+                
+                <!-- Example Details Dialog (not shown by default) -->
+                <Dialog
+                    id="exampleDetailsDialog"
+                    title="{examplesModel>/selectedExample/title}"
+                    contentWidth="600px"
+                    contentHeight="70%"
+                    verticalScrolling="true"
+                    draggable="true"
+                    resizable="true">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Scenario:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/scenario}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Industry:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/industry}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Clean Core Level:" design="Bold"/>
+                                <ObjectStatus
+                                    text="{examplesModel>/selectedExample/cleanCoreLevel}"
+                                    state="{= ${examplesModel>/selectedExample/cleanCoreLevel} === 'Level A' ? 'Success' : 'Information' }"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Challenge:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/challengeDescription}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Solution:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/solutionDescription}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Technologies Used:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/technologiesUsed}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Implementation Details:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/implementation}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Volume Handled:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/volumeHandled}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Performance Achieved:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/performanceAchieved}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Implementation Time:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/implementationTime}"/>
+                            </VBox>
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Lessons Learned:" design="Bold"/>
+                                <Text text="{examplesModel>/selectedExample/lessonsLearned}"/>
+                            </VBox>
+                        </VBox>
+                    </content>
+                    <beginButton>
+                        <Button text="Close" press=".onCloseExampleDialog"/>
+                    </beginButton>
+                </Dialog>
+            </VBox>
+        </content>
+    </Panel>
+</core:FragmentDefinition>
