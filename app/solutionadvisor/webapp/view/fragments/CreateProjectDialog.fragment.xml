@@ -7,27 +7,33 @@
         id="createProjectDialog"
         title="Create New Project"
         contentWidth="600px"
+        contentHeight="70vh"
         resizable="true"
         draggable="true">
         <content>
-            <form:SimpleForm
-                id="projectForm"
-                editable="true"
-                layout="ResponsiveGridLayout"
-                labelSpanXL="4"
-                labelSpanL="4"
-                labelSpanM="4"
-                labelSpanS="12"
-                adjustLabelSpan="false"
-                emptySpanXL="0"
-                emptySpanL="0"
-                emptySpanM="0"
-                emptySpanS="0"
-                columnsXL="1"
-                columnsL="1"
-                columnsM="1"
-                singleContainerFullSize="false">
-                <form:content>
+            <ScrollContainer
+                height="100%"
+                width="100%"
+                vertical="true"
+                horizontal="false">
+                <form:SimpleForm
+                    id="projectForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="1"
+                    columnsL="1"
+                    columnsM="1"
+                    singleContainerFullSize="false">
+                    <form:content>
                     <!-- Basic Information Section -->
                     <core:Title text="Basic Information"/>
                     
@@ -177,25 +183,26 @@
                         id="budgetRangeSelect"
                         selectedKey="{projectModel>/budgetRange}">
                         <items>
-                            <core:Item key="Small" text="Small (< $500K)"/>
+                            <core:Item key="Small" text="Small (&lt; $500K)"/>
                             <core:Item key="Medium" text="Medium ($500K - $2M)"/>
                             <core:Item key="Large" text="Large ($2M - $10M)"/>
-                            <core:Item key="Enterprise" text="Enterprise (> $10M)"/>
+                            <core:Item key="Enterprise" text="Enterprise (&gt; $10M)"/>
                         </items>
                     </Select>
                 </form:content>
             </form:SimpleForm>
+            </ScrollContainer>
         </content>
-        <beginButton>
+        <buttons>
             <Button
+                id="createButton"
                 text="Create"
                 type="Emphasized"
                 press="onCreateProjectConfirm"/>
-        </beginButton>
-        <endButton>
             <Button
+                id="cancelButton"
                 text="Cancel"
                 press="onCancelCreateProject"/>
-        </endButton>
+        </buttons>
     </Dialog>
 </core:FragmentDefinition>
