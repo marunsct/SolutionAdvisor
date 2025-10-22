@@ -1,0 +1,52 @@
+{
+    "destinations": [
+        {
+            "name": "solutionadvisor-backend",
+            "url": "http://localhost:4004/service",
+            "forwardAuthToken": true
+        },
+        {
+            "name": "ui5",
+            "url": "https://ui5.sap.com",
+            "forwardAuthToken": false
+        }
+    ],
+    "VCAP_SERVICES": {
+        "xsuaa": [
+            {
+                "label": "xsuaa",
+                "xsappname": "SolutionAdvisor-14ace10ftrial-dev!t536596",
+                "provider": null,
+                "plan": "application",
+                "name": "SolutionAdvisor-auth",
+                "tags": [
+                    "xsuaa"
+                ],
+                "instance_guid": "41167414-19da-4208-8159-d6e135d4ff6e",
+                "instance_name": "SolutionAdvisor-auth",
+                "binding_guid": "b57baa24-75e9-4e01-a40f-62da0790213c",
+                "binding_name": null,
+                "credentials": {
+                    "apiurl": "https://api.authentication.us10.hana.ondemand.com",
+                    "clientid": "sb-SolutionAdvisor-14ace10ftrial-dev!t536596",
+                    "clientsecret": "85c5145f-b2c9-4846-86d2-f88874ed0b66$wfoXgSrwsr6cNkDKdI6hNpvQwt6M8UprvS7xsc2JrpA=",
+                    "credential-type": "binding-secret",
+                    "identityzone": "14ace10ftrial",
+                    "identityzoneid": "f3c67756-5563-49f9-a484-1d34f748e058",
+                    "sburl": "https://internal-xsuaa.authentication.us10.hana.ondemand.com",
+                    "serviceInstanceId": "41167414-19da-4208-8159-d6e135d4ff6e",
+                    "subaccountid": "f3c67756-5563-49f9-a484-1d34f748e058",
+                    "tenantid": "f3c67756-5563-49f9-a484-1d34f748e058",
+                    "tenantmode": "dedicated",
+                    "uaadomain": "authentication.us10.hana.ondemand.com",
+                    "url": "https://14ace10ftrial.authentication.us10.hana.ondemand.com",
+                    "verificationkey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWtykv5c7l9LYYdI3Glp\nXM+WiwxUJhgGuAeSIEeqoS2GvS9d1W8SaRQksjYUjgPx02XksBFZtvr7LohBbNAB\nLAv02pd2WOu7D78bbDFfoAQAXL23ks3fSo6iRiLw0kh9Vt3zk+JwpguqFnr8vt2v\n8JAlFGHEbdWaI4DGEP/rOYwdvs8264urCG6DniQsJ/z8gyhZRITNa2hHGi4KLZ0G\n9sS0qNjwY6Yh5rRfsCOfwDbZLtpcbne/hOZ9XNkawVQ/PUKR7wELp6cgs7NOklrf\nUqui0+M1jQAWoWi3DXEca6uwEZXEVNhFFGQNdQUYeZI7l7MGzU5+UeytxZcK79Fm\nlQIDAQAB\n-----END PUBLIC KEY-----",
+                    "xsappname": "SolutionAdvisor-14ace10ftrial-dev!t536596",
+                    "zoneid": "f3c67756-5563-49f9-a484-1d34f748e058"
+                },
+                "syslog_drain_url": null,
+                "volume_mounts": []
+            }
+        ]
+    }
+}

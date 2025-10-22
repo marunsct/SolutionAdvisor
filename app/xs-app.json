@@ -39,6 +39,6 @@
   ],
   "logout": {
     "logoutEndpoint": "/do/logout",
-    "logoutPage": "/app/solutionadvisor/webapp/index.html"
+    "logoutPage": "/app/solutionadvisor/index.html"
   }
 }

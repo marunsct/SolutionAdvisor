@@ -23,3 +23,8 @@ File or Folder | Purpose
 ## Learn More
 
 Learn more at https://cap.cloud.sap/docs/get-started/.
+
+
+to run approuter use export VCAP_SERVICES='your full JSON block here'
+to get the vcap service credentials cf create-service-key SolutionAdvisor-auth local-key
+cf service-key SolutionAdvisor-auth local-key

@@ -1,0 +1,34 @@
+{
+  "requires": {
+    "[hybrid]": {
+      "db": {
+        "binding": {
+          "type": "cf",
+          "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
+          "org": "14ace10ftrial",
+          "space": "dev",
+          "instance": "SolutionAdvisor-db",
+          "key": "SolutionAdvisor-db-key"
+        },
+        "kind": "hana-cloud",
+        "vcap": {
+          "name": "db"
+        }
+      },
+      "auth": {
+        "binding": {
+          "type": "cf",
+          "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
+          "org": "14ace10ftrial",
+          "space": "dev",
+          "instance": "SolutionAdvisor-auth",
+          "key": "SolutionAdvisor-auth-key"
+        },
+        "kind": "xsuaa-auth",
+        "vcap": {
+          "name": "auth"
+        }
+      }
+    }
+  }
+}

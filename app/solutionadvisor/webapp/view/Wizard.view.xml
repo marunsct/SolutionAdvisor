@@ -22,8 +22,8 @@
                     title="Select Project"
                     validated="false"
                     activate="onProjectStepActivate">
-                    <VBox class="sapUiSmallMargin">
-                        <Label text="Select Project" required="true"/>
+                    <VBox id="projectStepVBox" class="sapUiSmallMargin">
+                        <Label id="projectLabel" text="Select Project" required="true"/>
                         <ComboBox
                             id="projectComboBox"
                             width="100%"
@@ -33,7 +33,7 @@
                                 path: '/Projects',
                                 sorter: { path: 'projectName' }
                             }">
-                            <core:Item
+                            <core:Item id="projectItem"
                                 key="{ID}"
                                 text="{projectName} - {clientName}"/>
                         </ComboBox>
@@ -50,16 +50,16 @@
                     title="Object Information"
                     validated="false"
                     activate="onObjectStepActivate">
-                    <VBox class="sapUiSmallMargin">
-                        <Label text="RICEFW ID" required="true"/>
+                    <VBox id="objectStepVBox" class="sapUiSmallMargin">
+                        <Label id="ricefwIdLabel" text="RICEFW ID" required="true"/>
                         <Input
                             id="ricefwIdInput"
                             width="300px"
                             placeholder="e.g., I-0042-IMP"
                             liveChange="onRicefwIdChange"
-                            description="Format: [RICEFYW]-[0-9]{4}-[A-Z]{3}"/>
+                            description="Format: [RICEFYW]-[0-9]&#123;4&#125;-[A-Z]&#123;3&#125;"/>
                         
-                        <Label text="Object Type" required="true" class="sapUiTinyMarginTop"/>
+                        <Label id="objectTypeLabel" text="Object Type" required="true" class="sapUiTinyMarginTop"/>
                         <ComboBox
                             id="objectTypeComboBox"
                             width="300px"
@@ -69,19 +69,19 @@
                                 path: '/ObjectTypes',
                                 sorter: { path: 'displayName' }
                             }">
-                            <core:Item
+                            <core:Item id="objectTypeItem"
                                 key="{objectType}"
                                 text="{displayName} ({objectCode})"/>
                         </ComboBox>
                         
-                        <Label text="Object Name" required="true" class="sapUiTinyMarginTop"/>
+                        <Label id="objectNameLabel" text="Object Name" required="true" class="sapUiTinyMarginTop"/>
                         <Input
                             id="objectNameInput"
                             width="100%"
                             placeholder="Enter object name..."
                             liveChange="onObjectNameChange"/>
                         
-                        <Label text="Object Description" class="sapUiTinyMarginTop"/>
+                        <Label id="objectDescriptionLabel" text="Object Description" class="sapUiTinyMarginTop"/>
                         <TextArea
                             id="objectDescriptionInput"
                             width="100%"
@@ -95,25 +95,25 @@
                     id="readyStep"
                     title="Ready to Start"
                     validated="true">
-                    <VBox class="sapUiSmallMargin">
-                        <MessageStrip
+                    <VBox id="readyStepVBox" class="sapUiSmallMargin">
+                        <MessageStrip id="readyMessageStrip"
                             text="You will now be guided through a series of questions to determine the optimal Clean Core level for your object. Click 'Start Analysis' to begin."
                             type="Information"
                             showIcon="true"/>
                         
-                        <VBox class="sapUiMediumMarginTop">
-                            <Title text="Summary" level="H3"/>
-                            <VBox class="sapUiTinyMarginTop">
-                                <Label text="Project:"/>
+                        <VBox id="summaryContainerVBox" class="sapUiMediumMarginTop">
+                            <Title id="summaryTitle" text="Summary" level="H3"/>
+                            <VBox id="summaryFieldsVBox" class="sapUiTinyMarginTop">
+                                <Label id="summaryProjectLabel" text="Project:"/>
                                 <Text id="summaryProject" text="{wizardModel>/projectName}"/>
                                 
-                                <Label text="RICEFW ID:" class="sapUiTinyMarginTop"/>
+                                <Label id="summaryRicefwIdLabel" text="RICEFW ID:" class="sapUiTinyMarginTop"/>
                                 <Text id="summaryRicefwId" text="{wizardModel>/ricefwId}"/>
                                 
-                                <Label text="Object Type:" class="sapUiTinyMarginTop"/>
+                                <Label id="summaryObjectTypeLabel" text="Object Type:" class="sapUiTinyMarginTop"/>
                                 <Text id="summaryObjectType" text="{wizardModel>/objectType}"/>
                                 
-                                <Label text="Object Name:" class="sapUiTinyMarginTop"/>
+                                <Label id="summaryObjectNameLabel" text="Object Name:" class="sapUiTinyMarginTop"/>
                                 <Text id="summaryObjectName" text="{wizardModel>/objectName}"/>
                             </VBox>
                         </VBox>
@@ -122,9 +122,9 @@
             </Wizard>
         </content>
         <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer/>
-                <Button
+            <OverflowToolbar id="wizardFooter" >
+                <ToolbarSpacer id="wizardFooterSpacer"/>
+                <Button id="wizardCancelButton"
                     text="Cancel"
                     press="onCancel"/>
                 <Button

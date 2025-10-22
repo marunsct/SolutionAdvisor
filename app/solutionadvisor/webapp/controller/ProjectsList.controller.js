@@ -16,18 +16,36 @@ sap.ui.define([
             });
             this.getView().setModel(oViewModel, "viewModel");
             
-            // Load initial counts
-            this._loadCounts();
+            // Load counts when model is available
+            const oModel = this.getView().getModel();
+            if (oModel) {
+                if (oModel.getMetadata && oModel.getMetadata()) {
+                    // Model metadata already loaded
+                    this._loadCounts();
+                } else {
+                    // Wait for metadata to load
+                    oModel.attachMetadataLoaded(() => {
+                        this._loadCounts();
+                    });
+                }
+            }
         },
 
         _loadCounts() {
             const oModel = this.getView().getModel();
+            if (!oModel) {
+                return;
+            }
+            
             const oViewModel = this.getView().getModel("viewModel");
 
             // Get total projects count
             oModel.read("/Projects/$count", {
                 success: (oData) => {
                     oViewModel.setProperty("/projectsCount", oData || 0);
+                },
+                error: (oError) => {
+                    console.error("Failed to load projects count:", oError);
                 }
             });
 
@@ -36,6 +54,9 @@ sap.ui.define([
                 filters: [new Filter("status", FilterOperator.EQ, "Active")],
                 success: (oData) => {
                     oViewModel.setProperty("/activeProjectsCount", oData || 0);
+                },
+                error: (oError) => {
+                    console.error("Failed to load active projects count:", oError);
                 }
             });
         },

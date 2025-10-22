@@ -32,8 +32,8 @@ modules:
   - name: SolutionAdvisor_html_repo_runtime
   - name: SolutionAdvisor-auth
   parameters:
-    disk-quota: 256M
-    memory: 256M
+    disk-quota: 1024M
+    memory: 1024M
 - name: SolutionAdvisor_ui_deployer
   type: com.sap.application.content
   path: .

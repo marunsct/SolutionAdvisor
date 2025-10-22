@@ -12,6 +12,7 @@
 	},
 	"scripts": {
 		"start": "node node_modules/@sap/approuter/approuter.js",
-		"start-local": "node node_modules/@sap/html5-repo-mock/index.js"
+		 "start:local": "node -e \"const env=require('./default-env.json'); process.env.VCAP_SERVICES=JSON.stringify(env.VCAP_SERVICES); process.env.destinations=JSON.stringify(env.destinations||[]); require('./node_modules/@sap/approuter/approuter.js');\"",
+		"start-local1": "node node_modules/@sap/html5-repo-mock/index.js"
 	}
 }
