@@ -3,8 +3,9 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
-    "sap/m/MessageToast"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast) => {
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
+], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.ProjectsList", {
@@ -15,6 +16,26 @@ sap.ui.define([
                 activeProjectsCount: 0
             });
             this.getView().setModel(oViewModel, "viewModel");
+            
+            // Initialize project model for create dialog
+            const oProjectModel = new JSONModel({
+                clientName: "",
+                projectName: "",
+                projectType: "",
+                expectedDuration: null,
+                timeline: null,
+                status: "Active",
+                s4HanaFlavor: "",
+                availableBTPServices: "",
+                thirdPartyServices: "",
+                governanceModel: "",
+                complianceRequirementsArray: [],
+                complianceRequirements: "",
+                businessCriticality: "",
+                technicalTeamSize: null,
+                budgetRange: ""
+            });
+            this.getView().setModel(oProjectModel, "projectModel");
             
             // Load counts when model is available
             const oModel = this.getView().getModel();
@@ -94,8 +115,109 @@ sap.ui.define([
         },
 
         onCreateProject() {
-            MessageToast.show("Create Project dialog will be implemented");
-            // TODO: Open create project dialog
+            // Reset project model
+            const oProjectModel = this.getView().getModel("projectModel");
+            oProjectModel.setData({
+                clientName: "",
+                projectName: "",
+                projectType: "",
+                expectedDuration: null,
+                timeline: null,
+                status: "Active",
+                s4HanaFlavor: "",
+                availableBTPServices: "",
+                thirdPartyServices: "",
+                governanceModel: "",
+                complianceRequirementsArray: [],
+                complianceRequirements: "",
+                businessCriticality: "",
+                technicalTeamSize: null,
+                budgetRange: ""
+            });
+            
+            // Open create project dialog
+            if (!this._createProjectDialog) {
+                this._createProjectDialog = sap.ui.xmlfragment(
+                    "sd.solutionadvisor.view.fragments.CreateProjectDialog",
+                    this
+                );
+                this.getView().addDependent(this._createProjectDialog);
+            }
+            
+            this._createProjectDialog.open();
+        },
+        
+        onCreateProjectConfirm() {
+            const oProjectModel = this.getView().getModel("projectModel");
+            const oData = oProjectModel.getData();
+            
+            // Validate required fields
+            if (!oData.clientName || !oData.projectName || !oData.projectType || 
+                !oData.timeline || !oData.s4HanaFlavor) {
+                MessageBox.error("Please fill in all required fields (marked with *)");
+                return;
+            }
+            
+            // Convert compliance requirements array to comma-separated string
+            if (oData.complianceRequirementsArray && oData.complianceRequirementsArray.length > 0) {
+                oData.complianceRequirements = oData.complianceRequirementsArray.join(", ");
+            }
+            
+            // Prepare project data for creation
+            const oNewProject = {
+                clientName: oData.clientName,
+                projectName: oData.projectName,
+                projectType: oData.projectType,
+                expectedDuration: oData.expectedDuration || 0,
+                timeline: oData.timeline,
+                status: oData.status || "Active",
+                s4HanaFlavor: oData.s4HanaFlavor,
+                availableBTPServices: oData.availableBTPServices || "",
+                thirdPartyServices: oData.thirdPartyServices || "",
+                governanceModel: oData.governanceModel || "",
+                complianceRequirements: oData.complianceRequirements || "",
+                businessCriticality: oData.businessCriticality || "",
+                technicalTeamSize: oData.technicalTeamSize || 0,
+                budgetRange: oData.budgetRange || ""
+            };
+            
+            // Create project via OData service
+            const oModel = this.getView().getModel();
+            oModel.create("/Projects", oNewProject, {
+                success: (oCreatedProject) => {
+                    MessageToast.show("Project '" + oCreatedProject.projectName + "' created successfully!");
+                    this._createProjectDialog.close();
+                    
+                    // Refresh the table
+                    const oTable = this.byId("projectsTable");
+                    oTable.getBinding("items").refresh();
+                    
+                    // Reload counts
+                    this._loadCounts();
+                    
+                    // Navigate to the new project's analyses
+                    this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                        projectId: oCreatedProject.ID,
+                        projectName: encodeURIComponent(oCreatedProject.projectName)
+                    });
+                },
+                error: (oError) => {
+                    let sErrorMessage = "Failed to create project";
+                    try {
+                        const oErrorResponse = JSON.parse(oError.responseText);
+                        if (oErrorResponse.error && oErrorResponse.error.message) {
+                            sErrorMessage = oErrorResponse.error.message;
+                        }
+                    } catch (e) {
+                        // Use default error message
+                    }
+                    MessageBox.error(sErrorMessage);
+                }
+            });
+        },
+        
+        onCancelCreateProject() {
+            this._createProjectDialog.close();
         },
 
         onEditProject() {

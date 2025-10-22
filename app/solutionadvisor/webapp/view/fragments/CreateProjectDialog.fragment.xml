@@ -1,0 +1,201 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:form="sap.ui.layout.form">
+    <Dialog
+        id="createProjectDialog"
+        title="Create New Project"
+        contentWidth="600px"
+        resizable="true"
+        draggable="true">
+        <content>
+            <form:SimpleForm
+                id="projectForm"
+                editable="true"
+                layout="ResponsiveGridLayout"
+                labelSpanXL="4"
+                labelSpanL="4"
+                labelSpanM="4"
+                labelSpanS="12"
+                adjustLabelSpan="false"
+                emptySpanXL="0"
+                emptySpanL="0"
+                emptySpanM="0"
+                emptySpanS="0"
+                columnsXL="1"
+                columnsL="1"
+                columnsM="1"
+                singleContainerFullSize="false">
+                <form:content>
+                    <!-- Basic Information Section -->
+                    <core:Title text="Basic Information"/>
+                    
+                    <Label text="Client Name" required="true"/>
+                    <Input
+                        id="clientNameInput"
+                        value="{projectModel>/clientName}"
+                        placeholder="Enter client name..."
+                        required="true"
+                        maxLength="200"/>
+                    
+                    <Label text="Project Name" required="true"/>
+                    <Input
+                        id="projectNameInput"
+                        value="{projectModel>/projectName}"
+                        placeholder="Enter project name..."
+                        required="true"
+                        maxLength="200"/>
+                    
+                    <Label text="Project Type" required="true"/>
+                    <Select
+                        id="projectTypeSelect"
+                        selectedKey="{projectModel>/projectType}"
+                        required="true"
+                        forceSelection="false">
+                        <items>
+                            <core:Item key="New Implementation" text="New Implementation"/>
+                            <core:Item key="System Conversion" text="System Conversion"/>
+                            <core:Item key="Greenfield" text="Greenfield"/>
+                            <core:Item key="Brownfield" text="Brownfield"/>
+                            <core:Item key="Selective Data Transition" text="Selective Data Transition"/>
+                        </items>
+                    </Select>
+                    
+                    <Label text="Expected Duration (months)"/>
+                    <Input
+                        id="expectedDurationInput"
+                        value="{projectModel>/expectedDuration}"
+                        placeholder="e.g., 12"
+                        type="Number"/>
+                    
+                    <Label text="Timeline" required="true"/>
+                    <DatePicker
+                        id="timelineInput"
+                        value="{projectModel>/timeline}"
+                        placeholder="Select project timeline..."
+                        required="true"
+                        displayFormat="yyyy-MM-dd"
+                        valueFormat="yyyy-MM-dd"/>
+                    
+                    <Label text="Status"/>
+                    <Select
+                        id="statusSelect"
+                        selectedKey="{projectModel>/status}">
+                        <items>
+                            <core:Item key="Active" text="Active"/>
+                            <core:Item key="Completed" text="Completed"/>
+                            <core:Item key="Archived" text="Archived"/>
+                        </items>
+                    </Select>
+                    
+                    <!-- Technical Configuration Section -->
+                    <core:Title text="Technical Configuration"/>
+                    
+                    <Label text="S/4HANA Flavor" required="true"/>
+                    <Select
+                        id="s4HanaFlavorSelect"
+                        selectedKey="{projectModel>/s4HanaFlavor}"
+                        required="true"
+                        forceSelection="false">
+                        <items>
+                            <core:Item key="Cloud Public" text="Cloud Public Edition"/>
+                            <core:Item key="Private Cloud" text="Private Cloud Edition"/>
+                            <core:Item key="On-Premise" text="On-Premise"/>
+                        </items>
+                    </Select>
+                    
+                    <Label text="Available BTP Services"/>
+                    <TextArea
+                        id="availableBTPServicesInput"
+                        value="{projectModel>/availableBTPServices}"
+                        placeholder="Enter comma-separated BTP services (e.g., Workflow, Document Management, Integration Suite)..."
+                        rows="2"
+                        maxLength="1000"/>
+                    
+                    <Label text="Third Party Services"/>
+                    <TextArea
+                        id="thirdPartyServicesInput"
+                        value="{projectModel>/thirdPartyServices}"
+                        placeholder="Enter external systems and services..."
+                        rows="2"
+                        maxLength="1000"/>
+                    
+                    <!-- Governance & Compliance Section -->
+                    <core:Title text="Governance &amp; Compliance"/>
+                    
+                    <Label text="Governance Model"/>
+                    <Select
+                        id="governanceModelSelect"
+                        selectedKey="{projectModel>/governanceModel}">
+                        <items>
+                            <core:Item key="Centralized" text="Centralized"/>
+                            <core:Item key="Federated" text="Federated"/>
+                            <core:Item key="Hybrid" text="Hybrid"/>
+                        </items>
+                    </Select>
+                    
+                    <Label text="Compliance Requirements"/>
+                    <MultiComboBox
+                        id="complianceRequirementsInput"
+                        selectedKeys="{projectModel>/complianceRequirementsArray}"
+                        placeholder="Select compliance requirements...">
+                        <items>
+                            <core:Item key="SOX" text="SOX (Sarbanes-Oxley)"/>
+                            <core:Item key="GDPR" text="GDPR (General Data Protection Regulation)"/>
+                            <core:Item key="FDA" text="FDA 21 CFR Part 11"/>
+                            <core:Item key="HIPAA" text="HIPAA (Health Insurance Portability)"/>
+                            <core:Item key="ISO 27001" text="ISO 27001 (Information Security)"/>
+                            <core:Item key="PCI DSS" text="PCI DSS (Payment Card Industry)"/>
+                        </items>
+                    </MultiComboBox>
+                    
+                    <Label text="Business Criticality"/>
+                    <Select
+                        id="businessCriticalitySelect"
+                        selectedKey="{projectModel>/businessCriticality}">
+                        <items>
+                            <core:Item key="Mission Critical" text="Mission Critical"/>
+                            <core:Item key="High" text="High"/>
+                            <core:Item key="Medium" text="Medium"/>
+                            <core:Item key="Low" text="Low"/>
+                        </items>
+                    </Select>
+                    
+                    <!-- Team & Resources Section -->
+                    <core:Title text="Team &amp; Resources"/>
+                    
+                    <Label text="Technical Team Size"/>
+                    <Input
+                        id="technicalTeamSizeInput"
+                        value="{projectModel>/technicalTeamSize}"
+                        placeholder="Number of team members"
+                        type="Number"/>
+                    
+                    <Label text="Budget Range"/>
+                    <Select
+                        id="budgetRangeSelect"
+                        selectedKey="{projectModel>/budgetRange}">
+                        <items>
+                            <core:Item key="Small" text="Small (< $500K)"/>
+                            <core:Item key="Medium" text="Medium ($500K - $2M)"/>
+                            <core:Item key="Large" text="Large ($2M - $10M)"/>
+                            <core:Item key="Enterprise" text="Enterprise (> $10M)"/>
+                        </items>
+                    </Select>
+                </form:content>
+            </form:SimpleForm>
+        </content>
+        <beginButton>
+            <Button
+                text="Create"
+                type="Emphasized"
+                press="onCreateProjectConfirm"/>
+        </beginButton>
+        <endButton>
+            <Button
+                text="Cancel"
+                press="onCancelCreateProject"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
