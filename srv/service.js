@@ -11,7 +11,8 @@ module.exports = cds.service.impl(async function () {
         DecisionPaths, 
         WizardSessions,
         QuestionFlows,
-        ConstraintLogs
+        ConstraintLogs,
+        ProjectUsers
     } = this.entities;
 
     // Initialize service components
@@ -348,6 +349,105 @@ module.exports = cds.service.impl(async function () {
         }
     });
 
+    /**
+     * Assign User to Project
+     */
+    this.on('assignUserToProject', async (req) => {
+        const { projectId, userId, userEmail, userName, role } = req.data;
+        const tenant = req.user?.tenant || 'default';
+        
+        try {
+            // Check if user already assigned
+            const existing = await SELECT.one.from(ProjectUsers)
+                .where({ project_ID: projectId, userId: userId, tenant: tenant });
+            
+            if (existing) {
+                return req.error(409, `User ${userName} is already assigned to this project`);
+            }
+            
+            // Create assignment
+            const newAssignmentId = cds.utils.uuid();
+            const newAssignment = {
+                ID: newAssignmentId,
+                project_ID: projectId,
+                userId: userId,
+                userEmail: userEmail,
+                userName: userName,
+                role: role,
+                accessLevel: role === 'Admin' ? 'Admin' : 'Write',
+                tenant: tenant
+            };
+            
+            await INSERT.into(ProjectUsers).entries(newAssignment);
+            
+            return {
+                ID: newAssignmentId,
+                message: `User ${userName} added successfully`
+            };
+        } catch (error) {
+            console.error('Error assigning user to project:', error);
+            return req.error(500, `Failed to assign user: ${error.message}`);
+        }
+    });
+
+    /**
+     * Remove User from Project
+     */
+    this.on('removeUserFromProject', async (req) => {
+        const { projectUserId } = req.data;
+        const tenant = req.user?.tenant || 'default';
+        
+        try {
+            await DELETE.from(ProjectUsers)
+                .where({ ID: projectUserId, tenant: tenant });
+            
+            return {
+                success: true,
+                message: 'User removed successfully'
+            };
+        } catch (error) {
+            console.error('Error removing user from project:', error);
+            return req.error(500, `Failed to remove user: ${error.message}`);
+        }
+    });
+
+    /**
+     * Get Accessible Projects for Current User
+     */
+    this.on('getAccessibleProjects', async (req) => {
+        const user = req.user?.id || 'anonymous';
+        const tenant = req.user?.tenant || 'default';
+        
+        try {
+            // If admin, return all projects
+            if (req.user?.is('Admin')) {
+                const projects = await SELECT.from(Projects)
+                    .where({ tenant: tenant })
+                    .columns('ID', 'projectName', 'clientName', 'status', 's4HanaFlavor');
+                return projects;
+            }
+            
+            // Otherwise, return only assigned projects
+            const userProjects = await SELECT.from(ProjectUsers)
+                .where({ userId: user, tenant: tenant });
+            
+            const projectIds = userProjects.map(up => up.project_ID);
+            
+            if (projectIds.length === 0) {
+                return [];
+            }
+            
+            const projects = await SELECT.from(Projects)
+                .where({ ID: { in: projectIds }, tenant: tenant })
+                .columns('ID', 'projectName', 'clientName', 'status', 's4HanaFlavor');
+            
+            return projects;
+        } catch (error) {
+            console.error('Error getting accessible projects:', error);
+            return req.error(500, `Failed to get accessible projects: ${error.message}`);
+        }
+    });
+
     // ===============================
     // Entity Event Handlers
     // ===============================
@@ -367,6 +467,44 @@ module.exports = cds.service.impl(async function () {
     this.before('CREATE', Projects, async (req) => {
         const tenant = req.user?.tenant || 'default';
         req.data.tenant = tenant;
+    });
+
+    /**
+     * Before reading projects - filter by user access
+     */
+    this.before('READ', Projects, async (req) => {
+        const user = req.user?.id || 'anonymous';
+        const tenant = req.user?.tenant || 'default';
+        
+        // Admins see all projects
+        if (req.user?.is('Admin')) {
+            return;
+        }
+        
+        try {
+            // Get user's assigned projects
+            const userProjects = await SELECT.from(ProjectUsers)
+                .where({ userId: user, tenant: tenant })
+                .columns('project_ID');
+            
+            const projectIds = userProjects.map(up => up.project_ID);
+            
+            if (projectIds.length === 0) {
+                // User has no projects - they'll see empty list
+                req.query.where({ ID: { in: ['00000000-0000-0000-0000-000000000000'] } });
+            } else {
+                // Filter to only user's projects
+                if (req.query.SELECT && req.query.SELECT.where) {
+                    // Add to existing where
+                    req.query.SELECT.where.push('and', { ID: { in: projectIds } });
+                } else {
+                    // Create where
+                    req.query.where({ ID: { in: projectIds } });
+                }
+            }
+        } catch (error) {
+            console.error('Error filtering projects by user:', error);
+        }
     });
 
     /**

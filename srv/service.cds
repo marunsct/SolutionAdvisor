@@ -127,6 +127,23 @@ service solutionAdvisorService {
     }]
     entity ExampleLogs       as projection on my.ExampleLog;
 
+    // Project Users for access management
+    @restrict: [
+        {
+            grant: '*',
+            to   : 'Admin'
+        },
+        {
+            grant: [
+                'READ',
+                'CREATE',
+                'DELETE'
+            ],
+            to   : 'Architect'
+        }
+    ]
+    entity ProjectUsers      as projection on my.ProjectUsers;
+
     // ===============================
     // Custom Actions & Functions
     // ===============================
@@ -221,5 +238,40 @@ service solutionAdvisorService {
     action   exportFlowchart(analysisID : String, format : String)                                                                                            returns {
         downloadUrl : String;
         filename    : String;
+    };
+
+    /**
+     * Assign user to project
+     */
+    action   assignUserToProject(
+        projectId   : String,
+        userId      : String,
+        userEmail   : String,
+        userName    : String,
+        role        : String
+    ) returns {
+        ID          : String;
+        message     : String;
+    };
+
+    /**
+     * Remove user from project
+     */
+    action   removeUserFromProject(
+        projectUserId : String
+    ) returns {
+        success     : Boolean;
+        message     : String;
+    };
+
+    /**
+     * Get accessible projects for current user
+     */
+    function getAccessibleProjects() returns array of {
+        ID              : String;
+        projectName     : String;
+        clientName      : String;
+        status          : String;
+        s4HanaFlavor    : String;
     };
 }

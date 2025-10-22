@@ -1,0 +1,67 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f">
+    <Dialog
+        id="manageUsersDialog"
+        title="Manage Project Users"
+        contentWidth="700px"
+        contentHeight="600px"
+        draggable="true"
+        resizable="true">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <Toolbar>
+                    <Title text="Assigned Users" level="H4"/>
+                    <ToolbarSpacer/>
+                    <Button
+                        text="Add User"
+                        icon="sap-icon://add"
+                        press=".onAddUserToProject"
+                        type="Emphasized"/>
+                </Toolbar>
+                
+                <Table
+                    id="projectUsersTable"
+                    items="{projectUsersModel>/users}"
+                    growing="true"
+                    growingThreshold="20"
+                    noDataText="No users assigned to this project">
+                    <columns>
+                        <Column width="35%">
+                            <Text text="User Name"/>
+                        </Column>
+                        <Column width="30%">
+                            <Text text="Email"/>
+                        </Column>
+                        <Column width="20%">
+                            <Text text="Role"/>
+                        </Column>
+                        <Column width="15%">
+                            <Text text="Actions"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{projectUsersModel>userName}"/>
+                                <Text text="{projectUsersModel>userEmail}"/>
+                                <ObjectStatus
+                                    text="{projectUsersModel>role}"
+                                    state="{= ${projectUsersModel>role} === 'SolutionArchitect' ? 'Success' : 'Information' }"/>
+                                <Button
+                                    icon="sap-icon://delete"
+                                    type="Reject"
+                                    press=".onRemoveUserFromProject"
+                                    tooltip="Remove user"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        </content>
+        <endButton>
+            <Button text="Close" press=".onCloseManageUsersDialog"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
