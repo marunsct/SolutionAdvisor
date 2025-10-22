@@ -7,8 +7,9 @@ class AnalyticsService {
    */
   async getAnalyticsData() {
     try {
-      // Get all analyses for calculations
-      const analyses = await SELECT.from('sd.CleanCoreAnalysis');
+      // Get all analyses for calculations with tenant filtering for multi-tenancy support
+      const analyses = await SELECT.from('sd.CleanCoreAnalysis')
+        .where({ tenant: cds.context.tenant || 'default' });
       
       if (!analyses || analyses.length === 0) {
         return this._getEmptyAnalyticsData();
@@ -77,32 +78,52 @@ class AnalyticsService {
   }
 
   /**
-   * Prepare time-series trend data
+   * Prepare time-series trend data using CAP query API for database portability
+   * Works with both SQLite (development) and HANA Cloud (production)
    * @private
    */
   async _prepareTrendData() {
     try {
-      // Group analyses by month and calculate averages
-      const query = `
-        SELECT 
-          strftime('%Y-%m', createdAt) as month,
-          AVG(technicalDebtScore) as avgTD,
-          AVG(cloudReadinessScore) as avgCR,
-          AVG(upgradeImpactScore) as avgUI,
-          COUNT(*) as analysisCount
-        FROM sd_CleanCoreAnalysis
-        GROUP BY strftime('%Y-%m', createdAt)
-        ORDER BY month
-      `;
+      // Use CAP query API for database portability instead of raw SQL
+      // Get all analyses with tenant filter, then group in JavaScript
+      const analyses = await SELECT.from('sd.CleanCoreAnalysis')
+        .where({ tenant: cds.context.tenant || 'default' })
+        .orderBy('createdAt');
       
-      const results = await cds.run(query);
+      if (!analyses || analyses.length === 0) {
+        return [];
+      }
       
-      return results.map(item => ({
-        month: item.month,
-        technicalDebt: Math.round(item.avgTD || 0),
-        cloudReadiness: Math.round(item.avgCR || 0),
-        upgradeImpact: Math.round(item.avgUI || 0),
-        analysisCount: item.analysisCount
+      // Group by year-month in JavaScript for portability
+      const monthlyData = {};
+      analyses.forEach(analysis => {
+        if (!analysis.createdAt) return;
+        
+        const date = new Date(analysis.createdAt);
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthlyData[month]) {
+          monthlyData[month] = {
+            technicalDebtSum: 0,
+            cloudReadinessSum: 0,
+            upgradeImpactSum: 0,
+            count: 0
+          };
+        }
+        
+        monthlyData[month].technicalDebtSum += analysis.technicalDebtScore || 0;
+        monthlyData[month].cloudReadinessSum += analysis.cloudReadinessScore || 0;
+        monthlyData[month].upgradeImpactSum += analysis.upgradeImpactScore || 0;
+        monthlyData[month].count++;
+      });
+      
+      // Convert to array and calculate averages
+      return Object.keys(monthlyData).sort().map(month => ({
+        month,
+        technicalDebt: Math.round(monthlyData[month].technicalDebtSum / monthlyData[month].count),
+        cloudReadiness: Math.round(monthlyData[month].cloudReadinessSum / monthlyData[month].count),
+        upgradeImpact: Math.round(monthlyData[month].upgradeImpactSum / monthlyData[month].count),
+        analysisCount: monthlyData[month].count
       }));
     } catch (error) {
       console.error('Error preparing trend data:', error);

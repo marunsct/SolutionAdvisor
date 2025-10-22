@@ -338,10 +338,10 @@ sap.ui.define([
      * Generates a comprehensive report with KPIs, charts, and tables
      */
     onExportPDF: function() {
-      // Check if jsPDF is available
-      if (typeof window.jspdf === 'undefined') {
+      // Check if jsPDF is available (corrected check for UMD module loading)
+      if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF !== 'function') {
         MessageBox.error(
-          "jsPDF library is not loaded. Please ensure the library is included in the application.",
+          "jsPDF library is not loaded or is incorrectly loaded. Please ensure the library is included in the application.",
           { title: "Export Error" }
         );
         return;
@@ -390,14 +390,14 @@ sap.ui.define([
           });
         }
 
-        // Add Top Objects Table (if jspdf-autotable is available)
-        if (typeof window.jspdf.autoTable === 'function') {
+        // Add Top Objects Table - check if autoTable plugin is available on doc instance
+        if (typeof doc.autoTable === 'function') {
           yPosition += (analyticsData.levelDistribution?.length || 0) * 7 + 15;
           doc.setFontSize(14);
           doc.text('Top 10 Complex Objects', 15, yPosition);
           
           if (analyticsData.topObjects && analyticsData.topObjects.length > 0) {
-            window.jspdf.autoTable(doc, {
+            doc.autoTable({
               startY: yPosition + 5,
               head: [['RICEFW ID', 'Object Type', 'Complexity Score', 'Level']],
               body: analyticsData.topObjects.map(obj => [

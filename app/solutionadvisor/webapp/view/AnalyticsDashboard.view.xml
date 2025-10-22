@@ -26,12 +26,16 @@
               press="onExportPDF" 
               type="Emphasized"
               icon="sap-icon://pdf-attachment"
+              tooltip="Export analytics dashboard as PDF document"
+              ariaLabelledBy="exportPDFButton"
               class="sapUiTinyMarginEnd"/>
             <Button 
               id="exportExcelButton"
               text="Export Excel" 
               press="onExportExcel"
-              icon="sap-icon://excel-attachment"/>
+              icon="sap-icon://excel-attachment"
+              tooltip="Export analytics data as Excel spreadsheet"
+              ariaLabelledBy="exportExcelButton"/>
           </HBox>
         </FlexBox>
 

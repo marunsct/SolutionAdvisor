@@ -94,8 +94,8 @@
                         </VBox>
                     </HBox>
                     
-                    <!-- Radar Chart Section -->
-                    <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.RadarChart" type="XML"/>
+                    <!-- Radar Chart Section - dynamically loaded by controller -->
+                    <VBox id="radarChartContainer" class="sapUiSmallMarginTop"/>
                 </VBox>
             </Panel>
             

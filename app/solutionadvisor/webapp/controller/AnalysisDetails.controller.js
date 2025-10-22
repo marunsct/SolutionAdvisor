@@ -320,6 +320,11 @@ sap.ui.define([
                     controller: this
                 }).then(function(oFragment) {
                     this._oRadarChartFragment = oFragment;
+                    // Add fragment to the container in the view
+                    const oContainer = this.byId("radarChartContainer");
+                    if (oContainer) {
+                        oContainer.addItem(oFragment);
+                    }
                     this._configureRadarChart();
                 }.bind(this));
             } else {

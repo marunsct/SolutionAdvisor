@@ -4,7 +4,6 @@
   xmlns:layout="sap.ui.layout">
 
   <Dialog 
-    id="scoringDrillDownDialog" 
     title="Scoring Breakdown Details"
     contentWidth="600px"
     resizable="true"
