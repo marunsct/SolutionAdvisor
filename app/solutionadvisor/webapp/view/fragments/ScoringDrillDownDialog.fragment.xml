@@ -1,0 +1,122 @@
+<core:FragmentDefinition
+  xmlns:core="sap.ui.core"
+  xmlns="sap.m"
+  xmlns:layout="sap.ui.layout">
+
+  <Dialog 
+    id="scoringDrillDownDialog" 
+    title="Scoring Breakdown Details"
+    contentWidth="600px"
+    resizable="true"
+    draggable="true">
+    <content>
+      <VBox class="sapUiSmallMargin">
+        
+        <!-- Technical Debt Section -->
+        <Panel 
+          headerText="Technical Debt Score Breakdown" 
+          expandable="true" 
+          expanded="true"
+          class="sapUiSmallMarginBottom">
+          <content>
+            <VBox class="sapUiSmallMargin">
+              <ObjectAttribute 
+                title="Formula" 
+                text="Σ(Level Weight × Complexity Factor) / Count × 100"/>
+              <ObjectAttribute 
+                title="Level Weights" 
+                text="A: 0.00, B: 1.00, C: 3.00, D: 5.00"
+                class="sapUiSmallMarginTop"/>
+              <Title 
+                text="Contributing Factors" 
+                level="H5" 
+                class="sapUiSmallMarginTop"/>
+              <List 
+                items="{scoring>/technicalDebtBreakdown}"
+                noDataText="No breakdown data available">
+                <StandardListItem
+                  title="{scoring>stepDescription}"
+                  description="Level: {scoring>level}, Weight: {scoring>weight}, Factor: {scoring>factor}"
+                  info="{scoring>contribution}%"
+                  infoState="Warning"/>
+              </List>
+            </VBox>
+          </content>
+        </Panel>
+
+        <!-- Cloud Readiness Section -->
+        <Panel 
+          headerText="Cloud Readiness Score Breakdown" 
+          expandable="true"
+          expanded="false"
+          class="sapUiSmallMarginBottom">
+          <content>
+            <VBox class="sapUiSmallMargin">
+              <ObjectAttribute 
+                title="Formula" 
+                text="(Count A + 0.5 × Count B) / Total × 100"/>
+              <Text 
+                text="Cloud readiness indicates compatibility with SAP BTP and cloud-native architectures. Higher scores indicate greater use of standard APIs, released objects, and cloud-enabled technologies."
+                class="sapUiSmallMarginTop"/>
+              <ObjectAttribute 
+                title="Level Distribution" 
+                text="{scoring>/cloudReadinessExplanation}"
+                class="sapUiSmallMarginTop"/>
+            </VBox>
+          </content>
+        </Panel>
+
+        <!-- Upgrade Impact Section -->
+        <Panel 
+          headerText="Upgrade Impact Score Breakdown" 
+          expandable="true"
+          expanded="false"
+          class="sapUiSmallMarginBottom">
+          <content>
+            <VBox class="sapUiSmallMargin">
+              <ObjectAttribute 
+                title="Formula" 
+                text="Σ(Level Weight × Custom Lines) / Total Lines × 100"/>
+              <Text 
+                text="Upgrade impact measures the effort required for future S/4HANA upgrades. Higher scores indicate more custom code and modifications that need testing and potential refactoring during upgrades."
+                class="sapUiSmallMarginTop"/>
+              <ObjectAttribute 
+                title="Impact Assessment" 
+                text="{scoring>/upgradeImpactExplanation}"
+                class="sapUiSmallMarginTop"/>
+            </VBox>
+          </content>
+        </Panel>
+
+        <!-- Composite Health Section -->
+        <Panel 
+          headerText="Composite Health Score" 
+          expandable="true"
+          expanded="false">
+          <content>
+            <VBox class="sapUiSmallMargin">
+              <ObjectAttribute 
+                title="Formula" 
+                text="100 - ((Technical Debt × 0.4) + (Upgrade Impact × 0.3) - (Cloud Readiness × 0.3))"/>
+              <Text 
+                text="The composite health score provides an overall assessment of the solution's alignment with SAP Clean Core principles. It balances technical debt and upgrade complexity against cloud readiness."
+                class="sapUiSmallMarginTop"/>
+              <MessageStrip
+                text="Higher composite health scores indicate better long-term maintainability and lower total cost of ownership."
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMarginTop"/>
+            </VBox>
+          </content>
+        </Panel>
+
+      </VBox>
+    </content>
+    <buttons>
+      <Button 
+        text="Close" 
+        press="onCloseDrillDown"
+        type="Emphasized"/>
+    </buttons>
+  </Dialog>
+</core:FragmentDefinition>

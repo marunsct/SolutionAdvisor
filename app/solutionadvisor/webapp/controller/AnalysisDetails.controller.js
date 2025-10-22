@@ -5,8 +5,11 @@ sap.ui.define([
     "sap/m/MessageToast",
     "sd/solutionadvisor/utils/FlowchartGenerator",
     "sd/solutionadvisor/utils/ErrorHandler",
-    "sap/base/Log"
-], (Controller, History, JSONModel, MessageToast, FlowchartGenerator, ErrorHandler, Log) => {
+    "sap/base/Log",
+    "sap/viz/ui5/data/FlattenedDataset",
+    "sap/viz/ui5/controls/common/feeds/FeedItem",
+    "sap/ui/core/Fragment"
+], (Controller, History, JSONModel, MessageToast, FlowchartGenerator, ErrorHandler, Log, FlattenedDataset, FeedItem, Fragment) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysisDetails", {
@@ -274,6 +277,205 @@ sap.ui.define([
             } catch (error) {
                 Log.error("Failed to export SVG:", error);
                 ErrorHandler.showServiceError(error, "Failed to export SVG");
+            }
+        },
+
+        /**
+         * Setup radar chart for scoring visualization
+         * @private
+         */
+        _setupRadarChart: function() {
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                return;
+            }
+
+            const oAnalysis = oContext.getObject();
+            
+            // Prepare radar chart data
+            const radarData = [
+                { 
+                    metric: "Technical Debt", 
+                    value: oAnalysis.technicalDebtScore || 0 
+                },
+                { 
+                    metric: "Cloud Readiness", 
+                    value: oAnalysis.cloudReadinessScore || 0 
+                },
+                { 
+                    metric: "Upgrade Impact", 
+                    value: oAnalysis.upgradeImpactScore || 0 
+                }
+            ];
+
+            // Create JSON model for radar data
+            const oRadarModel = new JSONModel({ radarData: radarData });
+            this.getView().setModel(oRadarModel, "radarModel");
+
+            // Load and configure radar chart fragment if not already loaded
+            if (!this._oRadarChartFragment) {
+                Fragment.load({
+                    id: this.getView().getId(),
+                    name: "sd.solutionadvisor.view.fragments.RadarChart",
+                    controller: this
+                }).then(function(oFragment) {
+                    this._oRadarChartFragment = oFragment;
+                    this._configureRadarChart();
+                }.bind(this));
+            } else {
+                this._configureRadarChart();
+            }
+        },
+
+        /**
+         * Configure radar chart with data
+         * @private
+         */
+        _configureRadarChart: function() {
+            const oVizFrame = this.byId("radarChart");
+            if (!oVizFrame) {
+                return;
+            }
+
+            const oDataset = new FlattenedDataset({
+                dimensions: [{
+                    name: "Metric",
+                    value: "{radarModel>metric}"
+                }],
+                measures: [{
+                    name: "Score",
+                    value: "{radarModel>value}"
+                }],
+                data: {
+                    path: "radarModel>/radarData"
+                }
+            });
+
+            oVizFrame.setDataset(oDataset);
+            
+            const feedValueAxis = new FeedItem({
+                uid: "valueAxis",
+                type: "Measure",
+                values: ["Score"]
+            });
+
+            const feedCategoryAxis = new FeedItem({
+                uid: "categoryAxis",
+                type: "Dimension",
+                values: ["Metric"]
+            });
+
+            oVizFrame.removeAllFeeds();
+            oVizFrame.addFeed(feedValueAxis);
+            oVizFrame.addFeed(feedCategoryAxis);
+        },
+
+        /**
+         * Show scoring drill-down dialog
+         */
+        onScoringDrillDown: function() {
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis data available");
+                return;
+            }
+
+            if (!this._oScoringDialog) {
+                Fragment.load({
+                    id: this.getView().getId(),
+                    name: "sd.solutionadvisor.view.fragments.ScoringDrillDownDialog",
+                    controller: this
+                }).then(function(oDialog) {
+                    this._oScoringDialog = oDialog;
+                    this.getView().addDependent(this._oScoringDialog);
+                    this._openScoringDialog();
+                }.bind(this));
+            } else {
+                this._openScoringDialog();
+            }
+        },
+
+        /**
+         * Open scoring drill-down dialog with data
+         * @private
+         */
+        _openScoringDialog: function() {
+            const oAnalysis = this.getView().getBindingContext().getObject();
+            const breakdownData = this._prepareScoringBreakdown(oAnalysis);
+
+            const oModel = new JSONModel(breakdownData);
+            this._oScoringDialog.setModel(oModel, "scoring");
+
+            this._oScoringDialog.open();
+        },
+
+        /**
+         * Prepare scoring breakdown data
+         * @param {object} analysis - Analysis object
+         * @returns {object} Breakdown data
+         * @private
+         */
+        _prepareScoringBreakdown: function(analysis) {
+            // Parse decision path if it's a string
+            let decisionPath = [];
+            if (typeof analysis.decisionPath === 'string') {
+                try {
+                    decisionPath = JSON.parse(analysis.decisionPath);
+                } catch (e) {
+                    Log.error("Failed to parse decision path:", e);
+                }
+            } else if (Array.isArray(analysis.decisionPath)) {
+                decisionPath = analysis.decisionPath;
+            }
+
+            const technicalDebtBreakdown = decisionPath.map(step => ({
+                stepDescription: step.questionText || 'Decision Step',
+                level: step.recommendedLevel || 'Unknown',
+                weight: this._getLevelWeight(step.recommendedLevel),
+                factor: step.complexityFactor || 1.0,
+                contribution: Math.round(this._getLevelWeight(step.recommendedLevel) * (step.complexityFactor || 1.0))
+            }));
+
+            return {
+                technicalDebtBreakdown: technicalDebtBreakdown,
+                cloudReadinessExplanation: `Level A: ${this._countLevel(decisionPath, 'A')}, Level B: ${this._countLevel(decisionPath, 'B')}`,
+                upgradeImpactExplanation: `Total impact based on ${decisionPath.length} decision points`
+            };
+        },
+
+        /**
+         * Get weight for clean core level
+         * @param {string} level - Clean core level (A/B/C/D)
+         * @returns {number} Weight value
+         * @private
+         */
+        _getLevelWeight: function(level) {
+            const weights = {
+                'A': 0.0,
+                'B': 1.0,
+                'C': 3.0,
+                'D': 5.0
+            };
+            return weights[level] || 0;
+        },
+
+        /**
+         * Count occurrences of a level in decision path
+         * @param {array} path - Decision path array
+         * @param {string} level - Level to count
+         * @returns {number} Count
+         * @private
+         */
+        _countLevel: function(path, level) {
+            return path.filter(step => step.recommendedLevel === level).length;
+        },
+
+        /**
+         * Close scoring drill-down dialog
+         */
+        onCloseDrillDown: function() {
+            if (this._oScoringDialog) {
+                this._oScoringDialog.close();
             }
         }
     });
