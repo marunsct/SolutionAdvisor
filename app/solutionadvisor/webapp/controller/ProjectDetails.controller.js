@@ -66,17 +66,18 @@ sap.ui.define([
         _loadProjectUsers(sProjectId) {
             const oModel = this.getView().getModel();
             
-            oModel.read("/ProjectUsers", {
-                filters: [new sap.ui.model.Filter("project_ID", sap.ui.model.FilterOperator.EQ, sProjectId)],
-                success: (oData) => {
-                    const oUsersModel = new JSONModel({
-                        users: oData.results
-                    });
-                    this.getView().setModel(oUsersModel, "projectUsersModel");
-                },
-                error: (oError) => {
-                    MessageBox.error("Failed to load project users");
-                }
+            const aFilters = [new sap.ui.model.Filter("project_ID", sap.ui.model.FilterOperator.EQ, sProjectId)];
+            const oBinding = oModel.bindList("/ProjectUsers", null, null, aFilters);
+            
+            oBinding.requestContexts().then((aContexts) => {
+                const aUsers = aContexts.map(ctx => ctx.getObject());
+                const oUsersModel = new JSONModel({
+                    users: aUsers
+                });
+                this.getView().setModel(oUsersModel, "projectUsersModel");
+            }).catch((oError) => {
+                console.error("Failed to load project users:", oError);
+                MessageBox.error("Failed to load project users");
             });
         },
 
@@ -117,26 +118,23 @@ sap.ui.define([
                 return;
             }
             
-            // Call backend action
+            // Call backend action using OData V4
             const oModel = this.getView().getModel();
-            oModel.callFunction("/assignUserToProject", {
-                method: "POST",
-                urlParameters: {
-                    projectId: sProjectId,
-                    userId: oData.userId,
-                    userEmail: oData.userEmail,
-                    userName: oData.userName,
-                    role: oData.role
-                },
-                success: (oResponse) => {
-                    MessageToast.show(`User ${oData.userName} added successfully`);
-                    this._addUserDialog.close();
-                    this._loadProjectUsers(sProjectId);
-                },
-                error: (oError) => {
-                    const sMessage = oError.responseText ? JSON.parse(oError.responseText).error.message : "Failed to add user";
-                    MessageBox.error(sMessage);
-                }
+            const oOperation = oModel.bindContext(`/assignUserToProject(...)`);
+            oOperation.setParameter("projectId", sProjectId);
+            oOperation.setParameter("userId", oData.userId);
+            oOperation.setParameter("userEmail", oData.userEmail);
+            oOperation.setParameter("userName", oData.userName);
+            oOperation.setParameter("role", oData.role);
+            
+            oOperation.execute().then(() => {
+                MessageToast.show(`User ${oData.userName} added successfully`);
+                this._addUserDialog.close();
+                this._loadProjectUsers(sProjectId);
+            }).catch((oError) => {
+                console.error("Failed to add user:", oError);
+                const sMessage = oError.message || "Failed to add user";
+                MessageBox.error(sMessage);
             });
         },
 
@@ -167,18 +165,16 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             const sProjectId = this._sCurrentProjectId;
             
-            oModel.callFunction("/removeUserFromProject", {
-                method: "POST",
-                urlParameters: {
-                    projectUserId: sUserId
-                },
-                success: () => {
-                    MessageToast.show("User removed successfully");
-                    this._loadProjectUsers(sProjectId);
-                },
-                error: (oError) => {
-                    MessageBox.error("Failed to remove user");
-                }
+            // Call backend action using OData V4
+            const oOperation = oModel.bindContext(`/removeUserFromProject(...)`);
+            oOperation.setParameter("projectUserId", sUserId);
+            
+            oOperation.execute().then(() => {
+                MessageToast.show("User removed successfully");
+                this._loadProjectUsers(sProjectId);
+            }).catch((oError) => {
+                console.error("Failed to remove user:", oError);
+                MessageBox.error("Failed to remove user");
             });
         },
 

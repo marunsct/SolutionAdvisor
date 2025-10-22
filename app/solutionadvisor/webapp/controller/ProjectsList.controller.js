@@ -62,24 +62,24 @@ sap.ui.define([
             const oViewModel = this.getView().getModel("viewModel");
 
             // Get total projects count
-            oModel.read("/Projects/$count", {
-                success: (oData) => {
-                    oViewModel.setProperty("/projectsCount", oData || 0);
-                },
-                error: (oError) => {
-                    console.error("Failed to load projects count:", oError);
-                }
+            const oTotalBinding = oModel.bindList("/Projects");
+            oTotalBinding.requestContexts(0, 0).then(() => {
+                const iCount = oTotalBinding.getLength();
+                oViewModel.setProperty("/projectsCount", iCount);
+            }).catch((oError) => {
+                console.error("Failed to load projects count:", oError);
+                oViewModel.setProperty("/projectsCount", 0);
             });
 
             // Get active projects count
-            oModel.read("/Projects/$count", {
-                filters: [new Filter("status", FilterOperator.EQ, "Active")],
-                success: (oData) => {
-                    oViewModel.setProperty("/activeProjectsCount", oData || 0);
-                },
-                error: (oError) => {
-                    console.error("Failed to load active projects count:", oError);
-                }
+            const aActiveFilters = [new Filter("status", FilterOperator.EQ, "Active")];
+            const oActiveBinding = oModel.bindList("/Projects", null, null, aActiveFilters);
+            oActiveBinding.requestContexts(0, 0).then(() => {
+                const iCount = oActiveBinding.getLength();
+                oViewModel.setProperty("/activeProjectsCount", iCount);
+            }).catch((oError) => {
+                console.error("Failed to load active projects count:", oError);
+                oViewModel.setProperty("/activeProjectsCount", 0);
             });
         },
 

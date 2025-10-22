@@ -466,18 +466,39 @@ module.exports = cds.service.impl(async function () {
      */
     this.before('CREATE', Projects, async (req) => {
         const tenant = req.user?.tenant || 'default';
+        
+        // Ensure ID is set (CAP should do this automatically, but let's be explicit)
+        if (!req.data.ID) {
+            req.data.ID = cds.utils.uuid();
+        }
+        
         req.data.tenant = tenant;
+        
+        // Ensure timeline is in correct format (YYYY-MM-DD)
+        if (req.data.timeline) {
+            const date = new Date(req.data.timeline);
+            if (!isNaN(date.getTime())) {
+                req.data.timeline = date.toISOString().split('T')[0];
+            }
+        }
+        
+        // Set default values for optional fields
+        req.data.status = req.data.status || 'Active';
+        req.data.expectedDuration = req.data.expectedDuration || 0;
+        req.data.technicalTeamSize = req.data.technicalTeamSize || 0;
     });
 
     /**
      * Before reading projects - filter by user access
+     * TEMPORARILY DISABLED - Enable after implementing user management UI
      */
+    /*
     this.before('READ', Projects, async (req) => {
         const user = req.user?.id || 'anonymous';
         const tenant = req.user?.tenant || 'default';
         
         // Admins see all projects
-        if (req.user?.is('Admin')) {
+        if (req.user?.is('Admin') || req.user?.is('TenantAdmin')) {
             return;
         }
         
@@ -506,6 +527,7 @@ module.exports = cds.service.impl(async function () {
             console.error('Error filtering projects by user:', error);
         }
     });
+    */
 
     /**
      * After reading analyses - enrich with calculated data

@@ -50,29 +50,31 @@ sap.ui.define([
             if (!oContext) return;
             
             const oAnalysis = oContext.getObject();
-            if (!oAnalysis || !oAnalysis.decisionPaths) return;
+            if (!oAnalysis) return;
             
-            // Check if we have decision paths data
+            // Load decision paths using context binding with $expand
             const oModel = this.getView().getModel();
-            oModel.read(`/Analyses('${oAnalysis.ID}')/decisionPaths`, {
-                success: (oData) => {
-                    const analysisData = {
-                        ...oAnalysis,
-                        decisionPaths: oData.results || []
-                    };
-                    
-                    // Generate flowchart
-                    try {
-                        FlowchartGenerator.generateFlowchart(analysisData, "flowchartSvgContainer");
-                        this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
-                    } catch (error) {
-                        console.error("Failed to generate flowchart:", error);
-                        MessageToast.show("Failed to generate flowchart");
-                    }
-                },
-                error: (oError) => {
-                    console.error("Failed to load decision paths:", oError);
+            const oBinding = oModel.bindContext(`/Analyses('${oAnalysis.ID}')`, null, {
+                $expand: "decisionPaths"
+            });
+            
+            oBinding.requestObject().then((oData) => {
+                const analysisData = {
+                    ...oData,
+                    decisionPaths: oData.decisionPaths || []
+                };
+                
+                // Generate flowchart
+                try {
+                    FlowchartGenerator.generateFlowchart(analysisData, "flowchartSvgContainer");
+                    this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                } catch (error) {
+                    console.error("Failed to generate flowchart:", error);
+                    MessageToast.show("Failed to generate flowchart");
                 }
+            }).catch((oError) => {
+                console.error("Failed to load decision paths:", oError);
+                MessageToast.show("Failed to load decision paths");
             });
         },
 

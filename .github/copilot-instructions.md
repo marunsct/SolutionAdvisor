@@ -344,6 +344,247 @@ class ApiHubService {
 
 7. **Security:** Never expose tenant isolation logic in UI. Backend must enforce tenant filtering via CAP middleware.
 
+8. **OData V2 API Usage:** **CRITICAL - This application uses OData V4 exclusively.** Never use OData V2 APIs. See detailed guidelines below.
+
+## OData V4 Compliance - MANDATORY
+
+**This application exclusively uses OData V4.** All UI5 model interactions MUST follow OData V4 patterns. Using OData V2 APIs will cause runtime errors.
+
+### ❌ FORBIDDEN - Never Use These OData V2 APIs
+
+```javascript
+// ❌ DO NOT USE - These are OData V2 only
+oModel.read("/EntitySet", { ... });           // WRONG
+oModel.create("/EntitySet", oData, { ... });  // WRONG
+oModel.update("/EntitySet('ID')", oData);     // WRONG
+oModel.remove("/EntitySet('ID')");            // WRONG
+oModel.callFunction("/functionName", { ... }); // WRONG
+```
+
+### ✅ REQUIRED - Use These OData V4 Patterns
+
+#### 1. Reading Entity Collections (Lists)
+```javascript
+// ✅ CORRECT - OData V4 List Binding
+const aFilters = [new Filter("status", FilterOperator.EQ, "Active")];
+const aSorters = [new Sorter("createdAt", true)]; // true = descending
+const oBinding = oModel.bindList("/EntitySet", null, aSorters, aFilters);
+
+oBinding.requestContexts().then((aContexts) => {
+    const aData = aContexts.map(ctx => ctx.getObject());
+    // Use aData array
+}).catch((oError) => {
+    console.error("Failed to load data:", oError);
+});
+```
+
+#### 2. Reading a Single Entity
+```javascript
+// ✅ CORRECT - OData V4 Context Binding
+const oBinding = oModel.bindContext("/EntitySet('ID')");
+
+oBinding.requestObject().then((oData) => {
+    // Use oData object
+}).catch((oError) => {
+    console.error("Failed to load entity:", oError);
+});
+```
+
+#### 3. Reading with $expand (Navigation Properties)
+```javascript
+// ✅ CORRECT - OData V4 with $expand parameter
+const oBinding = oModel.bindContext("/EntitySet('ID')", null, {
+    $expand: "navigationProperty,anotherNav"
+});
+
+oBinding.requestObject().then((oData) => {
+    // oData includes expanded navigation properties
+    const navData = oData.navigationProperty;
+}).catch((oError) => {
+    console.error("Failed to load entity:", oError);
+});
+```
+
+#### 4. Getting Count (Total Records)
+```javascript
+// ✅ CORRECT - OData V4 Count via List Binding
+const oBinding = oModel.bindList("/EntitySet", null, null, aFilters);
+
+oBinding.requestContexts(0, 0).then(() => {
+    const iCount = oBinding.getLength();
+    // Use iCount
+}).catch((oError) => {
+    console.error("Failed to get count:", oError);
+});
+```
+
+#### 5. Creating New Entities
+```javascript
+// ✅ CORRECT - OData V4 Create via List Binding
+const oListBinding = oModel.bindList("/EntitySet");
+const oNewContext = oListBinding.create({
+    field1: "value1",
+    field2: "value2"
+});
+
+oNewContext.created().then(() => {
+    MessageToast.show("Entity created successfully");
+    const oCreatedData = oNewContext.getObject();
+    // Use created entity with server-generated ID
+}).catch((oError) => {
+    console.error("Failed to create entity:", oError);
+});
+```
+
+#### 6. Updating Entities
+```javascript
+// ✅ CORRECT - OData V4 Update via Context Binding
+const oBinding = oModel.bindContext("/EntitySet('ID')");
+
+oBinding.requestObject().then(() => {
+    // Update properties
+    oBinding.setProperty("field1", "newValue1");
+    oBinding.setProperty("field2", "newValue2");
+    
+    // Submit changes (use batch group if needed)
+    return oModel.submitBatch("updateGroup");
+}).then(() => {
+    MessageToast.show("Entity updated successfully");
+}).catch((oError) => {
+    console.error("Failed to update entity:", oError);
+});
+```
+
+#### 7. Deleting Entities
+```javascript
+// ✅ CORRECT - OData V4 Delete via Context
+const oBinding = oModel.bindContext("/EntitySet('ID')");
+
+oBinding.delete().then(() => {
+    MessageToast.show("Entity deleted successfully");
+}).catch((oError) => {
+    console.error("Failed to delete entity:", oError);
+});
+```
+
+#### 8. Calling Unbound Actions/Functions
+```javascript
+// ✅ CORRECT - OData V4 Unbound Action with Parameters
+const oOperation = oModel.bindContext("/actionName(...)");
+oOperation.setParameter("param1", value1);
+oOperation.setParameter("param2", value2);
+
+oOperation.execute().then(() => {
+    const oResult = oOperation.getBoundContext().getObject();
+    // Use result data
+}).catch((oError) => {
+    console.error("Failed to execute action:", oError);
+});
+```
+
+#### 9. Calling Bound Actions (on specific entity)
+```javascript
+// ✅ CORRECT - OData V4 Bound Action
+const oEntityContext = oModel.bindContext("/EntitySet('ID')");
+const oAction = oEntityContext.bound("boundActionName");
+oAction.setParameter("param1", value1);
+
+oAction.execute().then(() => {
+    MessageToast.show("Action executed successfully");
+}).catch((oError) => {
+    console.error("Failed to execute action:", oError);
+});
+```
+
+### Key OData V4 Concepts
+
+1. **Context-Based:** Everything revolves around `ODataContextBinding` and `ODataListBinding`
+2. **Promise-Based:** All operations return Promises (use `.then()/.catch()` or `async/await`)
+3. **No Results Object:** V4 returns arrays directly from `requestContexts()`, not `{ results: [...] }`
+4. **Batch Operations:** Use `submitBatch(groupId)` for batch updates instead of individual `update()` calls
+5. **Property Updates:** Use `context.setProperty()` instead of passing data objects to `update()`
+
+### Common Migration Patterns
+
+| OData V2 (❌ WRONG) | OData V4 (✅ CORRECT) |
+|---------------------|----------------------|
+| `oModel.read("/Entity", { success: fn })` | `oModel.bindContext("/Entity").requestObject().then(fn)` |
+| `oModel.read("/EntitySet", { filters: [...] })` | `oModel.bindList("/EntitySet", null, null, filters).requestContexts()` |
+| `oModel.create("/EntitySet", data)` | `oModel.bindList("/EntitySet").create(data)` |
+| `oModel.update("/Entity('ID')", data)` | `context.setProperty("field", value); oModel.submitBatch()` |
+| `oModel.remove("/Entity('ID')")` | `oModel.bindContext("/Entity('ID')").delete()` |
+| `oModel.callFunction("/action", { urlParameters })` | `oModel.bindContext("/action(...)").setParameter().execute()` |
+| `oData.results` (array in response) | `aContexts.map(ctx => ctx.getObject())` |
+| `success: (oData) => {}` callbacks | `.then((oData) => {})` promises |
+
+### Controller Template for OData V4
+
+```javascript
+sap.ui.define([
+    "sap/ui/core/mvc/Controller",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
+    "sap/ui/model/Sorter",
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
+], (Controller, Filter, FilterOperator, Sorter, MessageToast, MessageBox) => {
+    "use strict";
+
+    return Controller.extend("sd.solutionadvisor.controller.MyController", {
+        onInit() {
+            const oModel = this.getView().getModel();
+            
+            // Wait for model metadata to load
+            oModel.attachMetadataLoaded(() => {
+                this._loadData();
+            });
+        },
+        
+        _loadData() {
+            const oModel = this.getView().getModel();
+            const aFilters = [new Filter("isActive", FilterOperator.EQ, true)];
+            const oBinding = oModel.bindList("/EntitySet", null, null, aFilters);
+            
+            oBinding.requestContexts().then((aContexts) => {
+                const aData = aContexts.map(ctx => ctx.getObject());
+                // Process data
+            }).catch((oError) => {
+                console.error("Load failed:", oError);
+            });
+        },
+        
+        onCreate() {
+            const oModel = this.getView().getModel();
+            const oListBinding = oModel.bindList("/EntitySet");
+            const oContext = oListBinding.create({ field: "value" });
+            
+            oContext.created().then(() => {
+                MessageToast.show("Created successfully");
+            }).catch((oError) => {
+                MessageBox.error("Creation failed");
+            });
+        }
+    });
+});
+```
+
+### Verification Checklist
+
+Before committing any controller code, verify:
+
+- [ ] No usage of `oModel.read()`
+- [ ] No usage of `oModel.create()`
+- [ ] No usage of `oModel.update()`
+- [ ] No usage of `oModel.remove()`
+- [ ] No usage of `oModel.callFunction()`
+- [ ] All operations use `bindList()` or `bindContext()`
+- [ ] All async operations use Promises (`.then()/.catch()`)
+- [ ] No references to `oData.results` (V2 pattern)
+- [ ] Error handling implemented with `.catch()`
+- [ ] Model metadata loaded before operations
+
+**Failure to follow OData V4 patterns will result in runtime errors like "oModel.read is not a function" or "oModel.create is not a function".**
+
 ## Key Documentation References
 
 - **Technical Specification:** `.github/technical specification/SAP-Clean-Core-CAP-App-Enhanced-Technical-Spec.md` (2247 lines - complete functional spec with data models, APIs, scoring formulas)

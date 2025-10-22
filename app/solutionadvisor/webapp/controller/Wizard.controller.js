@@ -91,27 +91,26 @@ sap.ui.define([
         _autoSelectProject(sProjectId) {
             // Load project details and auto-select
             const oModel = this.getView().getModel();
-            oModel.read("/Projects('" + sProjectId + "')", {
-                success: (oData) => {
-                    const oWizardModel = this.getView().getModel("wizardModel");
-                    oWizardModel.setProperty("/projectID", oData.ID);
-                    oWizardModel.setProperty("/projectName", oData.projectName);
-                    oWizardModel.setProperty("/autoSelectedProject", true);
-                    
-                    // Display project info
-                    const sInfo = `S/4HANA: ${oData.s4HanaFlavor} | Criticality: ${oData.businessCriticality}`;
-                    this.byId("projectInfo").setText(sInfo);
-                    
-                    // Validate step and auto-advance
-                    this.byId("projectStep").setValidated(true);
-                    
-                    // Auto-advance to next step
-                    const oWizard = this.byId("cleanCoreWizard");
-                    oWizard.nextStep();
-                },
-                error: (oError) => {
-                    console.error("Failed to load project:", oError);
-                }
+            const oBinding = oModel.bindContext("/Projects('" + sProjectId + "')");
+            
+            oBinding.requestObject().then((oData) => {
+                const oWizardModel = this.getView().getModel("wizardModel");
+                oWizardModel.setProperty("/projectID", oData.ID);
+                oWizardModel.setProperty("/projectName", oData.projectName);
+                oWizardModel.setProperty("/autoSelectedProject", true);
+                
+                // Display project info
+                const sInfo = `S/4HANA: ${oData.s4HanaFlavor} | Criticality: ${oData.businessCriticality}`;
+                this.byId("projectInfo").setText(sInfo);
+                
+                // Validate step and auto-advance
+                this.byId("projectStep").setValidated(true);
+                
+                // Auto-advance to next step
+                const oWizard = this.byId("cleanCoreWizard");
+                oWizard.nextStep();
+            }).catch((oError) => {
+                console.error("Failed to load project:", oError);
             });
         },
 
@@ -126,103 +125,99 @@ sap.ui.define([
             this.getView().setBusy(true);
             
             // Load session data with expanded analysis
-            oModel.read(`/WizardSessions('${sSessionId}')`, {
-                urlParameters: {
-                    "$expand": "analysis"
-                },
-                success: (oSession) => {
-                    if (!oSession) {
-                        MessageBox.error("Session not found or has expired");
-                        this.getView().setBusy(false);
-                        this._resetWizard();
-                        return;
+            const oSessionBinding = oModel.bindContext(`/WizardSessions('${sSessionId}')`, null, {
+                $expand: "analysis"
+            });
+            
+            oSessionBinding.requestObject().then((oSession) => {
+                if (!oSession) {
+                    MessageBox.error("Session not found or has expired");
+                    this.getView().setBusy(false);
+                    this._resetWizard();
+                    return;
+                }
+                
+                // Store session ID
+                this._sessionId = sSessionId;
+                this._analysisId = oSession.analysis_ID;
+                
+                // Parse answered path to restore previous answers
+                const answeredPath = JSON.parse(oSession.answeredPath || "[]");
+                this._answeredQuestions = answeredPath.reduce((acc, item) => {
+                    acc[item.questionId] = item;
+                    return acc;
+                }, {});
+                
+                // Load full analysis data to populate wizard fields
+                const oAnalysisBinding = oModel.bindContext(`/Analyses('${oSession.analysis_ID}')`, null, {
+                    $expand: "projectConfig"
+                });
+                
+                oAnalysisBinding.requestObject().then((oAnalysis) => {
+                    // Restore wizard model data
+                    oWizardModel.setData({
+                        projectID: oAnalysis.projectConfig_ID,
+                        projectName: oAnalysis.projectConfig?.projectName || "",
+                        ricefwId: oAnalysis.ricefwId,
+                        objectType: oAnalysis.objectType,
+                        objectName: oAnalysis.objectName,
+                        objectDescription: oAnalysis.objectDescription || "",
+                        autoSelectedProject: true
+                    });
+                    
+                    // Restore UI input fields
+                    this.byId("ricefwIdInput")?.setValue(oAnalysis.ricefwId);
+                    this.byId("objectTypeComboBox")?.setSelectedKey(oAnalysis.objectType);
+                    this.byId("objectNameInput")?.setValue(oAnalysis.objectName);
+                    this.byId("objectDescriptionInput")?.setValue(oAnalysis.objectDescription || "");
+                    
+                    // Mark completed steps as validated
+                    this.byId("projectStep").setValidated(true);
+                    this.byId("objectStep").setValidated(true);
+                    
+                    // Restore wizard to current step
+                    const oWizard = this.byId("cleanCoreWizard");
+                    const iCurrentStep = oSession.currentStep || 1;
+                    
+                    // Navigate wizard to the saved step
+                    if (iCurrentStep >= 1) {
+                        oWizard.setCurrentStep(this.byId("projectStep"));
+                    }
+                    if (iCurrentStep >= 2) {
+                        oWizard.nextStep();
+                    }
+                    if (iCurrentStep >= 3) {
+                        oWizard.nextStep();
                     }
                     
-                    // Store session ID
-                    this._sessionId = sSessionId;
-                    this._analysisId = oSession.analysis_ID;
-                    
-                    // Parse answered path to restore previous answers
-                    const answeredPath = JSON.parse(oSession.answeredPath || "[]");
-                    this._answeredQuestions = answeredPath.reduce((acc, item) => {
-                        acc[item.questionId] = item;
-                        return acc;
-                    }, {});
-                    
-                    // Load full analysis data to populate wizard fields
-                    oModel.read(`/Analyses('${oSession.analysis_ID}')`, {
-                        urlParameters: {
-                            "$expand": "projectConfig"
-                        },
-                        success: (oAnalysis) => {
-                            // Restore wizard model data
-                            oWizardModel.setData({
-                                projectID: oAnalysis.projectConfig_ID,
-                                projectName: oAnalysis.projectConfig?.projectName || "",
-                                ricefwId: oAnalysis.ricefwId,
-                                objectType: oAnalysis.objectType,
-                                objectName: oAnalysis.objectName,
-                                objectDescription: oAnalysis.objectDescription || "",
-                                autoSelectedProject: true
-                            });
-                            
-                            // Restore UI input fields
-                            this.byId("ricefwIdInput")?.setValue(oAnalysis.ricefwId);
-                            this.byId("objectTypeComboBox")?.setSelectedKey(oAnalysis.objectType);
-                            this.byId("objectNameInput")?.setValue(oAnalysis.objectName);
-                            this.byId("objectDescriptionInput")?.setValue(oAnalysis.objectDescription || "");
-                            
-                            // Mark completed steps as validated
-                            this.byId("projectStep").setValidated(true);
-                            this.byId("objectStep").setValidated(true);
-                            
-                            // Restore wizard to current step
-                            const oWizard = this.byId("cleanCoreWizard");
-                            const iCurrentStep = oSession.currentStep || 1;
-                            
-                            // Navigate wizard to the saved step
-                            if (iCurrentStep >= 1) {
-                                oWizard.setCurrentStep(this.byId("projectStep"));
-                            }
-                            if (iCurrentStep >= 2) {
-                                oWizard.nextStep();
-                            }
-                            if (iCurrentStep >= 3) {
-                                oWizard.nextStep();
-                            }
-                            
-                            // Update session status from Paused to Active
-                            oModel.update(`/WizardSessions('${sSessionId}')`, {
-                                sessionStatus: "Active",
-                                lastActivity: new Date().toISOString()
-                            }, {
-                                success: () => {
-                                    this.getView().setBusy(false);
-                                    MessageToast.show(`Draft resumed successfully from step ${iCurrentStep}`, {
-                                        duration: 3000
-                                    });
-                                },
-                                error: (oError) => {
-                                    this.getView().setBusy(false);
-                                    console.error("Failed to update session status:", oError);
-                                    // Continue anyway, just log the error
-                                }
-                            });
-                        },
-                        error: (oError) => {
+                    // Update session status from Paused to Active
+                    const oUpdateBinding = oModel.bindContext(`/WizardSessions('${sSessionId}')`);
+                    oUpdateBinding.requestObject().then(() => {
+                        oUpdateBinding.setProperty("sessionStatus", "Active");
+                        oUpdateBinding.setProperty("lastActivity", new Date().toISOString());
+                        
+                        oModel.submitBatch("updateGroup").then(() => {
                             this.getView().setBusy(false);
-                            MessageBox.error("Failed to load analysis data");
-                            console.error("Failed to load analysis:", oError);
-                            this._resetWizard();
-                        }
+                            MessageToast.show(`Draft resumed successfully from step ${iCurrentStep}`, {
+                                duration: 3000
+                            });
+                        }).catch((oError) => {
+                            this.getView().setBusy(false);
+                            console.error("Failed to update session status:", oError);
+                            // Continue anyway, just log the error
+                        });
                     });
-                },
-                error: (oError) => {
+                }).catch((oError) => {
                     this.getView().setBusy(false);
-                    MessageBox.error("Failed to restore draft session");
-                    console.error("Failed to load session:", oError);
+                    MessageBox.error("Failed to load analysis data");
+                    console.error("Failed to load analysis:", oError);
                     this._resetWizard();
-                }
+                });
+            }).catch((oError) => {
+                this.getView().setBusy(false);
+                MessageBox.error("Failed to restore draft session");
+                console.error("Failed to load session:", oError);
+                this._resetWizard();
             });
         },
 
@@ -321,35 +316,36 @@ sap.ui.define([
             const sProjectId = oWizardModel.getProperty("/projectID");
             
             // Load performance thresholds
-            oModel.read("/PerformanceThresholds", {
-                filters: [
-                    new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType),
-                    new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
-                ],
-                success: (oData) => {
-                    oConstraintsModel.setProperty("/performanceConstraints", oData.results || []);
-                },
-                error: (oError) => {
-                    console.error("Failed to load performance constraints:", oError);
-                }
+            const aThresholdFilters = [
+                new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType),
+                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+            ];
+            const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
+            
+            oThresholdBinding.requestContexts().then((aContexts) => {
+                const aThresholds = aContexts.map(ctx => ctx.getObject());
+                oConstraintsModel.setProperty("/performanceConstraints", aThresholds);
+            }).catch((oError) => {
+                console.error("Failed to load performance constraints:", oError);
             });
             
             // Load deployment constraints (if project is selected)
             if (sProjectId) {
-                oModel.read("/Projects('" + sProjectId + "')", {
-                    success: (oProjectData) => {
-                        const aDeploymentConstraints = this._getDeploymentConstraints(
-                            oProjectData.s4HanaFlavor,
-                            sObjectType
-                        );
-                        oConstraintsModel.setProperty("/deploymentConstraints", aDeploymentConstraints);
-                        
-                        // Load compliance constraints
-                        const aComplianceConstraints = this._getComplianceConstraints(
-                            oProjectData.complianceRequirements
-                        );
-                        oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
-                    }
+                const oProjectBinding = oModel.bindContext("/Projects('" + sProjectId + "')");
+                oProjectBinding.requestObject().then((oProjectData) => {
+                    const aDeploymentConstraints = this._getDeploymentConstraints(
+                        oProjectData.s4HanaFlavor,
+                        sObjectType
+                    );
+                    oConstraintsModel.setProperty("/deploymentConstraints", aDeploymentConstraints);
+                    
+                    // Load compliance constraints
+                    const aComplianceConstraints = this._getComplianceConstraints(
+                        oProjectData.complianceRequirements
+                    );
+                    oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
+                }).catch((oError) => {
+                    console.error("Failed to load project data:", oError);
                 });
             }
         },
@@ -424,17 +420,17 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             const oExamplesModel = this.getView().getModel("examplesModel");
             
-            oModel.read("/RealWorldExamples", {
-                filters: [
-                    new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
-                    new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
-                ],
-                success: (oData) => {
-                    oExamplesModel.setProperty("/examples", oData.results || []);
-                },
-                error: (oError) => {
-                    console.error("Failed to load examples:", oError);
-                }
+            const aExampleFilters = [
+                new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
+                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+            ];
+            const oExampleBinding = oModel.bindList("/RealWorldExamples", null, null, aExampleFilters);
+            
+            oExampleBinding.requestContexts().then((aContexts) => {
+                const aExamples = aContexts.map(ctx => ctx.getObject());
+                oExamplesModel.setProperty("/examples", aExamples);
+            }).catch((oError) => {
+                console.error("Failed to load examples:", oError);
             });
         },
         
@@ -625,20 +621,20 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             const oHistoryModel = this.getView().getModel("historyModel");
             
-            oModel.read("/Analyses", {
-                filters: [
-                    new sap.ui.model.Filter("ricefwId", sap.ui.model.FilterOperator.EQ, sRicefwId)
-                ],
-                sorters: [
-                    new sap.ui.model.Sorter("analysisDate", true) // Descending
-                ],
-                success: (oData) => {
-                    oHistoryModel.setProperty("/analyses", oData.results || []);
-                },
-                error: (oError) => {
-                    console.error("Failed to load RICEFW history:", oError);
-                    MessageToast.show("Failed to load history");
-                }
+            const aHistoryFilters = [
+                new sap.ui.model.Filter("ricefwId", sap.ui.model.FilterOperator.EQ, sRicefwId)
+            ];
+            const aHistorySorters = [
+                new sap.ui.model.Sorter("analysisDate", true) // Descending
+            ];
+            const oHistoryBinding = oModel.bindList("/Analyses", null, aHistorySorters, aHistoryFilters);
+            
+            oHistoryBinding.requestContexts().then((aContexts) => {
+                const aAnalyses = aContexts.map(ctx => ctx.getObject());
+                oHistoryModel.setProperty("/analyses", aAnalyses);
+            }).catch((oError) => {
+                console.error("Failed to load RICEFW history:", oError);
+                MessageToast.show("Failed to load history");
             });
         },
         
@@ -793,31 +789,27 @@ sap.ui.define([
             const oWizardModel = this.getView().getModel("wizardModel");
             const oData = oWizardModel.getData();
             
-            // Call backend to start wizard
+            // Call backend action using OData V4
             const oModel = this.getView().getModel();
-            const sPath = "/startWizard";
+            const oOperation = oModel.bindContext("/startWizard(...)");
+            oOperation.setParameter("projectID", oData.projectID);
+            oOperation.setParameter("ricefwId", oData.ricefwId);
+            oOperation.setParameter("objectType", oData.objectType);
+            oOperation.setParameter("objectName", oData.objectName);
             
-            oModel.callFunction(sPath, {
-                method: "POST",
-                urlParameters: {
-                    projectID: oData.projectID,
-                    ricefwId: oData.ricefwId,
-                    objectType: oData.objectType,
-                    objectName: oData.objectName
-                },
-                success: (oResult) => {
-                    MessageToast.show("Analysis started successfully!");
-                    // Store session ID for draft saving
-                    this._sessionId = oResult.sessionID;
-                    this._analysisId = oResult.analysisID;
-                    // Navigate to analysis details
-                    this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
-                        key: oResult.analysisID
-                    });
-                },
-                error: (oError) => {
-                    MessageBox.error("Failed to start analysis: " + oError.message);
-                }
+            oOperation.execute().then(() => {
+                const oResult = oOperation.getBoundContext().getObject();
+                MessageToast.show("Analysis started successfully!");
+                // Store session ID for draft saving
+                this._sessionId = oResult.sessionID;
+                this._analysisId = oResult.analysisID;
+                // Navigate to analysis details
+                this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                    key: oResult.analysisID
+                });
+            }).catch((oError) => {
+                console.error("Failed to start analysis:", oError);
+                MessageBox.error("Failed to start analysis: " + oError.message);
             });
         },
 
@@ -873,23 +865,21 @@ sap.ui.define([
             const oData = oWizardModel.getData();
             const oModel = this.getView().getModel();
             
-            // Create analysis in draft mode
-            oModel.callFunction("/startWizard", {
-                method: "POST",
-                urlParameters: {
-                    projectID: oData.projectID,
-                    ricefwId: oData.ricefwId,
-                    objectType: oData.objectType,
-                    objectName: oData.objectName
-                },
-                success: (oResult) => {
-                    this._sessionId = oResult.sessionID;
-                    this._analysisId = oResult.analysisID;
-                    this._updateDraftSession(sDraftName);
-                },
-                error: (oError) => {
-                    MessageBox.error("Failed to save draft: " + oError.message);
-                }
+            // Create analysis in draft mode using OData V4
+            const oOperation = oModel.bindContext("/startWizard(...)");
+            oOperation.setParameter("projectID", oData.projectID);
+            oOperation.setParameter("ricefwId", oData.ricefwId);
+            oOperation.setParameter("objectType", oData.objectType);
+            oOperation.setParameter("objectName", oData.objectName);
+            
+            oOperation.execute().then(() => {
+                const oResult = oOperation.getBoundContext().getObject();
+                this._sessionId = oResult.sessionID;
+                this._analysisId = oResult.analysisID;
+                this._updateDraftSession(sDraftName);
+            }).catch((oError) => {
+                console.error("Failed to save draft:", oError);
+                MessageBox.error("Failed to save draft: " + oError.message);
             });
         },
 
@@ -897,27 +887,31 @@ sap.ui.define([
             const oDraftModel = this.getView().getModel("draftModel");
             const oModel = this.getView().getModel();
             
-            // Prepare wizard session data
-            const oSessionData = {
-                sessionStatus: "Paused",
-                currentStep: oDraftModel.getProperty("/currentStep"),
-                totalSteps: oDraftModel.getProperty("/totalSteps"),
-                timeSpentTotal: oDraftModel.getProperty("/timeSpent") * 60, // Convert to seconds
-                lastActivity: new Date().toISOString(),
-                draftName: sDraftName || `Draft - ${new Date().toLocaleDateString()}`
-            };
+            // Load session context and update via OData V4
+            const oSessionBinding = oModel.bindContext(`/WizardSessions('${this._sessionId}')`);
             
-            // Update the session via OData
-            oModel.update(`/WizardSessions('${this._sessionId}')`, oSessionData, {
-                success: () => {
+            oSessionBinding.requestObject().then(() => {
+                // Update properties
+                oSessionBinding.setProperty("sessionStatus", "Paused");
+                oSessionBinding.setProperty("currentStep", oDraftModel.getProperty("/currentStep"));
+                oSessionBinding.setProperty("totalSteps", oDraftModel.getProperty("/totalSteps"));
+                oSessionBinding.setProperty("timeSpentTotal", oDraftModel.getProperty("/timeSpent") * 60); // Convert to seconds
+                oSessionBinding.setProperty("lastActivity", new Date().toISOString());
+                oSessionBinding.setProperty("draftName", sDraftName || `Draft - ${new Date().toLocaleDateString()}`);
+                
+                // Submit batch
+                oModel.submitBatch("updateGroup").then(() => {
                     MessageToast.show("Draft saved successfully", {
                         duration: 3000
                     });
                     this._saveDraftDialog.close();
-                },
-                error: (oError) => {
+                }).catch((oError) => {
+                    console.error("Failed to save draft:", oError);
                     MessageBox.error("Failed to save draft: " + oError.message);
-                }
+                });
+            }).catch((oError) => {
+                console.error("Failed to load session:", oError);
+                MessageBox.error("Failed to save draft: " + oError.message);
             });
         },
 

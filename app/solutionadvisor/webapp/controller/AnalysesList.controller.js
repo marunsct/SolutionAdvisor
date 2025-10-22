@@ -103,48 +103,47 @@ sap.ui.define([
                 aBaseFilters.push(new Filter("projectConfig_ID", FilterOperator.EQ, sProjectId));
             }
 
-            // Get total analyses count
-            oModel.read("/Analyses/$count", {
-                filters: aBaseFilters,
-                success: (oData) => {
-                    oViewModel.setProperty("/analysesCount", oData || 0);
-                },
-                error: (oError) => {
-                    console.error("Failed to load analyses count:", oError);
-                }
+            // Get total analyses count using OData V4 binding
+            const oListBinding = oModel.bindList("/Analyses", null, null, aBaseFilters);
+            oListBinding.requestContexts(0, 0).then(() => {
+                const iCount = oListBinding.getLength();
+                oViewModel.setProperty("/analysesCount", iCount);
+            }).catch((oError) => {
+                console.error("Failed to load analyses count:", oError);
+                oViewModel.setProperty("/analysesCount", 0);
             });
 
             // Get Level A count
             const aLevelAFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level A")];
-            oModel.read("/Analyses/$count", {
-                filters: aLevelAFilters,
-                success: (oData) => {
-                    oViewModel.setProperty("/levelACount", oData || 0);
-                },
-                error: (oError) => {
-                    console.error("Failed to load Level A count:", oError);
-                }
+            const oLevelABinding = oModel.bindList("/Analyses", null, null, aLevelAFilters);
+            oLevelABinding.requestContexts(0, 0).then(() => {
+                const iCount = oLevelABinding.getLength();
+                oViewModel.setProperty("/levelACount", iCount);
+            }).catch((oError) => {
+                console.error("Failed to load Level A count:", oError);
+                oViewModel.setProperty("/levelACount", 0);
             });
 
             // Get Level B count
             const aLevelBFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level B")];
-            oModel.read("/Analyses/$count", {
-                filters: aLevelBFilters,
-                success: (oData) => {
-                    oViewModel.setProperty("/levelBCount", oData || 0);
-                },
-                error: (oError) => {
-                    console.error("Failed to load Level B count:", oError);
-                }
+            const oLevelBBinding = oModel.bindList("/Analyses", null, null, aLevelBFilters);
+            oLevelBBinding.requestContexts(0, 0).then(() => {
+                const iCount = oLevelBBinding.getLength();
+                oViewModel.setProperty("/levelBCount", iCount);
+            }).catch((oError) => {
+                console.error("Failed to load Level B count:", oError);
+                oViewModel.setProperty("/levelBCount", 0);
             });
 
             // Get Level C count
             const aLevelCFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level C")];
-            oModel.read("/Analyses/$count", {
-                filters: aLevelCFilters,
-                success: (oData) => {
-                    oViewModel.setProperty("/levelCCount", oData || 0);
-                }
+            const oLevelCBinding = oModel.bindList("/Analyses", null, null, aLevelCFilters);
+            oLevelCBinding.requestContexts(0, 0).then(() => {
+                const iCount = oLevelCBinding.getLength();
+                oViewModel.setProperty("/levelCCount", iCount);
+            }).catch((oError) => {
+                console.error("Failed to load Level C count:", oError);
+                oViewModel.setProperty("/levelCCount", 0);
             });
         },
 
@@ -188,29 +187,28 @@ sap.ui.define([
         _checkForDraft(sAnalysisId) {
             const oModel = this.getView().getModel();
             
-            oModel.read("/WizardSessions", {
-                filters: [
-                    new Filter("analysis_ID", FilterOperator.EQ, sAnalysisId),
-                    new Filter("sessionStatus", FilterOperator.EQ, "Paused")
-                ],
-                success: (oData) => {
-                    if (oData.results && oData.results.length > 0) {
-                        const oSession = oData.results[0];
-                        this._showResumeDraftDialog(sAnalysisId, oSession);
-                    } else {
-                        // No draft found, view as normal
-                        this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
-                            key: sAnalysisId
-                        });
-                    }
-                },
-                error: (oError) => {
-                    console.error("Failed to check for draft:", oError);
-                    // On error, just navigate to analysis details
+            const aFilters = [
+                new Filter("analysis_ID", FilterOperator.EQ, sAnalysisId),
+                new Filter("sessionStatus", FilterOperator.EQ, "Paused")
+            ];
+            const oBinding = oModel.bindList("/WizardSessions", null, null, aFilters);
+            
+            oBinding.requestContexts().then((aContexts) => {
+                if (aContexts && aContexts.length > 0) {
+                    const oSession = aContexts[0].getObject();
+                    this._showResumeDraftDialog(sAnalysisId, oSession);
+                } else {
+                    // No draft found, view as normal
                     this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
                         key: sAnalysisId
                     });
                 }
+            }).catch((oError) => {
+                console.error("Failed to check for draft:", oError);
+                // On error, just navigate to analysis details
+                this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                    key: sAnalysisId
+                });
             });
         },
 

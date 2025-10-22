@@ -12,7 +12,7 @@ service solutionAdvisorService {
     @restrict: [
         {
             grant: '*',
-            to   : 'Admin'
+            to   : 'TenantAdmin'
         },
         {
             grant: [
@@ -20,7 +20,7 @@ service solutionAdvisorService {
                 'CREATE',
                 'UPDATE'
             ],
-            to   : 'Architect'
+            to   : 'SolutionArchitect'
         },
         {
             grant: 'READ',
@@ -34,7 +34,7 @@ service solutionAdvisorService {
     @restrict: [
         {
             grant: '*',
-            to   : 'Admin'
+            to   : 'TenantAdmin'
         },
         {
             grant: [
@@ -42,7 +42,7 @@ service solutionAdvisorService {
                 'CREATE',
                 'UPDATE'
             ],
-            to   : 'Architect'
+            to   : 'SolutionArchitect'
         },
         {
             grant: [
@@ -131,7 +131,7 @@ service solutionAdvisorService {
     @restrict: [
         {
             grant: '*',
-            to   : 'Admin'
+            to   : 'TenantAdmin'
         },
         {
             grant: [
@@ -139,7 +139,7 @@ service solutionAdvisorService {
                 'CREATE',
                 'DELETE'
             ],
-            to   : 'Architect'
+            to   : 'SolutionArchitect'
         }
     ]
     entity ProjectUsers      as projection on my.ProjectUsers;
