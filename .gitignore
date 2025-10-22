@@ -5,7 +5,7 @@ _out
 gen/
 node_modules/
 target/
-
+**package-lock.json 
 # Web IDE, App Studio
 .che/
 .gen/

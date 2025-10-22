@@ -1,11 +1,11 @@
 {
+    // Disable TypeScript type-checking for JavaScript files to avoid TS linting in the editor
     "compilerOptions": {
         "module": "none",
         "noEmit": true,
-        "checkJs": true,
+        "checkJs": false,
         "allowJs": true,
-        "types": [
-            "@sapui5/ts-types"
-        ]
+        // Keep types optional; they won't trigger JS checking when checkJs is false
+        "types": []
     }
 }
