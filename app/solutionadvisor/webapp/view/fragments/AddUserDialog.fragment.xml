@@ -1,0 +1,50 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog
+        id="addUserDialog"
+        title="Add User to Project"
+        contentWidth="500px">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <Label text="User Email" required="true"/>
+                <Input
+                    id="userEmailInput"
+                    value="{addUserModel>/userEmail}"
+                    placeholder="user@company.com"
+                    type="Email"/>
+                
+                <Label text="User Name" required="true" class="sapUiTinyMarginTop"/>
+                <Input
+                    id="userNameInput"
+                    value="{addUserModel>/userName}"
+                    placeholder="John Doe"/>
+                
+                <Label text="User ID" required="true" class="sapUiTinyMarginTop"/>
+                <Input
+                    id="userIdInput"
+                    value="{addUserModel>/userId}"
+                    placeholder="User ID from BTP"/>
+                
+                <Label text="Role" required="true" class="sapUiTinyMarginTop"/>
+                <Select
+                    id="userRoleSelect"
+                    selectedKey="{addUserModel>/role}">
+                    <items>
+                        <core:Item key="SolutionArchitect" text="Solution Architect (Read/Write)"/>
+                        <core:Item key="Developer" text="Developer (Read Only)"/>
+                    </items>
+                </Select>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button
+                text="Add User"
+                type="Emphasized"
+                press=".onConfirmAddUser"/>
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press=".onCancelAddUser"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

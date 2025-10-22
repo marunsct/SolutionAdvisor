@@ -2,16 +2,178 @@ sap.ui.define([], function() {
     "use strict";
 
     /**
-     * FlowchartGenerator - Generate SVG flowcharts from decision paths
+     * FlowchartGenerator - Generate SVG flowcharts from decision paths using D3.js
      */
     return {
         /**
-         * Generate SVG flowchart from decision path data
+         * Generate D3.js hierarchical tree flowchart
          * @param {Object} analysisData - Analysis data including decision paths
          * @param {string} containerId - DOM element ID where SVG will be inserted
-         * @returns {Object} SVG element and metadata
+         * @returns {Promise} Promise that resolves when flowchart is generated
          */
         generateFlowchart: function(analysisData, containerId) {
+            // Check if D3 is available
+            if (typeof d3 !== 'undefined') {
+                return this._generateD3Flowchart(analysisData, containerId);
+            } else {
+                // Fallback to basic SVG if D3 is not available
+                return this._generateBasicFlowchart(analysisData, containerId);
+            }
+        },
+
+        /**
+         * Generate D3.js flowchart with zoom and interaction
+         */
+        _generateD3Flowchart: function(analysisData, containerId) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const decisionPaths = analysisData.decisionPaths || [];
+                    const finalRecommendation = analysisData.finalRecommendation || "Unknown";
+                    
+                    // Configuration
+                    const margin = { top: 20, right: 120, bottom: 20, left: 120 };
+                    const width = 1400 - margin.left - margin.right;
+                    const height = 600 - margin.top - margin.bottom;
+                    
+                    // Clear existing content
+                    const container = document.getElementById(containerId);
+                    if (!container) {
+                        reject(new Error("Container not found"));
+                        return;
+                    }
+                    container.innerHTML = "";
+                    
+                    // Create SVG with D3
+                    const svg = d3.select(`#${containerId}`)
+                        .append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom);
+                    
+                    const g = svg.append("g")
+                        .attr("transform", `translate(${margin.left},${margin.top})`);
+                    
+                    // Add zoom behavior
+                    const zoom = d3.zoom()
+                        .scaleExtent([0.3, 3])
+                        .on("zoom", (event) => {
+                            g.attr("transform", event.transform);
+                        });
+                    
+                    svg.call(zoom);
+                    
+                    // Transform decision paths to tree data
+                    const treeData = this._transformToHierarchy(decisionPaths, finalRecommendation);
+                    
+                    // Create tree layout
+                    const treemap = d3.tree().size([height, width]);
+                    
+                    // Assign nodes and links
+                    const root = d3.hierarchy(treeData);
+                    root.x0 = height / 2;
+                    root.y0 = 0;
+                    
+                    const treeNodes = treemap(root);
+                    
+                    // Add arrow marker
+                    svg.append("defs").append("marker")
+                        .attr("id", "arrowhead")
+                        .attr("markerWidth", 10)
+                        .attr("markerHeight", 10)
+                        .attr("refX", 9)
+                        .attr("refY", 3)
+                        .attr("orient", "auto")
+                        .append("polygon")
+                        .attr("points", "0 0, 10 3, 0 6")
+                        .attr("fill", "#999");
+                    
+                    // Draw links (connections)
+                    g.selectAll(".link")
+                        .data(treeNodes.links())
+                        .enter()
+                        .append("path")
+                        .attr("class", "link")
+                        .attr("fill", "none")
+                        .attr("stroke", "#999")
+                        .attr("stroke-width", 2)
+                        .attr("marker-end", "url(#arrowhead)")
+                        .attr("d", d3.linkHorizontal()
+                            .x(d => d.y)
+                            .y(d => d.x)
+                        );
+                    
+                    // Draw nodes
+                    const node = g.selectAll(".node")
+                        .data(treeNodes.descendants())
+                        .enter()
+                        .append("g")
+                        .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
+                        .attr("transform", d => `translate(${d.y},${d.x})`);
+                    
+                    // Add rectangles for nodes
+                    node.append("rect")
+                        .attr("width", 180)
+                        .attr("height", 70)
+                        .attr("x", -90)
+                        .attr("y", -35)
+                        .attr("rx", 5)
+                        .attr("ry", 5)
+                        .style("fill", d => this._getNodeColor(d.data))
+                        .style("stroke", d => this._getNodeBorderColor(d.data))
+                        .style("stroke-width", 2)
+                        .style("cursor", "pointer")
+                        .on("click", (event, d) => {
+                            this._onNodeClick(event, d);
+                        });
+                    
+                    // Add question text
+                    node.append("text")
+                        .attr("dy", -10)
+                        .attr("x", 0)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "11px")
+                        .style("font-weight", "bold")
+                        .text(d => d.data.question ? this._truncateText(d.data.question, 25) : "");
+                    
+                    // Add answer text
+                    node.append("text")
+                        .attr("dy", 10)
+                        .attr("x", 0)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "10px")
+                        .style("fill", "#666")
+                        .text(d => d.data.answer ? this._truncateText(d.data.answer, 30) : "");
+                    
+                    // Add step number badge
+                    node.filter(d => d.data.step)
+                        .append("circle")
+                        .attr("cx", -80)
+                        .attr("cy", -28)
+                        .attr("r", 12)
+                        .style("fill", "#0078D4");
+                    
+                    node.filter(d => d.data.step)
+                        .append("text")
+                        .attr("x", -80)
+                        .attr("y", -23)
+                        .attr("text-anchor", "middle")
+                        .style("fill", "white")
+                        .style("font-size", "10px")
+                        .style("font-weight", "bold")
+                        .text(d => d.data.step);
+                    
+                    resolve(svg.node());
+                } catch (error) {
+                    console.error("Error generating D3 flowchart:", error);
+                    reject(error);
+                }
+            });
+        },
+
+        /**
+         * Basic SVG flowchart (fallback when D3 is not available)
+         */
+        _generateBasicFlowchart: function(analysisData, containerId) {
+            return new Promise((resolve) => {
             const decisionPaths = analysisData.decisionPaths || [];
             const finalRecommendation = analysisData.finalRecommendation || "Unknown";
             
@@ -171,6 +333,106 @@ sap.ui.define([], function() {
         },
         
         /**
+         * Transform decision paths to hierarchical tree structure
+         */
+        _transformToHierarchy: function(decisionPaths, finalRecommendation) {
+            // Sort paths by step order
+            const sortedPaths = decisionPaths.sort((a, b) => a.stepOrder - b.stepOrder);
+            
+            // Build tree structure
+            const root = {
+                name: "Start",
+                question: "Analysis Start",
+                answer: "",
+                children: []
+            };
+            
+            if (sortedPaths.length === 0) {
+                root.children.push({
+                    name: "Final",
+                    question: finalRecommendation,
+                    answer: "No decision paths recorded",
+                    level: finalRecommendation
+                });
+                return root;
+            }
+            
+            let currentNode = root;
+            
+            sortedPaths.forEach((path, index) => {
+                const newNode = {
+                    name: `Step ${path.stepOrder}`,
+                    step: path.stepOrder,
+                    question: path.questionText,
+                    answer: path.selectedAnswer,
+                    level: path.cleanCoreLevel,
+                    children: []
+                };
+                
+                currentNode.children.push(newNode);
+                currentNode = newNode;
+            });
+            
+            // Add final recommendation node
+            currentNode.children.push({
+                name: "Final",
+                question: "Final Recommendation",
+                answer: finalRecommendation,
+                level: finalRecommendation
+            });
+            
+            return root;
+        },
+
+        /**
+         * Get node color based on data
+         */
+        _getNodeColor: function(nodeData) {
+            if (nodeData.name === "Start") return "#f0f0f0";
+            if (nodeData.name === "Final") {
+                const colors = this._getLevelColor(nodeData.level);
+                return colors.bg;
+            }
+            
+            if (!nodeData.level) return "#ffffff";
+            
+            const colors = this._getLevelColor(nodeData.level);
+            return colors.bg;
+        },
+
+        /**
+         * Get node border color
+         */
+        _getNodeBorderColor: function(nodeData) {
+            if (nodeData.name === "Start") return "#757575";
+            if (nodeData.name === "Final") {
+                const colors = this._getLevelColor(nodeData.level);
+                return colors.border;
+            }
+            
+            if (!nodeData.level) return "#757575";
+            
+            const colors = this._getLevelColor(nodeData.level);
+            return colors.border;
+        },
+
+        /**
+         * Handle node click
+         */
+        _onNodeClick: function(event, nodeData) {
+            if (typeof sap !== 'undefined' && sap.m && sap.m.MessageBox) {
+                let message = `Question: ${nodeData.data.question}\n\nAnswer: ${nodeData.data.answer}`;
+                if (nodeData.data.level) {
+                    message += `\n\nClean Core Level: ${nodeData.data.level}`;
+                }
+                
+                sap.m.MessageBox.information(message, {
+                    title: nodeData.data.step ? `Step ${nodeData.data.step} Details` : "Details"
+                });
+            }
+        },
+
+        /**
          * Truncate text to specified length
          */
         _truncateText: function(text, maxLength) {
@@ -193,9 +455,60 @@ sap.ui.define([], function() {
         },
         
         /**
-         * Export SVG as PNG
+         * Export flowchart as PNG using html2canvas
+         * @param {string} containerId - Container DOM element ID
+         * @param {string} filename - Output filename
+         * @returns {Promise}
          */
-        exportAsPNG: function(svgElement, filename) {
+        exportAsPNG: function(containerId, filename) {
+            return new Promise((resolve, reject) => {
+                // Check if html2canvas is available
+                if (typeof html2canvas === 'undefined') {
+                    // Fallback to basic export
+                    const container = document.getElementById(containerId);
+                    const svgElement = container.querySelector("svg");
+                    if (svgElement) {
+                        this._exportSVGAsPNG(svgElement, filename);
+                        resolve();
+                    } else {
+                        reject(new Error("SVG element not found"));
+                    }
+                    return;
+                }
+
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    reject(new Error("Container not found"));
+                    return;
+                }
+
+                html2canvas(container, {
+                    backgroundColor: "#ffffff",
+                    scale: 2, // Higher resolution
+                    logging: false
+                }).then(canvas => {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = filename || "flowchart.png";
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    });
+                }).catch(error => {
+                    console.error("Error exporting PNG:", error);
+                    reject(error);
+                });
+            });
+        },
+
+        /**
+         * Fallback PNG export without html2canvas
+         */
+        _exportSVGAsPNG: function(svgElement, filename) {
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(svgElement);
             const canvas = document.createElement("canvas");
@@ -223,14 +536,94 @@ sap.ui.define([], function() {
         },
         
         /**
-         * Export SVG as PDF (simplified version - would need proper PDF library in production)
+         * Export flowchart as PDF using jsPDF
+         * @param {string} containerId - Container DOM element ID
+         * @param {Object} analysisData - Analysis data for header info
+         * @param {string} filename - Output filename
+         * @returns {Promise}
          */
-        exportAsPDF: function(svgElement, filename) {
-            // This is a placeholder - in production, use jsPDF or similar library
-            // For now, we'll just export as SVG file
+        exportAsPDF: function(containerId, analysisData, filename) {
+            return new Promise((resolve, reject) => {
+                // Check if jsPDF and html2canvas are available
+                if (typeof jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+                    // Fallback to SVG export
+                    console.warn("jsPDF or html2canvas not available, exporting as SVG");
+                    this.exportAsSVG(containerId, filename);
+                    resolve();
+                    return;
+                }
+
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    reject(new Error("Container not found"));
+                    return;
+                }
+
+                html2canvas(container, {
+                    backgroundColor: "#ffffff",
+                    scale: 2
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL("image/png");
+                    
+                    // Create PDF in landscape mode
+                    const { jsPDF } = jspdf;
+                    const pdf = new jsPDF({
+                        orientation: "landscape",
+                        unit: "mm",
+                        format: "a4"
+                    });
+                    
+                    // Add header
+                    pdf.setFontSize(16);
+                    pdf.text("SAP Clean Core Decision Flowchart", 15, 15);
+                    
+                    pdf.setFontSize(10);
+                    pdf.text(`RICEFW ID: ${analysisData.ricefwId || 'N/A'}`, 15, 25);
+                    pdf.text(`Object: ${analysisData.objectName || 'N/A'}`, 15, 30);
+                    pdf.text(`Recommendation: ${analysisData.finalRecommendation || 'N/A'}`, 15, 35);
+                    pdf.text(`Date: ${new Date().toLocaleDateString()}`, 250, 15);
+                    
+                    // Add flowchart image
+                    const imgWidth = 277; // A4 landscape width in mm
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    const pageHeight = 190; // A4 landscape height minus margins
+                    
+                    if (imgHeight <= pageHeight) {
+                        pdf.addImage(imgData, "PNG", 10, 45, imgWidth - 20, imgHeight);
+                    } else {
+                        // Image is too tall, scale it down
+                        const scaledHeight = pageHeight;
+                        const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
+                        pdf.addImage(imgData, "PNG", 10, 45, scaledWidth, scaledHeight);
+                    }
+                    
+                    // Save PDF
+                    pdf.save(filename || `flowchart-${analysisData.ricefwId || 'export'}.pdf`);
+                    resolve();
+                }).catch(error => {
+                    console.error("Error exporting PDF:", error);
+                    reject(error);
+                });
+            });
+        },
+
+        /**
+         * Export as SVG file
+         * @param {string} containerId - Container DOM element ID
+         * @param {string} filename - Output filename
+         */
+        exportAsSVG: function(containerId, filename) {
+            const container = document.getElementById(containerId);
+            const svgElement = container.querySelector("svg");
+            
+            if (!svgElement) {
+                console.error("SVG element not found");
+                return;
+            }
+
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(svgElement);
-            const blob = new Blob([svgString], { type: "image/svg+xml" });
+            const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;

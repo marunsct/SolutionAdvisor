@@ -46,6 +46,21 @@ entity ProjectConfiguration : cuid, managed {
     // Associations
     analyses                : Composition of many CleanCoreAnalysis
                                   on analyses.projectConfig = $self;
+    projectUsers            : Composition of many ProjectUsers
+                                  on projectUsers.project = $self;
+}
+
+/**
+ * ProjectUsers - User access management per project
+ */
+entity ProjectUsers : cuid, managed {
+    project                 : Association to ProjectConfiguration not null;
+    userId                  : String(255) not null;
+    userEmail               : String(255);
+    userName                : String(255);
+    role                    : String(50) not null; // SolutionArchitect, Developer
+    accessLevel             : String(50) default 'Read'; // Read, Write, Admin
+    tenant                  : String(36) not null;
 }
 
 /**
