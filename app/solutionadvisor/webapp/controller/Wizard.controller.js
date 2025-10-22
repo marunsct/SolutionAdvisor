@@ -60,6 +60,11 @@ sap.ui.define([
             });
             this.getView().setModel(oHistoryModel, "historyModel");
             
+            // Initialize time tracking
+            this._wizardStartTime = new Date();
+            this._sessionId = null;
+            this._analysisId = null;
+            
             // Attach to route matched event
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("Wizard").attachPatternMatched(this._onRouteMatched, this);
@@ -528,21 +533,62 @@ sap.ui.define([
             const oAnalysis = oContext.getObject();
             
             MessageBox.confirm(
-                `Do you want to copy the decisions from the previous analysis?\n\n` +
-                `This will pre-fill your answers based on:\n` +
-                `Level: ${oAnalysis.finalRecommendation}\n` +
-                `Date: ${oAnalysis.analysisDate}`,
+                `Copy configuration from analysis dated ${new Date(oAnalysis.analysisDate).toLocaleDateString()}?\n\n` +
+                `This will pre-fill the wizard with:\n` +
+                `- Object Type: ${oAnalysis.objectType}\n` +
+                `- Object Name: ${oAnalysis.objectName}\n` +
+                `- Description: ${oAnalysis.objectDescription || 'N/A'}`,
                 {
-                    title: "Copy Previous Decisions",
+                    title: "Copy Configuration",
+                    actions: [MessageBox.Action.YES, MessageBox.Action.NO],
                     onClose: (sAction) => {
-                        if (sAction === MessageBox.Action.OK) {
-                            // In real implementation, load decision paths and pre-fill wizard
-                            MessageToast.show("Previous decisions copied. You can modify them as needed.");
-                            this._historyDialog.close();
+                        if (sAction === MessageBox.Action.YES) {
+                            this._copyFromPrevious(oAnalysis);
                         }
                     }
                 }
             );
+        },
+
+        _copyFromPrevious(oPreviousAnalysis) {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            
+            // Copy fields
+            oWizardModel.setProperty("/objectType", oPreviousAnalysis.objectType);
+            oWizardModel.setProperty("/objectName", oPreviousAnalysis.objectName);
+            oWizardModel.setProperty("/objectDescription", oPreviousAnalysis.objectDescription || "");
+            
+            // Update UI fields if they exist
+            const oObjectTypeComboBox = this.byId("objectTypeComboBox");
+            if (oObjectTypeComboBox) {
+                oObjectTypeComboBox.setSelectedKey(oPreviousAnalysis.objectType);
+            }
+            
+            const oObjectNameInput = this.byId("objectNameInput");
+            if (oObjectNameInput) {
+                oObjectNameInput.setValue(oPreviousAnalysis.objectName);
+            }
+            
+            const oObjectDescriptionInput = this.byId("objectDescriptionInput");
+            if (oObjectDescriptionInput && oPreviousAnalysis.objectDescription) {
+                oObjectDescriptionInput.setValue(oPreviousAnalysis.objectDescription);
+            }
+            
+            // Load constraints and examples for copied object type
+            if (oPreviousAnalysis.objectType) {
+                this._loadConstraints(oPreviousAnalysis.objectType);
+                this._loadExamples(oPreviousAnalysis.objectType);
+            }
+            
+            // Validate step
+            this._validateObjectStep();
+            
+            // Close dialog
+            this._historyDialog.close();
+            
+            MessageToast.show("Configuration copied successfully", {
+                duration: 3000
+            });
         },
         
         onCloseRicefwHistory() {
@@ -623,6 +669,9 @@ sap.ui.define([
                 },
                 success: (oResult) => {
                     MessageToast.show("Analysis started successfully!");
+                    // Store session ID for draft saving
+                    this._sessionId = oResult.sessionID;
+                    this._analysisId = oResult.analysisID;
                     // Navigate to analysis details
                     this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
                         key: oResult.analysisID
@@ -632,6 +681,122 @@ sap.ui.define([
                     MessageBox.error("Failed to start analysis: " + oError.message);
                 }
             });
+        },
+
+        onSaveDraft() {
+            // Update draft model with current progress
+            const oWizard = this.byId("cleanCoreWizard");
+            const iCurrentStep = oWizard.getSteps().indexOf(oWizard.getCurrentStep()) + 1;
+            const iTotalSteps = oWizard.getSteps().length;
+            
+            const oDraftModel = this.getView().getModel("draftModel");
+            oDraftModel.setProperty("/currentStep", iCurrentStep);
+            oDraftModel.setProperty("/totalSteps", iTotalSteps);
+            
+            // Calculate time spent (implement time tracking)
+            const iTimeSpent = this._calculateTimeSpent();
+            oDraftModel.setProperty("/timeSpent", iTimeSpent);
+            
+            // Open save draft dialog
+            if (!this._saveDraftDialog) {
+                sap.ui.core.Fragment.load({
+                    id: this.getView().getId(),
+                    name: "sd.solutionadvisor.view.fragments.SaveDraftDialog",
+                    controller: this
+                }).then((oDialog) => {
+                    this._saveDraftDialog = oDialog;
+                    this.getView().addDependent(this._saveDraftDialog);
+                    this._saveDraftDialog.open();
+                });
+            } else {
+                this._saveDraftDialog.open();
+            }
+        },
+
+        onConfirmSaveDraft() {
+            const oDraftModel = this.getView().getModel("draftModel");
+            const oWizardModel = this.getView().getModel("wizardModel");
+            
+            const sDraftName = sap.ui.core.Fragment.byId(
+                this.getView().getId(),
+                "draftNameInput"
+            ).getValue();
+            
+            // If analysis hasn't been started yet, create it first
+            if (!this._sessionId) {
+                this._createDraftAnalysis(sDraftName);
+            } else {
+                this._updateDraftSession(sDraftName);
+            }
+        },
+
+        _createDraftAnalysis(sDraftName) {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const oData = oWizardModel.getData();
+            const oModel = this.getView().getModel();
+            
+            // Create analysis in draft mode
+            oModel.callFunction("/startWizard", {
+                method: "POST",
+                urlParameters: {
+                    projectID: oData.projectID,
+                    ricefwId: oData.ricefwId,
+                    objectType: oData.objectType,
+                    objectName: oData.objectName
+                },
+                success: (oResult) => {
+                    this._sessionId = oResult.sessionID;
+                    this._analysisId = oResult.analysisID;
+                    this._updateDraftSession(sDraftName);
+                },
+                error: (oError) => {
+                    MessageBox.error("Failed to save draft: " + oError.message);
+                }
+            });
+        },
+
+        _updateDraftSession(sDraftName) {
+            const oDraftModel = this.getView().getModel("draftModel");
+            const oModel = this.getView().getModel();
+            
+            // Prepare wizard session data
+            const oSessionData = {
+                sessionStatus: "Paused",
+                currentStep: oDraftModel.getProperty("/currentStep"),
+                totalSteps: oDraftModel.getProperty("/totalSteps"),
+                timeSpentTotal: oDraftModel.getProperty("/timeSpent") * 60, // Convert to seconds
+                lastActivity: new Date().toISOString()
+            };
+            
+            // Update the session via OData
+            oModel.update(`/WizardSessions('${this._sessionId}')`, oSessionData, {
+                success: () => {
+                    MessageToast.show("Draft saved successfully", {
+                        duration: 3000
+                    });
+                    this._saveDraftDialog.close();
+                },
+                error: (oError) => {
+                    MessageBox.error("Failed to save draft: " + oError.message);
+                }
+            });
+        },
+
+        onCancelSaveDraft() {
+            this._saveDraftDialog.close();
+        },
+
+        _calculateTimeSpent() {
+            // Implement time tracking logic
+            if (!this._wizardStartTime) {
+                this._wizardStartTime = new Date();
+            }
+            
+            const now = new Date();
+            const diffMs = now - this._wizardStartTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            return diffMins;
         },
 
         onWizardComplete() {

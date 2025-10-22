@@ -3,8 +3,9 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
-    "sap/m/MessageToast"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast) => {
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
+], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysesList", {
@@ -171,11 +172,77 @@ sap.ui.define([
             const oItem = oEvent.getParameter("listItem") || oEvent.getSource();
             const oContext = oItem.getBindingContext();
             const sAnalysisId = oContext.getProperty("ID");
+            const sStatus = oContext.getProperty("status");
 
-            // Navigate to analysis details
-            this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
-                key: sAnalysisId
+            if (sStatus === "In Progress") {
+                // Check if there's a saved draft session
+                this._checkForDraft(sAnalysisId);
+            } else {
+                // Navigate to analysis details
+                this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                    key: sAnalysisId
+                });
+            }
+        },
+
+        _checkForDraft(sAnalysisId) {
+            const oModel = this.getView().getModel();
+            
+            oModel.read("/WizardSessions", {
+                filters: [
+                    new Filter("analysis_ID", FilterOperator.EQ, sAnalysisId),
+                    new Filter("sessionStatus", FilterOperator.EQ, "Paused")
+                ],
+                success: (oData) => {
+                    if (oData.results && oData.results.length > 0) {
+                        const oSession = oData.results[0];
+                        this._showResumeDraftDialog(sAnalysisId, oSession);
+                    } else {
+                        // No draft found, view as normal
+                        this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                            key: sAnalysisId
+                        });
+                    }
+                },
+                error: (oError) => {
+                    console.error("Failed to check for draft:", oError);
+                    // On error, just navigate to analysis details
+                    this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                        key: sAnalysisId
+                    });
+                }
             });
+        },
+
+        _showResumeDraftDialog(sAnalysisId, oSession) {
+            const sSavedDate = new Date(oSession.lastActivity).toLocaleString();
+            const bExpired = oSession.expiresAt && new Date() > new Date(oSession.expiresAt);
+            
+            MessageBox.confirm(
+                `A draft was saved on ${sSavedDate} (${oSession.currentStep}/${oSession.totalSteps} steps completed).` +
+                (bExpired ? "\n\nWarning: This draft has expired and may not be recoverable." : ""),
+                {
+                    title: "Resume Draft?",
+                    actions: ["Resume Wizard", "View Analysis", MessageBox.Action.CANCEL],
+                    onClose: (sAction) => {
+                        if (sAction === "Resume Wizard") {
+                            this._resumeWizard(sAnalysisId, oSession);
+                        } else if (sAction === "View Analysis") {
+                            this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                                key: sAnalysisId
+                            });
+                        }
+                    }
+                }
+            );
+        },
+
+        _resumeWizard(sAnalysisId, oSession) {
+            // Navigate to wizard with session ID
+            // This would require updating the Wizard route to accept sessionId parameter
+            // For now, just navigate to wizard
+            this.getOwnerComponent().getRouter().navTo("Wizard");
+            MessageToast.show("Resume functionality will be implemented in the wizard");
         },
 
         onStartWizard() {
