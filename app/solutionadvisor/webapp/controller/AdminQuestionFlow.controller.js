@@ -64,6 +64,20 @@ sap.ui.define([
      */
     onCreate: function() {
       if (!this._oCreateDialog) {
+        // Initialize create model
+        const oCreateModel = new JSONModel({
+          questionKey: "",
+          objectType: "I",
+          questionText: "",
+          questionCategory: "",
+          answerType: "SingleChoice",
+          answers: "",
+          navigationLogic: "",
+          detailedHint: "",
+          isActive: true
+        });
+        this.getView().setModel(oCreateModel, "createModel");
+        
         Fragment.load({
           id: this.getView().getId(),
           name: "sd.solutionadvisor.view.fragments.CreateQuestionFlowDialog",
@@ -74,29 +88,68 @@ sap.ui.define([
           oDialog.open();
         });
       } else {
+        // Reset model
+        this.getView().getModel("createModel").setData({
+          questionKey: "",
+          objectType: "I",
+          questionText: "",
+          questionCategory: "",
+          answerType: "SingleChoice",
+          answers: "",
+          navigationLogic: "",
+          detailedHint: "",
+          isActive: true
+        });
         this._oCreateDialog.open();
       }
     },
 
     /**
      * Handle create dialog confirm
-     * @param {sap.ui.base.Event} oEvent - Dialog confirm event
      */
-    onCreateConfirm: function(oEvent) {
+    onCreateConfirm: function() {
       const oModel = this.getView().getModel();
-      const oNewData = oEvent.getParameter("data");
+      const oCreateModel = this.getView().getModel("createModel");
+      const oData = oCreateModel.getData();
+      
+      // Validate required fields
+      if (!oData.questionKey || !oData.questionText) {
+        MessageBox.error("Please fill in all required fields");
+        return;
+      }
+      
+      // Parse JSON fields if provided
+      try {
+        if (oData.answers) {
+          oData.answers = JSON.parse(oData.answers);
+        }
+        if (oData.navigationLogic) {
+          oData.navigationLogic = JSON.parse(oData.navigationLogic);
+        }
+      } catch (error) {
+        MessageBox.error("Invalid JSON format in Answers or Navigation Logic");
+        return;
+      }
       
       // Create new record using OData V4
       const oListBinding = oModel.bindList("/QuestionFlow");
-      const oContext = oListBinding.create(oNewData);
+      const oContext = oListBinding.create(oData);
       
       oContext.created().then(() => {
         MessageToast.show("Question flow created successfully");
+        this._oCreateDialog.close();
         this._loadData();
       }).catch((error) => {
         console.error("Error creating question flow:", error);
-        MessageBox.error("Failed to create question flow");
+        MessageBox.error("Failed to create question flow: " + error.message);
       });
+    },
+    
+    /**
+     * Handle create dialog cancel
+     */
+    onCreateCancel: function() {
+      this._oCreateDialog.close();
     },
 
     /**

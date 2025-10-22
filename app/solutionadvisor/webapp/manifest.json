@@ -157,6 +157,20 @@
           "target": [
             "AnalyticsDashboard"
           ]
+        },
+        {
+          "name": "Admin",
+          "pattern": "admin",
+          "target": [
+            "Admin"
+          ]
+        },
+        {
+          "name": "AdminQuestionFlow",
+          "pattern": "admin/questionflow",
+          "target": [
+            "AdminQuestionFlow"
+          ]
         }
       ],
       "targets": {
@@ -189,6 +203,16 @@
           "id": "AnalyticsDashboard",
           "name": "AnalyticsDashboard",
           "title": "Analytics Dashboard"
+        },
+        "Admin": {
+          "id": "Admin",
+          "name": "Admin",
+          "title": "Administration Panel"
+        },
+        "AdminQuestionFlow": {
+          "id": "AdminQuestionFlow",
+          "name": "AdminQuestionFlow",
+          "title": "Question Flow Maintenance"
         }
       }
     },
