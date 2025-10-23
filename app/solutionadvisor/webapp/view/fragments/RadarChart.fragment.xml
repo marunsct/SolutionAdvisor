@@ -1,47 +1,165 @@
 <core:FragmentDefinition
-  xmlns:core="sap.ui.core"
-  xmlns="sap.m"
-  xmlns:viz="sap.viz.ui5.controls"
-  xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
 
-  <VBox class="sapUiSmallMargin">
-    <Title text="Scoring Metrics Radar Chart" level="H4" class="sapUiSmallMarginBottom"/>
-    <viz:VizFrame 
-      id="radarChart" 
-      vizType="radar"
-      width="100%" 
-      height="350px"
-      vizProperties="{
-        plotArea: {
-          dataLabel: {
-            visible: true
-          },
-          gridline: {
-            visible: true
-          }
-        },
-        valueAxis: {
-          title: {
-            visible: false
-          },
-          scale: {
-            fixedRange: true,
-            minValue: 0,
-            maxValue: 100
-          }
-        },
-        categoryAxis: {
-          title: {
-            visible: false
-          }
-        },
-        title: {
-          visible: false
-        },
-        legend: {
-          visible: false
-        }
-      }">
-    </viz:VizFrame>
-  </VBox>
+    <VBox class="sapUiSmallMargin">
+        <HBox alignItems="Center" justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
+            <Title text="Scoring Radar Chart" level="H4"/>
+            <HBox>
+                <Button icon="sap-icon://full-screen" press="onFullScreenChart"
+                    tooltip="Full Screen View" type="Transparent" class="sapUiTinyMarginEnd"/>
+                <Button icon="sap-icon://detail-view" press="onScoringDrillDown"
+                    tooltip="View Detailed Breakdown" type="Transparent"/>
+            </HBox>
+        </HBox>
+        
+        <viz:VizFrame 
+            id="radarChart" 
+            vizType="radar"
+            width="100%" 
+            height="350px"
+            vizProperties="{
+                plotArea: {
+                    dataLabel: { 
+                        visible: true,
+                        style: {
+                            fontSize: '12px'
+                        }
+                    },
+                    gridline: { 
+                        visible: true 
+                    },
+                    background: {
+                        border: {
+                            top: { visible: false },
+                            bottom: { visible: false },
+                            left: { visible: false },
+                            right: { visible: false }
+                        }
+                    }
+                },
+                valueAxis: {
+                    title: { visible: false },
+                    scale: { 
+                        fixedRange: true, 
+                        minValue: 0, 
+                        maxValue: 100 
+                    },
+                    gridline: {
+                        type: 'line',
+                        color: '#d9d9d9'
+                    }
+                },
+                categoryAxis: {
+                    title: { visible: false },
+                    label: {
+                        style: {
+                            fontSize: '13px',
+                            fontWeight: 'bold'
+                        }
+                    }
+                },
+                legend: {
+                    visible: false
+                },
+                title: {
+                    visible: false
+                }
+            }">
+        </viz:VizFrame>
+        
+        <!-- Score Summary Below Chart -->
+        <HBox justifyContent="SpaceAround" class="sapUiMediumMarginTop">
+            <VBox alignItems="Center" class="sapUiTinyMargin">
+                <ObjectNumber 
+                    id="technicalDebtNumber"
+                    number="{analysis>/technicalDebtScore}" 
+                    unit="%"
+                    state="{
+                        path: 'analysis>/technicalDebtScore',
+                        formatter: '.formatScoreState'
+                    }"
+                    emphasized="true"/>
+                <Text text="Technical Debt" class="sapUiTinyMarginTop"/>
+            </VBox>
+            
+            <VBox alignItems="Center" class="sapUiTinyMargin">
+                <ObjectNumber 
+                    id="cloudReadinessNumber"
+                    number="{analysis>/cloudReadinessScore}" 
+                    unit="%"
+                    state="{
+                        path: 'analysis>/cloudReadinessScore',
+                        formatter: '.formatScoreState'
+                    }"
+                    emphasized="true"/>
+                <Text text="Cloud Readiness" class="sapUiTinyMarginTop"/>
+            </VBox>
+            
+            <VBox alignItems="Center" class="sapUiTinyMargin">
+                <ObjectNumber 
+                    id="upgradeImpactNumber"
+                    number="{analysis>/upgradeImpactScore}" 
+                    unit="%"
+                    state="{
+                        path: 'analysis>/upgradeImpactScore',
+                        formatter: '.formatScoreState'
+                    }"
+                    emphasized="true"/>
+                <Text text="Upgrade Impact" class="sapUiTinyMarginTop"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Composite Health Score -->
+        <HBox justifyContent="Center" class="sapUiSmallMarginTop">
+            <VBox alignItems="Center" class="sapUiSmallPadding" 
+                visible="{= ${analysis>/compositeHealthScore} !== undefined}">
+                <Label text="Overall Health Score" class="sapUiTinyMarginBottom"/>
+                <ObjectNumber 
+                    id="compositeHealthNumber"
+                    number="{analysis>/compositeHealthScore}" 
+                    unit="%"
+                    state="{
+                        path: 'analysis>/compositeHealthScore',
+                        formatter: '.formatHealthState'
+                    }"
+                    emphasized="true"
+                    class="sapUiLargeMargin"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Legend and Explanation -->
+        <Panel headerText="Score Interpretation" expandable="true" expanded="false" 
+            class="sapUiSmallMarginTop">
+            <VBox class="sapUiSmallMargin">
+                <HBox wrap="Wrap">
+                    <VBox class="sapUiTinyMargin sapUiMediumMarginEnd">
+                        <Label text="Technical Debt Score:" class="sapUiTinyMarginBottom"/>
+                        <Text text="• 0-25%: Low debt, minimal custom code" class="sapUiTinyText"/>
+                        <Text text="• 26-50%: Moderate debt, manageable" class="sapUiTinyText"/>
+                        <Text text="• 51-75%: High debt, refactoring needed" class="sapUiTinyText"/>
+                        <Text text="• 76-100%: Critical, immediate attention" class="sapUiTinyText"/>
+                    </VBox>
+                    
+                    <VBox class="sapUiTinyMargin sapUiMediumMarginEnd">
+                        <Label text="Cloud Readiness Score:" class="sapUiTinyMarginBottom"/>
+                        <Text text="• 0-25%: Not cloud-ready, major changes" class="sapUiTinyText"/>
+                        <Text text="• 26-50%: Partially ready, some modifications" class="sapUiTinyText"/>
+                        <Text text="• 51-75%: Mostly ready, minor adjustments" class="sapUiTinyText"/>
+                        <Text text="• 76-100%: Fully cloud-ready" class="sapUiTinyText"/>
+                    </VBox>
+                    
+                    <VBox class="sapUiTinyMargin">
+                        <Label text="Upgrade Impact Score:" class="sapUiTinyMarginBottom"/>
+                        <Text text="• 0-25%: Minimal upgrade effort" class="sapUiTinyText"/>
+                        <Text text="• 26-50%: Moderate upgrade complexity" class="sapUiTinyText"/>
+                        <Text text="• 51-75%: High upgrade impact" class="sapUiTinyText"/>
+                        <Text text="• 76-100%: Critical upgrade challenges" class="sapUiTinyText"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </Panel>
+    </VBox>
 </core:FragmentDefinition>

@@ -225,55 +225,123 @@
                                 class="sapUiSmallMarginBottom sapUiSuccessText"/>
                             <Text id="recommendationReasoning" text="{wizardModel>/finalReasoning}" class="sapUiMediumMarginBottom"/>
                             
-                            <!-- Scoring Dashboard -->
-                            <Title id="scoringTitle" text="Scoring Metrics" level="H4" class="sapUiSmallMarginBottom"/>
-                            <HBox id="scoresHBox" class="sapUiMediumMarginBottom" wrap="Wrap">
-                                <VBox id="technicalDebtBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                                    <Label id="technicalDebtLabel" text="Technical Debt Score" class="sapUiTinyMarginBottom"/>
-                                    <ProgressIndicator 
-                                        id="technicalDebtIndicator"
-                                        percentValue="{wizardModel>/scores/technicalDebt}" 
-                                        displayValue="{wizardModel>/scores/technicalDebt}%" 
-                                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : 
-                                                ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"/>
-                                    <Text id="technicalDebtHelp" text="Lower is better" class="sapUiTinyText"/>
+            <!-- Scoring Dashboard - Responsive Layout -->
+            <Title id="scoringTitle" text="Scoring Metrics" level="H4" class="sapUiSmallMarginBottom"/>
+            
+            <!-- Desktop/Tablet Layout -->
+            <HBox id="scoresHBoxDesktop" class="sapUiMediumMarginBottom sapUiHideOnPhone" wrap="Wrap">
+                <VBox id="technicalDebtBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                    <Label id="technicalDebtLabel" text="Technical Debt Score" class="sapUiTinyMarginBottom"/>
+                    <ProgressIndicator 
+                        id="technicalDebtIndicator"
+                        percentValue="{wizardModel>/scores/technicalDebt}" 
+                        displayValue="{wizardModel>/scores/technicalDebt}%" 
+                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : 
+                                ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"/>
+                    <Text id="technicalDebtHelp" text="Lower is better" class="sapUiTinyText"/>
+                </VBox>
+                
+                <VBox id="cloudReadinessBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                    <Label id="cloudReadinessLabel" text="Cloud Readiness Score" class="sapUiTinyMarginBottom"/>
+                    <ProgressIndicator 
+                        id="cloudReadinessIndicator"
+                        percentValue="{wizardModel>/scores/cloudReadiness}" 
+                        displayValue="{wizardModel>/scores/cloudReadiness}%" 
+                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : 
+                                ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"/>
+                    <Text id="cloudReadinessHelp" text="Higher is better" class="sapUiTinyText"/>
+                </VBox>
+                
+                <VBox id="upgradeImpactBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                    <Label id="upgradeImpactLabel" text="Upgrade Impact Score" class="sapUiTinyMarginBottom"/>
+                    <ProgressIndicator 
+                        id="upgradeImpactIndicator"
+                        percentValue="{wizardModel>/scores/upgradeImpact}" 
+                        displayValue="{wizardModel>/scores/upgradeImpact}%" 
+                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : 
+                                ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"/>
+                    <Text id="upgradeImpactHelp" text="Lower is better" class="sapUiTinyText"/>
+                </VBox>
+                
+                <VBox id="compositeHealthBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
+                    <Label id="compositeHealthLabel" text="Composite Health Score" class="sapUiTinyMarginBottom"/>
+                    <ProgressIndicator 
+                        id="compositeHealthIndicator"
+                        percentValue="{wizardModel>/scores/compositeHealth}" 
+                        displayValue="{wizardModel>/scores/compositeHealth}%" 
+                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : 
+                                ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"/>
+                    <Text id="compositeHealthHelp" text="Higher is better" class="sapUiTinyText"/>
+                </VBox>
+            </HBox>
+            
+            <!-- Mobile Accordion Layout -->
+            <Panel id="mobileScoresPanel" class="sapUiShowOnPhone sapUiMediumMarginBottom" expandable="true" expanded="true" headerText="Scoring Summary">
+                <VBox class="sapUiSmallMargin">
+                    <List id="mobileScoresList" noDataText="No scoring data available">
+                        <CustomListItem>
+                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                                <VBox width="60%">
+                                    <Text text="Technical Debt" class="sapUiMediumText"/>
+                                    <Text text="Lower is better" class="sapUiTinyText"/>
                                 </VBox>
-                                
-                                <VBox id="cloudReadinessBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                                    <Label id="cloudReadinessLabel" text="Cloud Readiness Score" class="sapUiTinyMarginBottom"/>
-                                    <ProgressIndicator 
-                                        id="cloudReadinessIndicator"
-                                        percentValue="{wizardModel>/scores/cloudReadiness}" 
-                                        displayValue="{wizardModel>/scores/cloudReadiness}%" 
-                                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : 
-                                                ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"/>
-                                    <Text id="cloudReadinessHelp" text="Higher is better" class="sapUiTinyText"/>
-                                </VBox>
-                                
-                                <VBox id="upgradeImpactBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                                    <Label id="upgradeImpactLabel" text="Upgrade Impact Score" class="sapUiTinyMarginBottom"/>
-                                    <ProgressIndicator 
-                                        id="upgradeImpactIndicator"
-                                        percentValue="{wizardModel>/scores/upgradeImpact}" 
-                                        displayValue="{wizardModel>/scores/upgradeImpact}%" 
-                                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : 
-                                                ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"/>
-                                    <Text id="upgradeImpactHelp" text="Lower is better" class="sapUiTinyText"/>
-                                </VBox>
-                                
-                                <VBox id="compositeHealthBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                                    <Label id="compositeHealthLabel" text="Composite Health Score" class="sapUiTinyMarginBottom"/>
-                                    <ProgressIndicator 
-                                        id="compositeHealthIndicator"
-                                        percentValue="{wizardModel>/scores/compositeHealth}" 
-                                        displayValue="{wizardModel>/scores/compositeHealth}%" 
-                                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : 
-                                                ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"/>
-                                    <Text id="compositeHealthHelp" text="Higher is better" class="sapUiTinyText"/>
+                                <VBox width="35%" alignItems="End">
+                                    <ObjectNumber 
+                                        number="{wizardModel>/scores/technicalDebt}" 
+                                        unit="%" 
+                                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"
+                                        emphasized="true"/>
                                 </VBox>
                             </HBox>
-
-                            <Button id="viewDetailsButton"
+                        </CustomListItem>
+                        <CustomListItem>
+                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                                <VBox width="60%">
+                                    <Text text="Cloud Readiness" class="sapUiMediumText"/>
+                                    <Text text="Higher is better" class="sapUiTinyText"/>
+                                </VBox>
+                                <VBox width="35%" alignItems="End">
+                                    <ObjectNumber 
+                                        number="{wizardModel>/scores/cloudReadiness}" 
+                                        unit="%" 
+                                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"
+                                        emphasized="true"/>
+                                </VBox>
+                            </HBox>
+                        </CustomListItem>
+                        <CustomListItem>
+                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                                <VBox width="60%">
+                                    <Text text="Upgrade Impact" class="sapUiMediumText"/>
+                                    <Text text="Lower is better" class="sapUiTinyText"/>
+                                </VBox>
+                                <VBox width="35%" alignItems="End">
+                                    <ObjectNumber 
+                                        number="{wizardModel>/scores/upgradeImpact}" 
+                                        unit="%" 
+                                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"
+                                        emphasized="true"/>
+                                </VBox>
+                            </HBox>
+                        </CustomListItem>
+                        <CustomListItem>
+                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                                <VBox width="60%">
+                                    <Text text="Composite Health" class="sapUiMediumText"/>
+                                    <Text text="Overall health" class="sapUiTinyText"/>
+                                </VBox>
+                                <VBox width="35%" alignItems="End">
+                                    <ObjectNumber 
+                                        number="{wizardModel>/scores/compositeHealth}" 
+                                        unit="%" 
+                                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"
+                                        emphasized="true"/>
+                                </VBox>
+                            </HBox>
+                        </CustomListItem>
+                    </List>
+                </VBox>
+            </Panel>                            <Button id="viewDetailsButton"
                                 text="View Analysis Details" 
                                 type="Emphasized" 
                                 press="onViewAnalysisDetails"

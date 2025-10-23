@@ -32,7 +32,7 @@
                 </attributes>
             </ObjectHeader>
             
-            <!-- Scoring Dashboard -->
+            <!-- Scoring Dashboard - Responsive -->
             <Panel
                 headerText="Scoring Metrics Dashboard"
                 class="sapUiResponsiveMargin">
@@ -48,7 +48,8 @@
                     </Toolbar>
                 </headerToolbar>
                 <VBox class="sapUiSmallMargin">
-                    <HBox justifyContent="SpaceAround">
+                    <!-- Desktop/Tablet Layout -->
+                    <HBox justifyContent="SpaceAround" class="sapUiHideOnPhone">
                         <VBox alignItems="Center" width="200px">
                             <Title text="Technical Debt" level="H4"/>
                             <ProgressIndicator
@@ -93,6 +94,90 @@
                             <Text text="Overall Health" class="sapUiTinyMarginTop"/>
                         </VBox>
                     </HBox>
+                    
+                    <!-- Mobile Layout - Tile Style -->
+                    <VBox class="sapUiShowOnPhone">
+                        <HBox class="sapUiSmallMarginBottom">
+                            <GenericTile 
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                header="Technical Debt" 
+                                subheader="Lower is better"
+                                size="M"
+                                width="48%"
+                                press="onScoringDrillDown">
+                                <tileContent>
+                                    <TileContent>
+                                        <content>
+                                            <NumericContent 
+                                                value="{technicalDebtScore}" 
+                                                indicator="{= ${technicalDebtScore} &lt; 30 ? 'Up' : ${technicalDebtScore} &lt; 60 ? 'None' : 'Down' }"
+                                                valueColor="{= ${technicalDebtScore} &lt; 30 ? 'Good' : ${technicalDebtScore} &lt; 60 ? 'Critical' : 'Error' }"
+                                                size="S"/>
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+                            <GenericTile 
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                header="Cloud Readiness" 
+                                subheader="Higher is better"
+                                size="M"
+                                width="48%"
+                                press="onScoringDrillDown">
+                                <tileContent>
+                                    <TileContent>
+                                        <content>
+                                            <NumericContent 
+                                                value="{cloudReadinessScore}" 
+                                                indicator="{= ${cloudReadinessScore} &gt; 70 ? 'Up' : ${cloudReadinessScore} &gt; 40 ? 'None' : 'Down' }"
+                                                valueColor="{= ${cloudReadinessScore} &gt; 70 ? 'Good' : ${cloudReadinessScore} &gt; 40 ? 'Critical' : 'Error' }"
+                                                size="S"/>
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+                        </HBox>
+                        <HBox class="sapUiSmallMarginBottom">
+                            <GenericTile 
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                header="Upgrade Impact" 
+                                subheader="Lower is better"
+                                size="M"
+                                width="48%"
+                                press="onScoringDrillDown">
+                                <tileContent>
+                                    <TileContent>
+                                        <content>
+                                            <NumericContent 
+                                                value="{upgradeImpactScore}" 
+                                                indicator="{= ${upgradeImpactScore} &lt; 30 ? 'Up' : ${upgradeImpactScore} &lt; 60 ? 'None' : 'Down' }"
+                                                valueColor="{= ${upgradeImpactScore} &lt; 30 ? 'Good' : ${upgradeImpactScore} &lt; 60 ? 'Critical' : 'Error' }"
+                                                size="S"/>
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+                            <GenericTile 
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                header="Composite Health" 
+                                subheader="Overall health"
+                                size="M"
+                                width="48%"
+                                press="onScoringDrillDown">
+                                <tileContent>
+                                    <TileContent>
+                                        <content>
+                                            <NumericContent 
+                                                value="{compositeHealthScore}" 
+                                                indicator="{= ${compositeHealthScore} &gt; 70 ? 'Up' : ${compositeHealthScore} &gt; 40 ? 'None' : 'Down' }"
+                                                valueColor="{= ${compositeHealthScore} &gt; 70 ? 'Good' : ${compositeHealthScore} &gt; 40 ? 'Critical' : 'Error' }"
+                                                size="S"/>
+                                        </content>
+                                    </TileContent>
+                                </tileContent>
+                            </GenericTile>
+                        </HBox>
+                    </VBox>
                     
                     <!-- Radar Chart Section - dynamically loaded by controller -->
                     <VBox id="radarChartContainer" class="sapUiSmallMarginTop"/>
