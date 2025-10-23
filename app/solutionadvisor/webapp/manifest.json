@@ -71,7 +71,8 @@
         "sap.ui.table": {},
         "sap.ui.layout": {},
         "sap.f": {},
-        "sap.ushell": {}
+        "sap.ushell": {},
+        "sap.viz": {}
       }
     },
     "contentDensities": {
@@ -149,6 +150,27 @@
           "target": [
             "Wizard"
           ]
+        },
+        {
+          "name": "AnalyticsDashboard",
+          "pattern": "analytics",
+          "target": [
+            "AnalyticsDashboard"
+          ]
+        },
+        {
+          "name": "Admin",
+          "pattern": "admin",
+          "target": [
+            "Admin"
+          ]
+        },
+        {
+          "name": "AdminQuestionFlow",
+          "pattern": "admin/questionflow",
+          "target": [
+            "AdminQuestionFlow"
+          ]
         }
       ],
       "targets": {
@@ -176,6 +198,21 @@
           "id": "Wizard",
           "name": "Wizard",
           "title": "New Analysis Wizard"
+        },
+        "AnalyticsDashboard": {
+          "id": "AnalyticsDashboard",
+          "name": "AnalyticsDashboard",
+          "title": "Analytics Dashboard"
+        },
+        "Admin": {
+          "id": "Admin",
+          "name": "Admin",
+          "title": "Administration Panel"
+        },
+        "AdminQuestionFlow": {
+          "id": "AdminQuestionFlow",
+          "name": "AdminQuestionFlow",
+          "title": "Question Flow Maintenance"
         }
       }
     },

@@ -1,0 +1,152 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.AdminQuestionFlow"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:layout="sap.ui.layout"
+    displayBlock="true">
+    
+    <Page
+        id="adminQuestionFlowPage"
+        title="Question Flow Maintenance"
+        showNavButton="true"
+        navButtonPress="onNavBack"
+        class="sapUiResponsiveContentPadding">
+        
+        <headerContent>
+            <Button
+                id="createQuestionButton"
+                text="Create"
+                icon="sap-icon://create"
+                type="Emphasized"
+                press="onCreate"
+                tooltip="Create new question flow"/>
+            <Button
+                id="downloadTemplateButton"
+                text="Download Template"
+                icon="sap-icon://download"
+                press="onDownloadTemplate"
+                tooltip="Download Excel template for mass upload"/>
+            <Button
+                id="exportButton"
+                text="Export"
+                icon="sap-icon://excel-attachment"
+                press="onExport"
+                tooltip="Export all question flows to Excel"/>
+            <FileUploader
+                id="fileUploader"
+                name="massUpload"
+                buttonText="Mass Upload"
+                icon="sap-icon://upload"
+                uploadOnChange="false"
+                change="onMassUpload"
+                fileType="xlsx"
+                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                tooltip="Upload Excel file with question flows"/>
+            <SearchField
+                id="searchField"
+                width="300px"
+                search="onSearch"
+                placeholder="Search questions..."/>
+        </headerContent>
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                
+                <!-- Info Panel -->
+                <MessageStrip
+                    text="Use Download Template to get the correct format. Upload Excel files with Mass Upload. Click Export to download existing data."
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <!-- Record Count -->
+                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title text="Question Flows" level="H3"/>
+                    <Text text="{viewModel>/recordCount} records"/>
+                </FlexBox>
+                
+                <!-- Question Flow Table -->
+                <Table
+                    id="questionFlowTable"
+                    items="{/QuestionFlow}"
+                    mode="MultiSelect"
+                    growing="true"
+                    growingThreshold="20"
+                    busy="{viewModel>/busy}"
+                    noDataText="No question flows found. Click Create to add new questions.">
+                    
+                    <columns>
+                        <Column width="12%">
+                            <Text text="Question Key"/>
+                        </Column>
+                        <Column width="8%">
+                            <Text text="Object Type"/>
+                        </Column>
+                        <Column width="30%">
+                            <Text text="Question Text"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Category"/>
+                        </Column>
+                        <Column width="10%">
+                            <Text text="Answer Type"/>
+                        </Column>
+                        <Column width="8%">
+                            <Text text="Active"/>
+                        </Column>
+                        <Column width="10%">
+                            <Text text="Modified"/>
+                        </Column>
+                        <Column width="10%" hAlign="End">
+                            <Text text="Actions"/>
+                        </Column>
+                    </columns>
+                    
+                    <items>
+                        <ColumnListItem type="Navigation">
+                            <cells>
+                                <ObjectIdentifier
+                                    title="{questionKey}"
+                                    text="{objectType_objectType}"/>
+                                <Text text="{objectType_objectType}"/>
+                                <VBox>
+                                    <Text text="{questionText}" class="sapUiTinyMarginBottom"/>
+                                    <Text text="{detailedHint}" class="sapUiSmallText"/>
+                                </VBox>
+                                <Text text="{questionCategory}"/>
+                                <Text text="{answerType}"/>
+                                <Switch
+                                    state="{isActive}"
+                                    enabled="false"
+                                    customTextOn="Yes"
+                                    customTextOff="No"/>
+                                <Text text="{modifiedAt}"/>
+                                <HBox justifyContent="End">
+                                    <Button
+                                        icon="sap-icon://edit"
+                                        type="Transparent"
+                                        press="onEdit"
+                                        tooltip="Edit question flow"/>
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        press="onDelete"
+                                        tooltip="Delete question flow"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+                
+            </VBox>
+        </content>
+        
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer/>
+                <Button text="Refresh" icon="sap-icon://refresh" press="_loadData"/>
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

@@ -8,6 +8,14 @@
         id="projectsListPage"
         title="Projects"
         showHeader="true">
+        <headerContent>
+            <Button
+                id="analyticsButton"
+                text="Analytics Dashboard"
+                icon="sap-icon://sales-quote"
+                press="onNavigateToAnalytics"
+                type="Emphasized"/>
+        </headerContent>
         <content>
             <VBox class="sapUiSmallMargin">
                 <HeaderContainer

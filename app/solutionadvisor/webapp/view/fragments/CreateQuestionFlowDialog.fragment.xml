@@ -1,0 +1,148 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:layout="sap.ui.layout"
+    xmlns:form="sap.ui.layout.form">
+    
+    <Dialog
+        title="Create Question Flow"
+        contentWidth="600px"
+        contentHeight="500px"
+        resizable="true"
+        draggable="true">
+        
+        <content>
+            <form:SimpleForm
+                id="createQuestionForm"
+                editable="true"
+                layout="ResponsiveGridLayout"
+                labelSpanXL="4"
+                labelSpanL="4"
+                labelSpanM="4"
+                labelSpanS="12"
+                adjustLabelSpan="false"
+                emptySpanXL="0"
+                emptySpanL="0"
+                emptySpanM="0"
+                emptySpanS="0"
+                columnsXL="1"
+                columnsL="1"
+                columnsM="1"
+                singleContainerFullSize="false"
+                class="sapUiSmallMargin">
+                
+                <form:content>
+                    
+                    <!-- Question Key -->
+                    <Label text="Question Key" required="true"/>
+                    <Input
+                        id="questionKeyInput"
+                        value="{createModel>/questionKey}"
+                        placeholder="e.g., Q-INT-001"
+                        required="true"
+                        valueStateText="Format: Q-XXX-NNN"/>
+                    
+                    <!-- Object Type -->
+                    <Label text="Object Type" required="true"/>
+                    <Select
+                        id="objectTypeSelect"
+                        selectedKey="{createModel>/objectType}"
+                        required="true">
+                        <items>
+                            <core:Item key="R" text="Reports"/>
+                            <core:Item key="I" text="Interfaces"/>
+                            <core:Item key="C" text="Conversions"/>
+                            <core:Item key="E" text="Enhancements"/>
+                            <core:Item key="F" text="Forms"/>
+                            <core:Item key="W" text="Workflows"/>
+                        </items>
+                    </Select>
+                    
+                    <!-- Question Text -->
+                    <Label text="Question Text" required="true"/>
+                    <TextArea
+                        id="questionTextArea"
+                        value="{createModel>/questionText}"
+                        rows="3"
+                        placeholder="Enter the question to ask users..."
+                        required="true"/>
+                    
+                    <!-- Question Category -->
+                    <Label text="Category"/>
+                    <Input
+                        id="categoryInput"
+                        value="{createModel>/questionCategory}"
+                        placeholder="e.g., Volume, Complexity, Integration"/>
+                    
+                    <!-- Answer Type -->
+                    <Label text="Answer Type" required="true"/>
+                    <Select
+                        id="answerTypeSelect"
+                        selectedKey="{createModel>/answerType}"
+                        required="true">
+                        <items>
+                            <core:Item key="SingleChoice" text="Single Choice"/>
+                            <core:Item key="MultiChoice" text="Multiple Choice"/>
+                            <core:Item key="Text" text="Text Input"/>
+                            <core:Item key="Number" text="Number Input"/>
+                            <core:Item key="YesNo" text="Yes/No"/>
+                        </items>
+                    </Select>
+                    
+                    <!-- Answers (JSON) -->
+                    <Label text="Answers (JSON)"/>
+                    <TextArea
+                        id="answersTextArea"
+                        value="{createModel>/answers}"
+                        rows="4"
+                        placeholder='[{"key": "LOW", "text": "Low volume"}, {"key": "HIGH", "text": "High volume"}]'/>
+                    
+                    <!-- Navigation Logic (JSON) -->
+                    <Label text="Navigation Logic (JSON)"/>
+                    <TextArea
+                        id="navigationLogicTextArea"
+                        value="{createModel>/navigationLogic}"
+                        rows="4"
+                        placeholder='{"LOW": {"nextQuestion": "Q-INT-002", "finalAnswer": null}}'/>
+                    
+                    <!-- Detailed Hint -->
+                    <Label text="Detailed Hint"/>
+                    <TextArea
+                        id="hintTextArea"
+                        value="{createModel>/detailedHint}"
+                        rows="2"
+                        placeholder="Provide additional context or guidance..."/>
+                    
+                    <!-- Active -->
+                    <Label text="Active"/>
+                    <Switch
+                        id="activeSwitch"
+                        state="{createModel>/isActive}"
+                        customTextOn="Yes"
+                        customTextOff="No"/>
+                    
+                </form:content>
+            </form:SimpleForm>
+            
+            <!-- Help Text -->
+            <MessageStrip
+                text="Tip: Use Download Template to see correct JSON format for Answers and Navigation Logic."
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin"/>
+        </content>
+        
+        <beginButton>
+            <Button
+                text="Create"
+                type="Emphasized"
+                press="onCreateConfirm"/>
+        </beginButton>
+        
+        <endButton>
+            <Button
+                text="Cancel"
+                press="onCreateCancel"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

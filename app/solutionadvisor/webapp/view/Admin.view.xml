@@ -1,0 +1,114 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.Admin"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:layout="sap.ui.layout"
+    displayBlock="true">
+    
+    <Page
+        id="adminLandingPage"
+        title="Administration Panel"
+        showNavButton="true"
+        navButtonPress="onNavBack"
+        class="sapUiResponsiveContentPadding">
+        
+        <headerContent>
+            <Button
+                id="adminRefreshButton"
+                icon="sap-icon://refresh"
+                tooltip="Refresh counts"
+                press="onRefresh"/>
+        </headerContent>
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                
+                <!-- Page Header -->
+                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <VBox>
+                        <Title text="Table Maintenance" level="H2"/>
+                        <Text text="Manage reference data and configuration tables" class="sapUiTinyMarginTop"/>
+                    </VBox>
+                </FlexBox>
+                
+                <!-- Info Message -->
+                <MessageStrip
+                    text="This area is restricted to administrators. All changes are logged and audited."
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <!-- Admin Tiles -->
+                <layout:Grid
+                    defaultSpan="XL4 L4 M6 S12"
+                    hSpacing="1"
+                    vSpacing="1"
+                    class="sapUiSmallMarginTop">
+                    
+                    <!-- Tiles are generated from model -->
+                    <GenericTile
+                        items="{adminModel>/tiles}"
+                        class="sapUiTinyMargin"
+                        header="{adminModel>title}"
+                        subheader="{adminModel>subtitle}"
+                        press="onTilePress"
+                        frameType="TwoByOne">
+                        <tileContent>
+                            <TileContent footer="{= ${adminModel>recordCount} + ' records' }">
+                                <content>
+                                    <ImageContent src="{adminModel>icon}"/>
+                                </content>
+                            </TileContent>
+                        </tileContent>
+                    </GenericTile>
+                    
+                </layout:Grid>
+                
+                <!-- Recent Changes Section -->
+                <Panel
+                    headerText="Recent Changes"
+                    expandable="true"
+                    expanded="false"
+                    class="sapUiSmallMarginTop">
+                    <content>
+                        <Table
+                            id="recentChangesTable"
+                            noDataText="No recent changes"
+                            mode="None">
+                            <columns>
+                                <Column width="20%">
+                                    <Text text="Date/Time"/>
+                                </Column>
+                                <Column width="20%">
+                                    <Text text="Table"/>
+                                </Column>
+                                <Column width="15%">
+                                    <Text text="Action"/>
+                                </Column>
+                                <Column width="25%">
+                                    <Text text="Record ID"/>
+                                </Column>
+                                <Column width="20%">
+                                    <Text text="User"/>
+                                </Column>
+                            </columns>
+                            <items>
+                                <!-- Will be populated with audit trail data -->
+                                <ColumnListItem>
+                                    <cells>
+                                        <Text text="2025-10-22 19:45"/>
+                                        <Text text="QuestionFlow"/>
+                                        <Text text="CREATE"/>
+                                        <Text text="Q-INT-001"/>
+                                        <Text text="admin@company.com"/>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </content>
+                </Panel>
+                
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
