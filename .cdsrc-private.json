@@ -2,7 +2,7 @@
   "requires": {
     "[hybrid]": {
       "db": {
-        "kind": "hana-cloud",
+        "kind": "hana",
         "binding": {
           "type": "cf",
           "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
