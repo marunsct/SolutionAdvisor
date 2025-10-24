@@ -1,15 +1,56 @@
 const cds = require('@sap/cds');
 
 /**
- * Scoring Service - Calculates technical debt, cloud readiness, and upgrade impact scores
+ * Scoring Service - Calculates Clean Core quality metrics
+ * 
+ * @class ScoringService
+ * @description
+ * Computes four key scoring metrics for Clean Core analyses:
+ * 1. Technical Debt Score (0-100, lower is better)
+ * 2. Cloud Readiness Score (0-100%, higher is better)
+ * 3. Upgrade Impact Score (0-100, lower is better)
+ * 4. Composite Health Score (0-100, higher is better)
+ * 
+ * Scoring formulas are based on:
+ * - Clean Core Level (A/B/C/D) with multipliers from CleanCoreLevels entity
+ * - Decision path complexity (time spent, number of steps)
+ * - S/4HANA deployment flavor (Cloud Public/Private/On-Premise)
+ * 
+ * Level multipliers (default):
+ * - Level A: technicalDebt=0.00, cloudReadiness=1.00, upgradeImpact=0.00
+ * - Level B: technicalDebt=1.00, cloudReadiness=0.80, upgradeImpact=1.00
+ * - Level C: technicalDebt=3.00, cloudReadiness=0.50, upgradeImpact=3.00
+ * - Level D: technicalDebt=5.00, cloudReadiness=0.20, upgradeImpact=5.00
+ * 
+ * @author SAP Clean Core Team
+ * @version 1.0.0
  */
 class ScoringService {
+    /**
+     * Create a Scoring Service instance
+     * @param {Object} srv - CAP service instance (unused but kept for consistency)
+     */
     constructor(srv) {
         this.srv = srv;
     }
 
     /**
      * Calculate all scores for an analysis
+     * 
+     * @async
+     * @param {string} analysisID - UUID of the Clean Core analysis
+     * @returns {Promise<Object>} Calculated scores
+     * @returns {number} technicalDebt - Technical debt score (0-100, lower=better)
+     * @returns {number} cloudReadiness - Cloud readiness % (0-100, higher=better)
+     * @returns {number} upgradeImpact - Upgrade impact score (0-100, lower=better)
+     * @returns {number} compositeHealth - Overall health score (0-100, higher=better)
+     * 
+     * @throws {Error} Analysis not found
+     * 
+     * @description
+     * Main entry point for scoring calculations. Retrieves analysis, decision paths,
+     * and clean core level weights, then calculates all four metrics. Returns default
+     * scores if level data is missing.
      */
     async calculateScores(analysisID) {
         const { CleanCoreAnalysis, DecisionPath, CleanCoreLevels } = cds.entities('sd');
@@ -55,9 +96,22 @@ class ScoringService {
 
     /**
      * Calculate Technical Debt Score (0-100)
-     * Formula: TDS = Σ (Level Weight × Complexity Factor) / Analysis Count × 100
-     * Level weights: A=0.00, B=1.00, C=3.00, D=5.00
-     * Lower is better - 0 means no technical debt
+     * 
+     * @param {Array<Object>} decisionPaths - Array of decision path records
+     * @param {Object} level - Clean Core level record with multipliers
+     * @returns {number} Technical debt score (0-100, lower is better)
+     * 
+     * @description
+     * Formula: TDS = Σ (Level Weight × Complexity Factor) / Step Count × 100
+     * 
+     * Level weights from CleanCoreLevels.technicalDebtMultiplier:
+     * - A=0.00, B=1.00, C=3.00, D=5.00
+     * 
+     * Complexity factor: Normalized time spent (0-2 range based on minutes)
+     * - Faster answers = lower complexity = lower score
+     * - Time cap: 2 minutes per question
+     * 
+     * Lower score is better (0 = no technical debt).
      */
     calculateTechnicalDebt(decisionPaths, level) {
         if (!decisionPaths || decisionPaths.length === 0) {

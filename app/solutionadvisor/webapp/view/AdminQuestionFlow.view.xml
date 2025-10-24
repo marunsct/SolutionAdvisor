@@ -44,7 +44,7 @@
                 mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 tooltip="Upload Excel file with question flows"/>
             <SearchField
-                id="searchField"
+                id="adminQuestionFlowSearchField"
                 width="300px"
                 search="onSearch"
                 placeholder="Search questions..."/>

@@ -3,7 +3,8 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:f="sap.f"
-    xmlns:core="sap.ui.core">
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form">
     <Page
         id="projectDetailsPage"
         title="Project Details"
@@ -18,32 +19,38 @@
                 numberState="Information">
                 <statuses>
                     <ObjectStatus
+                        id="projectStatus"
                         text="{status}"
                         state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
                 </statuses>
                 <attributes>
-                    <ObjectAttribute title="S/4HANA Flavor" text="{s4HanaFlavor}"/>
-                    <ObjectAttribute title="Business Criticality" text="{businessCriticality}"/>
-                    <ObjectAttribute title="Timeline" text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                    <ObjectAttribute id="flavorAttr" title="S/4HANA Flavor" text="{s4HanaFlavor}"/>
+                    <ObjectAttribute id="criticalityAttr" title="Business Criticality" text="{businessCriticality}"/>
+                    <ObjectAttribute id="timelineAttr" title="Timeline" text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
                 </attributes>
-                <headerContainer>
-                    <Button
-                        text="Manage Users"
-                        icon="sap-icon://permission"
-                        press="onManageUsers"
-                        type="Emphasized"/>
-                </headerContainer>
+                
             </ObjectHeader>
+            <OverflowToolbar id="projectHeaderActionsToolbar">
+                <ToolbarSpacer id="projectHeaderActionsSpacer"/>
+                <Button
+                    id="manageUsersButton"
+                    text="Manage Users"
+                    icon="sap-icon://permission"
+                    press="onManageUsers"
+                    type="Emphasized"/>
+            </OverflowToolbar>
             
             <IconTabBar
                 id="projectIconTabBar"
                 class="sapUiResponsiveContentPadding">
                 <items>
                     <IconTabFilter
+                        id="generalInfoTab"
                         text="General Information"
                         key="general"
                         icon="sap-icon://hint">
-                        <f:SimpleForm
+                        <form:SimpleForm
+                            id="generalInfoForm"
                             editable="false"
                             layout="ResponsiveGridLayout"
                             labelSpanXL="4"
@@ -59,79 +66,85 @@
                             columnsL="2"
                             columnsM="1"
                             singleContainerFullSize="false">
-                            <f:content>
-                                <Label text="Client Name"/>
-                                <Text text="{clientName}"/>
+                            <form:content>
+                                <Label id="clientNameLabel" text="Client Name"/>
+                                <Text id="clientNameText" text="{clientName}"/>
                                 
-                                <Label text="Project Name"/>
-                                <Text text="{projectName}"/>
+                                <Label id="projectNameLabel" text="Project Name"/>
+                                <Text id="projectNameText" text="{projectName}"/>
                                 
-                                <Label text="Project Type"/>
-                                <Text text="{projectType}"/>
+                                <Label id="projectTypeLabel" text="Project Type"/>
+                                <Text id="projectTypeText" text="{projectType}"/>
                                 
-                                <Label text="Expected Duration"/>
-                                <Text text="{expectedDuration} months"/>
+                                <Label id="expectedDurationLabel" text="Expected Duration"/>
+                                <Text id="expectedDurationText" text="{expectedDuration} months"/>
                                 
-                                <Label text="Status"/>
+                                <Label id="statusLabel" text="Status"/>
                                 <ObjectStatus
+                                    id="statusValue"
                                     text="{status}"
                                     state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
-                            </f:content>
-                        </f:SimpleForm>
+                            </form:content>
+                        </form:SimpleForm>
                     </IconTabFilter>
                     
                     <IconTabFilter
+                        id="technicalConfigTab"
                         text="Technical Configuration"
                         key="technical"
                         icon="sap-icon://settings">
-                        <f:SimpleForm
+                        <form:SimpleForm
+                            id="technicalConfigForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
-                            <f:content>
-                                <Label text="S/4HANA Flavor"/>
-                                <Text text="{s4HanaFlavor}"/>
+                            <form:content>
+                                <Label id="techFlavorLabel" text="S/4HANA Flavor"/>
+                                <Text id="techFlavorText" text="{s4HanaFlavor}"/>
                                 
-                                <Label text="Available BTP Services"/>
-                                <Text text="{availableBTPServices}"/>
+                                <Label id="availableBtpServicesLabel" text="Available BTP Services"/>
+                                <Text id="availableBtpServicesText" text="{availableBTPServices}"/>
                                 
-                                <Label text="Third Party Services"/>
-                                <Text text="{thirdPartyServices}"/>
+                                <Label id="thirdPartyServicesLabel" text="Third Party Services"/>
+                                <Text id="thirdPartyServicesText" text="{thirdPartyServices}"/>
                                 
-                                <Label text="Technical Team Size"/>
-                                <Text text="{technicalTeamSize}"/>
-                            </f:content>
-                        </f:SimpleForm>
+                                <Label id="technicalTeamSizeLabel" text="Technical Team Size"/>
+                                <Text id="technicalTeamSizeText" text="{technicalTeamSize}"/>
+                            </form:content>
+                        </form:SimpleForm>
                     </IconTabFilter>
                     
                     <IconTabFilter
+                        id="governanceTab"
                         text="Governance"
                         key="governance"
                         icon="sap-icon://create-form">
-                        <f:SimpleForm
+                        <form:SimpleForm
+                            id="governanceForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
-                            <f:content>
-                                <Label text="Governance Model"/>
-                                <Text text="{governanceModel}"/>
+                            <form:content>
+                                <Label id="governanceModelLabel" text="Governance Model"/>
+                                <Text id="governanceModelText" text="{governanceModel}"/>
                                 
-                                <Label text="Compliance Requirements"/>
-                                <Text text="{complianceRequirements}"/>
+                                <Label id="complianceRequirementsLabel" text="Compliance Requirements"/>
+                                <Text id="complianceRequirementsText" text="{complianceRequirements}"/>
                                 
-                                <Label text="Business Criticality"/>
-                                <Text text="{businessCriticality}"/>
+                                <Label id="governanceBusinessCriticalityLabel" text="Business Criticality"/>
+                                <Text id="governanceBusinessCriticalityText" text="{businessCriticality}"/>
                                 
-                                <Label text="Budget Range"/>
-                                <Text text="{budgetRange}"/>
-                            </f:content>
-                        </f:SimpleForm>
+                                <Label id="budgetRangeLabel" text="Budget Range"/>
+                                <Text id="budgetRangeText" text="{budgetRange}"/>
+                            </form:content>
+                        </form:SimpleForm>
                     </IconTabFilter>
                 </items>
             </IconTabBar>
         </content>
         <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer/>
+            <OverflowToolbar id="projectFooterToolbar">
+                <ToolbarSpacer id="projectFooterSpacer"/>
                 <Button
+                    id="projectNewAnalysisButton"
                     text="New Analysis"
                     icon="sap-icon://add"
                     type="Emphasized"

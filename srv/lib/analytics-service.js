@@ -1,10 +1,59 @@
 const cds = require('@sap/cds');
+const LOG = cds.log('analytics-service');
 
+/**
+ * Analytics Service - Aggregates and computes dashboard metrics
+ * 
+ * @class AnalyticsService
+ * @description
+ * Provides aggregated analytics data for the Analytics Dashboard view.
+ * Computes KPIs, distributions, trends, risk matrices, and top objects
+ * based on completed Clean Core analyses with optional date/filter ranges.
+ * 
+ * KPIs calculated:
+ * - Total analyses count
+ * - Average technical debt score
+ * - Average cloud readiness score
+ * - Average upgrade impact score
+ * - Average composite health score
+ * 
+ * Chart data:
+ * - Clean Core level distribution (A/B/C/D counts)
+ * - RICEFW type distribution (R/I/C/E/F/W counts)
+ * - Score trends over time (monthly aggregates)
+ * - Risk matrix (technical debt vs cloud readiness scatter)
+ * - Top 10 complex objects (highest technical debt)
+ * 
+ * @author SAP Clean Core Team
+ * @version 1.0.0
+ */
 class AnalyticsService {
   /**
    * Get aggregated analytics data for dashboard
-   * @param {Object} filters - Optional filters (dateFrom, dateTo, ricefwTypes, cleanCoreLevels, projectId)
-   * @returns {Object} Complete analytics data including KPIs and chart data
+   * 
+   * @async
+   * @param {Object} [filters={}] - Optional filters
+   * @param {string} [filters.dateFrom] - Start date (ISO format)
+   * @param {string} [filters.dateTo] - End date (ISO format)
+   * @param {Array<string>} [filters.ricefwTypes] - Object type codes to include
+   * @param {Array<string>} [filters.cleanCoreLevels] - Levels to include (A/B/C/D)
+   * @param {string} [filters.projectId] - Filter by specific project UUID
+   * 
+   * @returns {Promise<Object>} Complete analytics payload
+   * @returns {number} totalAnalyses - Total count of analyses
+   * @returns {number} technicalDebtScore - Average technical debt (0-100)
+   * @returns {number} cloudReadinessScore - Average cloud readiness % (0-100)
+   * @returns {number} upgradeImpactScore - Average upgrade impact (0-100)
+   * @returns {number} compositeHealthScore - Average health score (0-100)
+   * @returns {Array<Object>} levelDistribution - Clean Core level counts
+   * @returns {Array<Object>} ricefwTypeDistribution - RICEFW type counts
+   * @returns {Array<Object>} trendData - Monthly trend data
+   * @returns {Array<Object>} riskMatrixData - Risk scatter plot data
+   * @returns {Array<Object>} topObjects - Top 10 complex objects
+   * 
+   * @description
+   * Main entry point for dashboard analytics. Applies tenant filtering,
+   * date ranges, and type filters. Returns empty structure if no data found.
    */
   async getAnalyticsData(filters = {}) {
     try {
@@ -65,7 +114,7 @@ class AnalyticsService {
         totalAnalyses: analyses.length
       };
     } catch (error) {
-      console.error('Error getting analytics data:', error);
+      LOG.error('Error getting analytics data:', error);
       throw error;
     }
   }
@@ -187,7 +236,7 @@ class AnalyticsService {
         analysisCount: monthlyData[month].count
       }));
     } catch (error) {
-      console.error('Error preparing trend data:', error);
+      LOG.error('Error preparing trend data:', error);
       // Return empty array if trend data fails
       return [];
     }
