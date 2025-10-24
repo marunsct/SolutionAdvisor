@@ -84,8 +84,8 @@ sap.ui.define([], function() {
           oBinding.requestContexts(0, 0).then(() => {
             const iCount = oBinding.getLength();
             this.getView().getModel("adminModel").setProperty(`/tiles/${index}/recordCount`, iCount);
-          }).catch(error => {
-            console.error(`Error loading count for ${entityName}:`, error);
+          }).catch(() => {
+            // Error loading count - silently fail
           });
         }
       });

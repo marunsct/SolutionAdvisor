@@ -52,7 +52,7 @@ sap.ui.define([
       MessageBox.information(`Edit object type: ${oData.typeName}\n\nThis will open a dialog to modify type details and icon.`);
     },
 
-    onDelete: function(oEvent) {
+    onDelete: function() {
       MessageBox.warning("Delete is disabled for Object Types as they are system-critical master data.");
     },
 
