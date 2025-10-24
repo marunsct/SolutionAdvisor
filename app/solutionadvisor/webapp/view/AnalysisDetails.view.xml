@@ -5,329 +5,423 @@
     xmlns:f="sap.f"
     xmlns:form="sap.ui.layout.form"
     xmlns:core="sap.ui.core"
-    xmlns:viz="sap.viz.ui5.controls">
+    xmlns:viz="sap.viz.ui5.controls"
+>
     <Page
-        id="analysisDetailsPage"
+        id="analysisDetails_Page"
         title="Analysis Details"
         showHeader="true"
         showNavButton="true"
-        navButtonPress="onNavBack">
+        navButtonPress="onNavBack"
+    >
         <content>
             <ObjectHeader
-                id="analysisHeader"
+                id="analysisDetails_Header"
                 title="{objectName}"
                 number="{ricefwId}"
                 numberState="Information"
                 responsive="true"
-                fullScreenOptimized="true">
+                fullScreenOptimized="true"
+            >
                 <statuses>
                     <ObjectStatus
-                        id="recommendationStatus"
+                        id="analysisDetails_RecommendationStatus"
                         text="{finalRecommendation}"
-                        state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
+                        state="{= ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error' }"
+                    />
                     <ObjectStatus
-                        id="analysisStatus"
+                        id="analysisDetails_AnalysisStatus"
                         text="{status}"
-                        state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
+                        state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"
+                    />
                 </statuses>
                 <attributes>
-                    <ObjectAttribute id="objectTypeAttr" title="Object Type" text="{objectType}"/>
-                    <ObjectAttribute id="riskAssessmentAttr" title="Risk Assessment" text="{riskAssessment}"/>
-                    <ObjectAttribute id="analysisDateAttr" title="Analysis Date" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                    <ObjectAttribute
+                        id="analysisDetails_ObjectTypeAttr"
+                        title="Object Type"
+                        text="{objectType}"
+                    />
+                    <ObjectAttribute
+                        id="analysisDetails_RiskAssessmentAttr"
+                        title="Risk Assessment"
+                        text="{riskAssessment}"
+                    />
+                    <ObjectAttribute
+                        id="analysisDetails_AnalysisDateAttr"
+                        title="Analysis Date"
+                        text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"
+                    />
                 </attributes>
             </ObjectHeader>
-            
+
             <!-- Scoring Dashboard - Responsive -->
             <Panel
-                id="scoringPanel"
+                id="analysisDetails_ScoringPanel"
                 headerText="Scoring Metrics Dashboard"
-                class="sapUiResponsiveMargin">
+            >
                 <headerToolbar>
-                    <Toolbar id="scoringToolbar">
-                        <Title id="scoringToolbarTitle" text="Scoring Metrics Dashboard"/>
-                        <ToolbarSpacer id="scoringToolbarSpacer"/>
+                    <Toolbar id="analysisDetails_ScoringToolbar">
+                        <Title
+                            id="analysisDetails_ScoringToolbarTitle"
+                            text="Scoring Metrics Dashboard"
+                        />
+                        <ToolbarSpacer
+                            id="analysisDetails_ScoringToolbarSpacer"
+                        />
                         <Button
-                            id="scoringDrillDownBtn"
+                            id="analysisDetails_ScoringDrillDownBtn"
                             text="View Breakdown"
                             icon="sap-icon://drill-down"
                             press="onScoringDrillDown"
-                            type="Transparent"/>
+                            type="Transparent"
+                        />
                     </Toolbar>
                 </headerToolbar>
-                <VBox id="scoringContentBox" class="sapUiSmallMargin">
-                    <!-- Desktop/Tablet Layout -->
-                    <HBox id="desktopScoresBox" justifyContent="SpaceAround" class="sapUiHideOnPhone">
-                        <VBox id="techDebtBox" alignItems="Center" width="200px">
-                            <Title id="techDebtTitle" text="Technical Debt" level="H4"/>
-                            <ProgressIndicator
-                                id="techDebtProgress"
-                                percentValue="{technicalDebtScore}"
-                                displayValue="{technicalDebtScore}"
-                                state="{= ${technicalDebtScore} &lt; 30 ? 'Success' : ${technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"
-                                width="100%"
-                                height="40px"/>
-                            <Text id="techDebtHelp" text="Lower is better" class="sapUiTinyMarginTop"/>
-                        </VBox>
-                        
-                        <VBox id="cloudReadyBox" alignItems="Center" width="200px">
-                            <Title id="cloudReadyTitle" text="Cloud Readiness" level="H4"/>
-                            <ProgressIndicator
-                                id="cloudReadyProgress"
-                                percentValue="{cloudReadinessScore}"
-                                displayValue="{cloudReadinessScore}"
-                                state="{= ${cloudReadinessScore} &gt; 70 ? 'Success' : ${cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"
-                                width="100%"
-                                height="40px"/>
-                            <Text id="cloudReadyHelp" text="Higher is better" class="sapUiTinyMarginTop"/>
-                        </VBox>
-                        
-                        <VBox id="upgradeImpBox" alignItems="Center" width="200px">
-                            <Title id="upgradeImpTitle" text="Upgrade Impact" level="H4"/>
-                            <ProgressIndicator
-                                id="upgradeImpProgress"
-                                percentValue="{upgradeImpactScore}"
-                                displayValue="{upgradeImpactScore}"
-                                state="{= ${upgradeImpactScore} &lt; 30 ? 'Success' : ${upgradeImpactScore} &lt; 60 ? 'Warning' : 'Error' }"
-                                width="100%"
-                                height="40px"/>
-                            <Text id="upgradeImpHelp" text="Lower is better" class="sapUiTinyMarginTop"/>
-                        </VBox>
-                        
-                        <VBox id="compositeBox" alignItems="Center" width="200px">
-                            <Title id="compositeTitle" text="Composite Health" level="H4"/>
-                            <ProgressIndicator
-                                id="compositeProgress"
-                                percentValue="{compositeHealthScore}"
-                                displayValue="{compositeHealthScore}"
-                                state="{= ${compositeHealthScore} &gt; 70 ? 'Success' : ${compositeHealthScore} &gt; 40 ? 'Warning' : 'Error' }"
-                                width="100%"
-                                height="40px"/>
-                            <Text id="compositeHelp" text="Overall Health" class="sapUiTinyMarginTop"/>
-                        </VBox>
-                    </HBox>
-                    
-                    <!-- Mobile Layout - Tile Style -->
-                    <VBox id="mobileScoresBox" class="sapUiShowOnPhone">
-                        <HBox id="mobileRow1" class="sapUiSmallMarginBottom">
-                            <GenericTile 
-                                id="mobileTechDebtTile"
-                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
-                                header="Technical Debt" 
-                                subheader="Lower is better"
-                                width="48%"
-                                press="onScoringDrillDown">
-                                <tileContent>
-                                    <TileContent id="mobileTechDebtContent">
-                                        <content>
-                                            <NumericContent 
-                                                id="mobileTechDebtNumeric"
-                                                value="{technicalDebtScore}" 
-                                                indicator="{= ${technicalDebtScore} &lt; 30 ? 'Up' : ${technicalDebtScore} &lt; 60 ? 'None' : 'Down' }"
-                                                valueColor="{= ${technicalDebtScore} &lt; 30 ? 'Good' : ${technicalDebtScore} &lt; 60 ? 'Critical' : 'Error' }"/>
-                                        </content>
-                                    </TileContent>
-                                </tileContent>
-                            </GenericTile>
-                            <GenericTile 
-                                id="mobileCloudReadyTile"
-                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
-                                header="Cloud Readiness" 
-                                subheader="Higher is better"
-                                width="48%"
-                                press="onScoringDrillDown">
-                                <tileContent>
-                                    <TileContent id="mobileCloudReadyContent">
-                                        <content>
-                                            <NumericContent 
-                                                id="mobileCloudReadyNumeric"
-                                                value="{cloudReadinessScore}" 
-                                                indicator="{= ${cloudReadinessScore} &gt; 70 ? 'Up' : ${cloudReadinessScore} &gt; 40 ? 'None' : 'Down' }"
-                                                valueColor="{= ${cloudReadinessScore} &gt; 70 ? 'Good' : ${cloudReadinessScore} &gt; 40 ? 'Critical' : 'Error' }"/>
-                                        </content>
-                                    </TileContent>
-                                </tileContent>
-                            </GenericTile>
-                        </HBox>
-                        <HBox id="mobileRow2" class="sapUiSmallMarginBottom">
-                            <GenericTile 
-                                id="mobileUpgradeImpTile"
-                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
-                                header="Upgrade Impact" 
-                                subheader="Lower is better"
-                                width="48%"
-                                press="onScoringDrillDown">
-                                <tileContent>
-                                    <TileContent id="mobileUpgradeImpContent">
-                                        <content>
-                                            <NumericContent 
-                                                id="mobileUpgradeImpNumeric"
-                                                value="{upgradeImpactScore}" 
-                                                indicator="{= ${upgradeImpactScore} &lt; 30 ? 'Up' : ${upgradeImpactScore} &lt; 60 ? 'None' : 'Down' }"
-                                                valueColor="{= ${upgradeImpactScore} &lt; 30 ? 'Good' : ${upgradeImpactScore} &lt; 60 ? 'Critical' : 'Error' }"/>
-                                        </content>
-                                    </TileContent>
-                                </tileContent>
-                            </GenericTile>
-                            <GenericTile 
-                                id="mobileCompositeTile"
-                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
-                                header="Composite Health" 
-                                subheader="Overall health"
-                                width="48%"
-                                press="onScoringDrillDown">
-                                <tileContent>
-                                    <TileContent id="mobileCompositeContent">
-                                        <content>
-                                            <NumericContent 
-                                                id="mobileCompositeNumeric"
-                                                value="{compositeHealthScore}" 
-                                                indicator="{= ${compositeHealthScore} &gt; 70 ? 'Up' : ${compositeHealthScore} &gt; 40 ? 'None' : 'Down' }"
-                                                valueColor="{= ${compositeHealthScore} &gt; 70 ? 'Good' : ${compositeHealthScore} &gt; 40 ? 'Critical' : 'Error' }"/>
-                                        </content>
-                                    </TileContent>
-                                </tileContent>
-                            </GenericTile>
-                        </HBox>
-                    </VBox>
-                    
+                <VBox
+                    id="analysisDetails_ScoringContentBox"
+                    class="sapUiSmallMargin"
+                >
+                    <!-- Unified Responsive Tile Layout (1x4, 2x2, or 4x1) -->
+                    <FlexBox
+                        id="analysisDetails_ScoringTilesContainer"
+                        wrap="Wrap"
+                        justifyContent="Center"
+                        alignItems="Center"
+                        class="scoringTilesContainer"
+                    >
+                        <GenericTile
+                            id="analysisDetails_TechDebtTile"
+                            class="scoringTile"
+                            header="Technical Debt"
+                            subheader="Lower is better"
+                            press="onScoringDrillDown"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="analysisDetails_TechDebtContent"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="analysisDetails_TechDebtNumeric"
+                                            value="{technicalDebtScore}"
+                                            scale=""
+                                            indicator="{= ${technicalDebtScore} &lt; 30 ? 'Up' : ${technicalDebtScore} &lt; 60 ? 'None' : 'Down' }"
+                                            valueColor="{= ${technicalDebtScore} &lt; 30 ? 'Good' : ${technicalDebtScore} &lt; 60 ? 'Critical' : 'Error' }"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+
+                        <GenericTile
+                            id="analysisDetails_CloudReadyTile"
+                            class="scoringTile"
+                            header="Cloud Readiness"
+                            subheader="Higher is better"
+                            press="onScoringDrillDown"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="analysisDetails_CloudReadyContent"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="analysisDetails_CloudReadyNumeric"
+                                            value="{cloudReadinessScore}"
+                                            scale=""
+                                            indicator="{= ${cloudReadinessScore} &gt; 70 ? 'Up' : ${cloudReadinessScore} &gt; 40 ? 'None' : 'Down' }"
+                                            valueColor="{= ${cloudReadinessScore} &gt; 70 ? 'Good' : ${cloudReadinessScore} &gt; 40 ? 'Critical' : 'Error' }"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+
+                        <GenericTile
+                            id="analysisDetails_UpgradeImpTile"
+                            class="scoringTile"
+                            header="Upgrade Impact"
+                            subheader="Lower is better"
+                            press="onScoringDrillDown"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="analysisDetails_UpgradeImpContent"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="analysisDetails_UpgradeImpNumeric"
+                                            value="{upgradeImpactScore}"
+                                            scale=""
+                                            indicator="{= ${upgradeImpactScore} &lt; 30 ? 'Up' : ${upgradeImpactScore} &lt; 60 ? 'None' : 'Down' }"
+                                            valueColor="{= ${upgradeImpactScore} &lt; 30 ? 'Good' : ${upgradeImpactScore} &lt; 60 ? 'Critical' : 'Error' }"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+
+                        <GenericTile
+                            id="analysisDetails_CompositeHealthTile"
+                            class="scoringTile"
+                            header="Composite Health"
+                            subheader="Overall health"
+                            press="onScoringDrillDown"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="analysisDetails_CompositeHealthContent"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="analysisDetails_CompositeHealthNumeric"
+                                            value="{compositeHealthScore}"
+                                            scale=""
+                                            indicator="{= ${compositeHealthScore} &gt; 70 ? 'Up' : ${compositeHealthScore} &gt; 40 ? 'None' : 'Down' }"
+                                            valueColor="{= ${compositeHealthScore} &gt; 70 ? 'Good' : ${compositeHealthScore} &gt; 40 ? 'Critical' : 'Error' }"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+                    </FlexBox>
+
                     <!-- Radar Chart Section - dynamically loaded by controller -->
-                    <VBox id="analysisRadarChartContainer" class="sapUiSmallMarginTop"/>
+                    <VBox
+                        id="analysisDetails_RadarChartContainer"
+                        class="sapUiSmallMarginTop"
+                    />
                 </VBox>
             </Panel>
-            
+
             <IconTabBar
-                id="analysisIconTabBar"
-                class="sapUiResponsiveContentPadding">
+                id="analysisDetails_IconTabBar"
+                class="sapUiResponsiveContentPadding"
+            >
                 <items>
                     <IconTabFilter
-                        id="resultsTab"
+                        id="analysisDetails_ResultsTab"
                         text="Decision Results"
                         key="results"
-                        icon="sap-icon://decision">
+                        icon="sap-icon://decision"
+                    >
                         <form:SimpleForm
-                            id="resultsForm"
+                            id="analysisDetails_ResultsForm"
                             editable="false"
-                            layout="ResponsiveGridLayout">
+                            layout="ResponsiveGridLayout"
+                        >
                             <form:content>
-                                <Label id="recommendedLevelLabel" text="Recommended Clean Core Level"/>
+                                <Label
+                                    id="analysisDetails_RecommendedLevelLabel"
+                                    text="Recommended Clean Core Level"
+                                />
                                 <ObjectStatus
-                                    id="recommendedLevelValue"
+                                    id="analysisDetails_RecommendedLevelValue"
                                     text="{finalRecommendation}"
-                                    state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
-                                
-                                <Label id="reasoningLabel" text="Reasoning"/>
-                                <Text id="reasoningText" text="{finalReasoning}"/>
-                                
-                                <Label id="effortLabel" text="Estimated Effort"/>
-                                <Text id="effortText" text="{estimatedEffort} person-days"/>
-                                
-                                <Label id="complexityLabel" text="Technical Complexity"/>
-                                <Text id="complexityText" text="{technicalComplexity}"/>
-                                
-                                <Label id="businessImpactLabel" text="Business Impact"/>
-                                <Text id="businessImpactText" text="{businessImpact}"/>
+                                    state="{= ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error' }"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ReasoningLabel"
+                                    text="Reasoning"
+                                />
+                                <Text
+                                    id="analysisDetails_ReasoningText"
+                                    text="{finalReasoning}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_EffortLabel"
+                                    text="Estimated Effort"
+                                />
+                                <Text
+                                    id="analysisDetails_EffortText"
+                                    text="{estimatedEffort} person-days"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ComplexityLabel"
+                                    text="Technical Complexity"
+                                />
+                                <Text
+                                    id="analysisDetails_ComplexityText"
+                                    text="{technicalComplexity}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_BusinessImpactLabel"
+                                    text="Business Impact"
+                                />
+                                <Text
+                                    id="analysisDetails_BusinessImpactText"
+                                    text="{businessImpact}"
+                                />
                             </form:content>
                         </form:SimpleForm>
                     </IconTabFilter>
-                    
+
                     <IconTabFilter
-                        id="objectTab"
+                        id="analysisDetails_ObjectTab"
                         text="Object Details"
                         key="object"
-                        icon="sap-icon://detail-view">
+                        icon="sap-icon://detail-view"
+                    >
                         <form:SimpleForm
-                            id="objectForm"
+                            id="analysisDetails_ObjectForm"
                             editable="false"
-                            layout="ResponsiveGridLayout">
+                            layout="ResponsiveGridLayout"
+                        >
                             <form:content>
-                                <Label id="objRicefwIdLabel" text="RICEFW ID"/>
-                                <Text id="objRicefwIdText" text="{ricefwId}"/>
-                                
-                                <Label id="objTypeLabel" text="Object Type"/>
-                                <Text id="objTypeText" text="{objectType}"/>
-                                
-                                <Label id="objNameLabel" text="Object Name"/>
-                                <Text id="objNameText" text="{objectName}"/>
-                                
-                                <Label id="objDescLabel" text="Description"/>
-                                <Text id="objDescText" text="{objectDescription}"/>
-                                
-                                <Label id="objAnalysisDateLabel" text="Analysis Date"/>
-                                <Text id="objAnalysisDateText" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
-                                
-                                <Label id="objStatusLabel" text="Status"/>
+                                <Label
+                                    id="analysisDetails_ObjRicefwIdLabel"
+                                    text="RICEFW ID"
+                                />
+                                <Text
+                                    id="analysisDetails_ObjRicefwIdText"
+                                    text="{ricefwId}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ObjTypeLabel"
+                                    text="Object Type"
+                                />
+                                <Text
+                                    id="analysisDetails_ObjTypeText"
+                                    text="{objectType}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ObjNameLabel"
+                                    text="Object Name"
+                                />
+                                <Text
+                                    id="analysisDetails_ObjNameText"
+                                    text="{objectName}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ObjDescLabel"
+                                    text="Description"
+                                />
+                                <Text
+                                    id="analysisDetails_ObjDescText"
+                                    text="{objectDescription}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ObjAnalysisDateLabel"
+                                    text="Analysis Date"
+                                />
+                                <Text
+                                    id="analysisDetails_ObjAnalysisDateText"
+                                    text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ObjStatusLabel"
+                                    text="Status"
+                                />
                                 <ObjectStatus
-                                    id="objStatusValue"
+                                    id="analysisDetails_ObjStatusValue"
                                     text="{status}"
-                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
+                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"
+                                />
                             </form:content>
                         </form:SimpleForm>
                     </IconTabFilter>
-                    
+
                     <IconTabFilter
-                        id="riskTab"
-                        text="Risk & Compliance"
+                        id="analysisDetails_RiskTab"
+                        text="Risk &amp; Compliance"
                         key="risk"
-                        icon="sap-icon://warning">
+                        icon="sap-icon://warning"
+                    >
                         <form:SimpleForm
-                            id="riskForm"
+                            id="analysisDetails_RiskForm"
                             editable="false"
-                            layout="ResponsiveGridLayout">
+                            layout="ResponsiveGridLayout"
+                        >
                             <form:content>
-                                <Label id="riskAssessLabel" text="Risk Assessment"/>
+                                <Label
+                                    id="analysisDetails_RiskAssessLabel"
+                                    text="Risk Assessment"
+                                />
                                 <ObjectStatus
-                                    id="riskAssessValue"
+                                    id="analysisDetails_RiskAssessValue"
                                     text="{riskAssessment}"
-                                    state="{= ${riskAssessment} === 'Low' ? 'Success' : ${riskAssessment} === 'Medium' ? 'Warning' : 'Error' }"/>
-                                
-                                <Label id="riskBusinessImpactLabel" text="Business Impact"/>
-                                <Text id="riskBusinessImpactText" text="{businessImpact}"/>
-                                
-                                <Label id="complianceLabel" text="Compliance Status"/>
+                                    state="{= ${riskAssessment} === 'Low' ? 'Success' : ${riskAssessment} === 'Medium' ? 'Warning' : 'Error' }"
+                                />
+
+                                <Label
+                                    id="analysisDetails_RiskBusinessImpactLabel"
+                                    text="Business Impact"
+                                />
+                                <Text
+                                    id="analysisDetails_RiskBusinessImpactText"
+                                    text="{businessImpact}"
+                                />
+
+                                <Label
+                                    id="analysisDetails_ComplianceLabel"
+                                    text="Compliance Status"
+                                />
                                 <ObjectStatus
-                                    id="complianceValue"
+                                    id="analysisDetails_ComplianceValue"
                                     text="{complianceStatus}"
-                                    state="{= ${complianceStatus} === 'Compliant' ? 'Success' : ${complianceStatus} === 'Requires Review' ? 'Warning' : 'Error' }"/>
+                                    state="{= ${complianceStatus} === 'Compliant' ? 'Success' : ${complianceStatus} === 'Requires Review' ? 'Warning' : 'Error' }"
+                                />
                             </form:content>
                         </form:SimpleForm>
                     </IconTabFilter>
-                    
+
                     <IconTabFilter
-                        id="flowchartTab"
+                        id="analysisDetails_FlowchartTab"
                         text="Decision Flowchart"
                         key="flowchart"
-                        icon="sap-icon://org-chart">
-                        <VBox id="flowchartBox" class="sapUiSmallMargin" height="600px">
+                        icon="sap-icon://org-chart"
+                    >
+                        <VBox
+                            id="analysisDetails_FlowchartBox"
+                            class="sapUiSmallMargin"
+                            height="600px"
+                        >
                             <MessageStrip
-                                id="flowchartInfoStrip"
+                                id="analysisDetails_FlowchartInfoStrip"
                                 text="Visual representation of the decision path taken during analysis"
                                 type="Information"
                                 showIcon="true"
-                                class="sapUiSmallMarginBottom"/>
-                            <core:HTML id="flowchartContainer" content="&lt;div id='flowchartSvgContainer' style='width: 100%; height: 100%; background-color: #fafafa;'&gt;&lt;/div&gt;"/>
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <core:HTML
+                                id="analysisDetails_FlowchartContainer"
+                                content="&lt;div id='flowchartSvgContainer' style='width: 100%; height: 100%; background-color: #fafafa;'&gt;&lt;/div&gt;"
+                            />
                         </VBox>
                     </IconTabFilter>
                 </items>
             </IconTabBar>
         </content>
         <footer>
-            <OverflowToolbar id="analysisFooter">
-                <ToolbarSpacer id="analysisFooterSpacer"/>
+            <OverflowToolbar id="analysisDetails_Footer">
+                <ToolbarSpacer id="analysisDetails_FooterSpacer" />
                 <Button
-                    id="viewFlowchartBtn"
+                    id="analysisDetails_ViewFlowchartBtn"
                     text="View Flowchart"
                     icon="sap-icon://org-chart"
-                    press="onViewFlowchart"/>
+                    press="onViewFlowchart"
+                />
                 <Button
-                    id="exportFlowchartPNGBtn"
+                    id="analysisDetails_ExportFlowchartPNGBtn"
                     text="Export PNG"
                     icon="sap-icon://camera"
-                    press="onExportFlowchartPNG"/>
+                    press="onExportFlowchartPNG"
+                />
                 <Button
-                    id="exportFlowchartPDFBtn"
+                    id="analysisDetails_ExportFlowchartPDFBtn"
                     text="Export PDF"
                     icon="sap-icon://pdf-attachment"
-                    press="onExportFlowchartPDF"/>
+                    press="onExportFlowchartPDF"
+                />
             </OverflowToolbar>
         </footer>
     </Page>

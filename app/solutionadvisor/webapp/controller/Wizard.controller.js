@@ -985,6 +985,19 @@ sap.ui.define([
                 }
             }
             
+            // Transform answer options if they're simple strings into objects
+            if (answerOptions && answerOptions.length > 0) {
+                // Check if first item is a string (old format) or object (new format)
+                if (typeof answerOptions[0] === 'string') {
+                    // Convert simple string array to object format
+                    answerOptions = answerOptions.map(answer => ({
+                        value: answer,
+                        label: answer,
+                        description: answer
+                    }));
+                }
+            }
+            
             // Update wizard model with question data
             oWizardModel.setProperty("/currentQuestion", {
                 questionId: oQuestion.questionId,
@@ -993,13 +1006,6 @@ sap.ui.define([
                 detailedHint: oQuestion.detailedHint,
                 answerOptions: answerOptions
             });
-            
-            // Bind answer options to the radio button group
-            const oAnswerOptionsGroup = this.byId("answerOptionsGroup");
-            if (oAnswerOptionsGroup && answerOptions) {
-                const oAnswerModel = new JSONModel(answerOptions);
-                oAnswerOptionsGroup.setModel(oAnswerModel, "wizardModel");
-            }
             
             // Reset answer selection
             oWizardModel.setProperty("/selectedAnswer", null);

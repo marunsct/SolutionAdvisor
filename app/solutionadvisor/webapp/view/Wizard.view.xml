@@ -186,14 +186,13 @@
                                     selectedIndex="{wizardModel>/selectedAnswerIndex}"
                                     columns="1"
                                     select="onAnswerSelect"
-                                    enabled="{= !${wizardModel>/questionCompleted}}">
-                                    <buttons>
-                                        <RadioButton 
-                                            id="answerOption"
-                                            text="{wizardModel>label}" 
-                                            tooltip="{wizardModel>description}"
-                                            class="sapUiSmallMarginBottom"/>
-                                    </buttons>
+                                    enabled="{= !${wizardModel>/questionCompleted}}"
+                                    buttons="{wizardModel>/currentQuestion/answerOptions}">
+                                    <RadioButton 
+                                        id="answerOptionTemplate"
+                                        text="{wizardModel>label}" 
+                                        tooltip="{wizardModel>description}"
+                                        class="sapUiSmallMarginBottom"/>
                                 </RadioButtonGroup>
                             </VBox>
                             

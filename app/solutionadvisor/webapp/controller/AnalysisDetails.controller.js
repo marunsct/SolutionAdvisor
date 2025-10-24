@@ -3,13 +3,12 @@ sap.ui.define([
     "sap/ui/core/routing/History",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
-    "sd/solutionadvisor/utils/FlowchartGenerator",
     "sd/solutionadvisor/utils/ErrorHandler",
     "sap/base/Log",
     "sap/viz/ui5/data/FlattenedDataset",
     "sap/viz/ui5/controls/common/feeds/FeedItem",
     "sap/ui/core/Fragment"
-], (Controller, History, JSONModel, MessageToast, FlowchartGenerator, ErrorHandler, Log, FlattenedDataset, FeedItem, Fragment) => {
+], (Controller, History, JSONModel, MessageToast, ErrorHandler, Log, FlattenedDataset, FeedItem, Fragment) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysisDetails", {
@@ -18,7 +17,7 @@ sap.ui.define([
             oRouter.getRoute("AnalysisDetails").attachPatternMatched(this._onObjectMatched, this);
             
             // Listen to tab selection to generate flowchart when tab is selected
-            const oIconTabBar = this.byId("analysisIconTabBar");
+            const oIconTabBar = this.byId("analysisDetails_IconTabBar");
             if (oIconTabBar) {
                 oIconTabBar.attachSelect(this._onTabSelect, this);
             }
@@ -26,6 +25,9 @@ sap.ui.define([
 
         _onObjectMatched(oEvent) {
             const sAnalysisId = oEvent.getParameter("arguments").key;
+            
+            // Reset flowchart generation flag on new analysis
+            this._flowchartGenerated = false;
             
             // Check if we're in mock mode and the ID starts with "mock-"
             if (this.getOwnerComponent().mockAnalysisService && sAnalysisId.startsWith("mock-")) {
@@ -42,25 +44,30 @@ sap.ui.define([
                     model: "mockAnalysis"
                 });
                 
-                // Generate flowchart with mock data
-                setTimeout(() => {
-                    this._generateFlowchart(oMockAnalysis);
-                }, 100);
+                // Don't auto-generate; wait for tab selection
             } else {
                 // Real backend data
                 this.getView().bindElement({
-                    path: `/Analyses('${sAnalysisId}')`,
+                    path: this._getAnalysisKeyPath(sAnalysisId),
                     parameters: {
-                        expand: "projectConfig,decisionPaths"
-                    },
-                    events: {
-                        dataReceived: () => {
-                            // Generate flowchart after data is loaded
-                            this._generateFlowchart();
-                        }
+                        $expand: "projectConfig,decisionPaths"
                     }
+                    // Don't auto-generate on dataReceived; container may not exist yet
+                    // flowchart will be generated when the flowchart tab is selected
                 });
             }
+        },
+
+        /**
+         * Build canonical key path for draft-enabled Analyses entity (OData V4)
+         * @param {string} id Analysis ID (UUID)
+         * @returns {string} Key path e.g., /Analyses(ID=00000000-0000-0000-0000-000000000000,IsActiveEntity=true)
+         * @private
+         */
+        _getAnalysisKeyPath(id) {
+            // OData V4 uses the plain GUID (36-char with hyphens), without the V2 prefix guid'...'
+            // and without quotes. Booleans are unquoted.
+            return `/Analyses(ID=${id},IsActiveEntity=true)`;
         },
         
         /**
@@ -122,20 +129,32 @@ sap.ui.define([
         
         _onTabSelect(oEvent) {
             const sKey = oEvent.getParameter("key");
-            if (sKey === "flowchart") {
-                // Regenerate flowchart when tab is selected
+            if (sKey === "flowchart" && !this._flowchartGenerated) {
+                // Generate flowchart when tab is selected (container is now in DOM)
+                // Use longer timeout to ensure IconTabBar has rendered the tab content
                 setTimeout(() => {
                     this._generateFlowchart();
-                }, 100);
+                    this._flowchartGenerated = true;
+                }, 250);
             }
         },
         
         _generateFlowchart(oMockData) {
+            const loadGenerator = () => new Promise((resolve, reject) => {
+                if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
+                // Lazy-load to avoid hard dependency at route load time
+                sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
+                    this._FlowchartGenerator = Gen;
+                    resolve(Gen);
+                }, reject);
+            });
             // If mock data is provided directly, use it
             if (oMockData) {
                 try {
-                    FlowchartGenerator.generateFlowchart(oMockData, "flowchartSvgContainer");
-                    this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    loadGenerator().then((Gen) => {
+                        Gen.generateFlowchart(oMockData, "flowchartSvgContainer");
+                        this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    });
                     return;
                 } catch (error) {
                     Log.error("Failed to generate flowchart from mock data:", error);
@@ -148,8 +167,10 @@ sap.ui.define([
             if (this.getView().getModel("mockAnalysis")) {
                 const oAnalysis = this.getView().getModel("mockAnalysis").getData();
                 try {
-                    FlowchartGenerator.generateFlowchart(oAnalysis, "flowchartSvgContainer");
-                    this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    loadGenerator().then((Gen) => {
+                        Gen.generateFlowchart(oAnalysis, "flowchartSvgContainer");
+                        this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    });
                 } catch (error) {
                     Log.error("Failed to generate flowchart from mock model:", error);
                     ErrorHandler.showServiceError(error, "Failed to generate flowchart");
@@ -166,7 +187,7 @@ sap.ui.define([
             
             // Load decision paths using context binding with $expand
             const oModel = this.getView().getModel();
-            const oBinding = oModel.bindContext(`/Analyses('${oAnalysis.ID}')`, null, {
+            const oBinding = oModel.bindContext(this._getAnalysisKeyPath(oAnalysis.ID), null, {
                 $expand: "decisionPaths"
             });
             
@@ -178,8 +199,10 @@ sap.ui.define([
                 
                 // Generate flowchart
                 try {
-                    FlowchartGenerator.generateFlowchart(analysisData, "flowchartSvgContainer");
-                    this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    loadGenerator().then((Gen) => {
+                        Gen.generateFlowchart(analysisData, "flowchartSvgContainer");
+                        this._currentSvg = document.getElementById("flowchartSvgContainer")?.querySelector("svg");
+                    });
                 } catch (error) {
                     Log.error("Failed to generate flowchart:", error);
                     ErrorHandler.showServiceError(error, "Failed to generate flowchart");
@@ -206,8 +229,8 @@ sap.ui.define([
         },
         
         onViewFlowchart() {
-            // Switch to flowchart tab
-            const oIconTabBar = this.byId("analysisIconTabBar");
+            // Switch to flowchart tab (will trigger _onTabSelect which generates the flowchart)
+            const oIconTabBar = this.byId("analysisDetails_IconTabBar");
             if (oIconTabBar) {
                 oIconTabBar.setSelectedKey("flowchart");
             }
@@ -225,7 +248,15 @@ sap.ui.define([
             
             this.getView().setBusy(true);
             
-            FlowchartGenerator.exportAsPNG("flowchartSvgContainer", filename)
+            const doExport = () => new Promise((resolve, reject) => {
+                if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
+                sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
+                    this._FlowchartGenerator = Gen;
+                    resolve(Gen);
+                }, reject);
+            });
+
+            doExport().then((Gen) => Gen.exportAsPNG("flowchartSvgContainer", filename))
                 .then(() => {
                     this.getView().setBusy(false);
                     MessageToast.show("Flowchart exported as PNG");
@@ -249,7 +280,15 @@ sap.ui.define([
             
             this.getView().setBusy(true);
             
-            FlowchartGenerator.exportAsPDF("flowchartSvgContainer", oAnalysis, filename)
+            const doExport = () => new Promise((resolve, reject) => {
+                if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
+                sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
+                    this._FlowchartGenerator = Gen;
+                    resolve(Gen);
+                }, reject);
+            });
+
+            doExport().then((Gen) => Gen.exportAsPDF("flowchartSvgContainer", oAnalysis, filename))
                 .then(() => {
                     this.getView().setBusy(false);
                     MessageToast.show("Flowchart exported as PDF");
@@ -271,13 +310,21 @@ sap.ui.define([
             const oAnalysis = oContext.getObject();
             const filename = `flowchart_${oAnalysis.ricefwId}`;
             
-            try {
-                FlowchartGenerator.exportAsSVG("flowchartSvgContainer", filename);
+            const doExport = () => new Promise((resolve, reject) => {
+                if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
+                sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
+                    this._FlowchartGenerator = Gen;
+                    resolve(Gen);
+                }, reject);
+            });
+
+            doExport().then((Gen) => {
+                Gen.exportAsSVG("flowchartSvgContainer", filename);
                 MessageToast.show("Flowchart exported as SVG");
-            } catch (error) {
+            }).catch((error) => {
                 Log.error("Failed to export SVG:", error);
                 ErrorHandler.showServiceError(error, "Failed to export SVG");
-            }
+            });
         },
 
         /**
@@ -321,7 +368,7 @@ sap.ui.define([
                 }).then(function(oFragment) {
                     this._oRadarChartFragment = oFragment;
                     // Add fragment to the container in the view
-                    const oContainer = this.byId("radarChartContainer");
+                    const oContainer = this.byId("analysisDetails_RadarChartContainer");
                     if (oContainer) {
                         oContainer.addItem(oFragment);
                     }
@@ -337,7 +384,7 @@ sap.ui.define([
          * @private
          */
         _configureRadarChart: function() {
-            const oVizFrame = this.byId("radarChart");
+            const oVizFrame = this.byId("analysisDetails_RadarChart");
             if (!oVizFrame) {
                 return;
             }

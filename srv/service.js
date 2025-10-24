@@ -74,6 +74,20 @@ module.exports = cds.service.impl(async function () {
             // This would be enhanced with proper tenant filtering in production
             req.tenant = tenant;
         }
+
+        // Ensure i18n translator exists on request (req.t)
+        if (typeof req.t !== 'function') {
+            try {
+                const i18n = cds.i18n(req);
+                if (i18n && typeof i18n.t === 'function') {
+                    req.t = i18n.t.bind(i18n);
+                } else {
+                    req.t = (key) => key; // graceful fallback
+                }
+            } catch {
+                req.t = (key) => key; // graceful fallback
+            }
+        }
     });
 
     // ===============================

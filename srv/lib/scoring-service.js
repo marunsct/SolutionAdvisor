@@ -68,9 +68,12 @@ class ScoringService {
             .where({ analysis_ID: analysisID })
             .orderBy('stepOrder');
         
+        // Normalize recommendation to extract canonical level (e.g., "Level A")
+        const canonicalLevel = this.extractLevel(analysis.finalRecommendation);
+
         // Get clean core level weights
         const level = await SELECT.one.from(CleanCoreLevels)
-            .where({ level: analysis.finalRecommendation });
+            .where({ level: canonicalLevel });
         
         if (!level) {
             return this.getDefaultScores();
@@ -78,7 +81,7 @@ class ScoringService {
         
         // Calculate individual scores
         const technicalDebtScore = this.calculateTechnicalDebt(decisionPaths, level);
-        const cloudReadinessScore = this.calculateCloudReadiness(analysis, level);
+    const cloudReadinessScore = this.calculateCloudReadiness({ ...analysis, finalRecommendation: canonicalLevel }, level);
         const upgradeImpactScore = this.calculateUpgradeImpact(decisionPaths, level);
         const compositeHealthScore = this.calculateCompositeHealth(
             technicalDebtScore,
@@ -137,7 +140,7 @@ class ScoringService {
      * Higher is better - 100 means fully cloud ready
      */
     calculateCloudReadiness(analysis, level) {
-        // Based on final recommendation level
+        // Based on final recommendation level (canonical form)
         const levelScores = {
             'Level A': 100,
             'Level B': 75,
@@ -233,6 +236,19 @@ class ScoringService {
             upgradeImpact: 50.00,
             compositeHealth: 50.00
         };
+    }
+
+    /**
+     * Extract canonical level (e.g., "Level A") from a descriptive recommendation
+     * Examples:
+     *  - "Event-Driven Integration - Level A" => "Level A"
+     *  - "Level B" => "Level B"
+     *  - null/undefined => null
+     */
+    extractLevel(recommendation) {
+        if (!recommendation || typeof recommendation !== 'string') return null;
+        const match = recommendation.match(/Level\s+[ABCD]\b/);
+        return match ? match[0] : recommendation;
     }
 }
 

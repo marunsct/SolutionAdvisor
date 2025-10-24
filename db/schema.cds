@@ -81,7 +81,8 @@ entity CleanCoreAnalysis : cuid, managed {
     status                  : String(20) default 'In Progress'; // In Progress, Completed, Approved, Rejected
 
     // Decision Results
-    finalRecommendation     : String(10); // Level A, B, C, D
+    // Note: May contain descriptive approach + level (e.g., "Event-Driven Integration - Level A")
+    finalRecommendation     : String(200); // e.g., "Event-Driven Integration - Level A"
     finalReasoning          : String(2000);
     decisionFlowData        : String(5000); // JSON of decision path
 
