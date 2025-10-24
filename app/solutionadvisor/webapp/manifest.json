@@ -171,6 +171,34 @@
           "target": [
             "AdminQuestionFlow"
           ]
+        },
+        {
+          "name": "AdminPerformanceThreshold",
+          "pattern": "admin/thresholds",
+          "target": [
+            "AdminPerformanceThreshold"
+          ]
+        },
+        {
+          "name": "AdminRealWorldExample",
+          "pattern": "admin/examples",
+          "target": [
+            "AdminRealWorldExample"
+          ]
+        },
+        {
+          "name": "AdminCleanCoreLevels",
+          "pattern": "admin/levels",
+          "target": [
+            "AdminCleanCoreLevels"
+          ]
+        },
+        {
+          "name": "AdminObjectTypes",
+          "pattern": "admin/objecttypes",
+          "target": [
+            "AdminObjectTypes"
+          ]
         }
       ],
       "targets": {
@@ -213,6 +241,26 @@
           "id": "AdminQuestionFlow",
           "name": "AdminQuestionFlow",
           "title": "Question Flow Maintenance"
+        },
+        "AdminPerformanceThreshold": {
+          "id": "AdminPerformanceThreshold",
+          "name": "AdminPerformanceThreshold",
+          "title": "Performance Threshold Maintenance"
+        },
+        "AdminRealWorldExample": {
+          "id": "AdminRealWorldExample",
+          "name": "AdminRealWorldExample",
+          "title": "Real-World Example Maintenance"
+        },
+        "AdminCleanCoreLevels": {
+          "id": "AdminCleanCoreLevels",
+          "name": "AdminCleanCoreLevels",
+          "title": "Clean Core Levels Maintenance"
+        },
+        "AdminObjectTypes": {
+          "id": "AdminObjectTypes",
+          "name": "AdminObjectTypes",
+          "title": "Object Types Maintenance"
         }
       }
     },

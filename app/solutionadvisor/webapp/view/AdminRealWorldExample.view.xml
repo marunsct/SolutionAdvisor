@@ -1,0 +1,180 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.AdminRealWorldExample"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    displayBlock="true">
+    
+    <Page
+        id="adminExamplePage"
+        title="Real-World Example Maintenance"
+        showNavButton="true"
+        navButtonPress="onNavBack"
+        class="sapUiResponsiveContentPadding">
+        
+        <headerContent>
+            <Button
+                id="createExampleButton"
+                text="Create"
+                icon="sap-icon://create"
+                type="Emphasized"
+                press="onCreate"
+                tooltip="Create new example"/>
+            <Button
+                id="exportExampleButton"
+                text="Export"
+                icon="sap-icon://excel-attachment"
+                press="onExport"
+                tooltip="Export all examples to Excel"/>
+            <FileUploader
+                id="exampleFileUploader"
+                name="massUpload"
+                buttonText="Mass Upload"
+                icon="sap-icon://upload"
+                uploadOnChange="false"
+                change="onMassUpload"
+                fileType="xlsx"
+                mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                tooltip="Upload Excel file with examples"/>
+            <SearchField
+                id="searchExampleField"
+                width="300px"
+                search="onSearch"
+                placeholder="Search examples..."/>
+        </headerContent>
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                
+                <!-- Filter Bar -->
+                <Panel headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
+                    <content>
+                        <FlexBox wrap="Wrap" class="sapUiSmallMargin">
+                            <ComboBox
+                                id="objectTypeFilterExample"
+                                placeholder="Filter by Object Type"
+                                width="200px"
+                                selectionChange="onFilterChange"
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                <items>
+                                    <core:Item key="" text="All Types"/>
+                                    <core:Item key="R" text="Reports"/>
+                                    <core:Item key="I" text="Interfaces"/>
+                                    <core:Item key="C" text="Conversions"/>
+                                    <core:Item key="E" text="Enhancements"/>
+                                    <core:Item key="F" text="Forms"/>
+                                    <core:Item key="W" text="Workflows"/>
+                                </items>
+                            </ComboBox>
+                            <ComboBox
+                                id="industryFilterExample"
+                                placeholder="Filter by Industry"
+                                width="200px"
+                                selectionChange="onFilterChange"
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                <items>
+                                    <core:Item key="" text="All Industries"/>
+                                    <core:Item key="Manufacturing" text="Manufacturing"/>
+                                    <core:Item key="Retail" text="Retail"/>
+                                    <core:Item key="Finance" text="Finance"/>
+                                    <core:Item key="Healthcare" text="Healthcare"/>
+                                    <core:Item key="Pharma" text="Pharma"/>
+                                </items>
+                            </ComboBox>
+                            <ComboBox
+                                id="levelFilterExample"
+                                placeholder="Filter by Clean Core Level"
+                                width="200px"
+                                selectionChange="onFilterChange"
+                                class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                <items>
+                                    <core:Item key="" text="All Levels"/>
+                                    <core:Item key="A" text="Level A"/>
+                                    <core:Item key="B" text="Level B"/>
+                                    <core:Item key="C" text="Level C"/>
+                                    <core:Item key="D" text="Level D"/>
+                                </items>
+                            </ComboBox>
+                            <Button
+                                text="Clear Filters"
+                                press="onClearFilters"/>
+                        </FlexBox>
+                    </content>
+                </Panel>
+                
+                <!-- Record Count -->
+                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title text="Real-World Examples" level="H3"/>
+                    <Text text="{viewModel>/recordCount} records"/>
+                </FlexBox>
+                
+                <!-- Example Table -->
+                <Table
+                    id="exampleTable"
+                    items="{/RealWorldExample}"
+                    mode="MultiSelect"
+                    growing="true"
+                    growingThreshold="20"
+                    busy="{viewModel>/busy}"
+                    noDataText="No examples found. Click Create to add new examples.">
+                    
+                    <columns>
+                        <Column width="20%">
+                            <Text text="Title"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Object Type"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Industry"/>
+                        </Column>
+                        <Column width="8%">
+                            <Text text="Level"/>
+                        </Column>
+                        <Column width="25%">
+                            <Text text="Description"/>
+                        </Column>
+                        <Column width="10%">
+                            <Text text="Technologies"/>
+                        </Column>
+                        <Column width="8%">
+                            <Text text="Modified"/>
+                        </Column>
+                        <Column width="5%" hAlign="End">
+                            <Text text="Actions"/>
+                        </Column>
+                    </columns>
+                    
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{exampleTitle}"/>
+                                <Text text="{objectType}"/>
+                                <Text text="{industry}"/>
+                                <ObjectStatus
+                                    text="{cleanCoreLevel}"
+                                    state="{= ${cleanCoreLevel} === 'A' ? 'Success' : ${cleanCoreLevel} === 'B' ? 'Information' : ${cleanCoreLevel} === 'C' ? 'Warning' : 'Error' }"/>
+                                <Text text="{description}" maxLines="2"/>
+                                <Text text="{technologies}" maxLines="1"/>
+                                <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <HBox>
+                                    <Button
+                                        icon="sap-icon://edit"
+                                        type="Transparent"
+                                        press="onEdit"
+                                        tooltip="Edit"/>
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        press="onDelete"
+                                        tooltip="Delete"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+                
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

@@ -1,0 +1,119 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.AdminObjectTypes"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    displayBlock="true">
+    
+    <Page
+        id="adminObjectTypesPage"
+        title="Object Types (RICEFW) Maintenance"
+        showNavButton="true"
+        navButtonPress="onNavBack"
+        class="sapUiResponsiveContentPadding">
+        
+        <headerContent>
+            <Button
+                id="createObjectTypeButton"
+                text="Create"
+                icon="sap-icon://create"
+                type="Emphasized"
+                press="onCreate"
+                tooltip="Create new object type"/>
+            <Button
+                id="exportObjectTypeButton"
+                text="Export"
+                icon="sap-icon://excel-attachment"
+                press="onExport"
+                tooltip="Export all object types to Excel"/>
+            <SearchField
+                id="searchObjectTypeField"
+                width="300px"
+                search="onSearch"
+                placeholder="Search object types..."/>
+        </headerContent>
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                
+                <MessageStrip
+                    text="Object Types define the RICEFW categories (Reports, Interfaces, Conversions, Enhancements, Forms, Workflows). These are system-critical master data."
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <!-- Record Count -->
+                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title text="Object Types (RICEFW)" level="H3"/>
+                    <Text text="{viewModel>/recordCount} records"/>
+                </FlexBox>
+                
+                <!-- Object Types Table -->
+                <Table
+                    id="objectTypesTable"
+                    items="{/ObjectTypes}"
+                    mode="SingleSelectMaster"
+                    busy="{viewModel>/busy}"
+                    noDataText="No object types found.">
+                    
+                    <columns>
+                        <Column width="10%">
+                            <Text text="Code"/>
+                        </Column>
+                        <Column width="8%">
+                            <Text text="Icon"/>
+                        </Column>
+                        <Column width="20%">
+                            <Text text="Type Name"/>
+                        </Column>
+                        <Column width="35%">
+                            <Text text="Description"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Display Order"/>
+                        </Column>
+                        <Column width="8%">
+                            <Text text="Active"/>
+                        </Column>
+                        <Column width="7%" hAlign="End">
+                            <Text text="Actions"/>
+                        </Column>
+                    </columns>
+                    
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <ObjectIdentifier
+                                    title="{typeCode}"
+                                    titleActive="false"/>
+                                <core:Icon
+                                    src="{icon}"
+                                    size="1.5rem"
+                                    xmlns:core="sap.ui.core"/>
+                                <Text text="{typeName}" class="sapUiMediumText"/>
+                                <Text text="{description}" maxLines="2"/>
+                                <Text text="{displayOrder}"/>
+                                <Switch
+                                    state="{isActive}"
+                                    enabled="false"/>
+                                <HBox>
+                                    <Button
+                                        icon="sap-icon://edit"
+                                        type="Transparent"
+                                        press="onEdit"
+                                        tooltip="Edit"/>
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        press="onDelete"
+                                        tooltip="Delete"
+                                        enabled="false"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+                
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

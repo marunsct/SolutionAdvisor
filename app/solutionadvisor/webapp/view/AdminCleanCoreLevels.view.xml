@@ -1,0 +1,114 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.AdminCleanCoreLevels"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    displayBlock="true">
+    
+    <Page
+        id="adminLevelsPage"
+        title="Clean Core Levels Maintenance"
+        showNavButton="true"
+        navButtonPress="onNavBack"
+        class="sapUiResponsiveContentPadding">
+        
+        <headerContent>
+            <Button
+                id="createLevelButton"
+                text="Create"
+                icon="sap-icon://create"
+                type="Emphasized"
+                press="onCreate"
+                tooltip="Create new level"/>
+            <Button
+                id="exportLevelButton"
+                text="Export"
+                icon="sap-icon://excel-attachment"
+                press="onExport"
+                tooltip="Export all levels to Excel"/>
+            <SearchField
+                id="searchLevelField"
+                width="300px"
+                search="onSearch"
+                placeholder="Search levels..."/>
+        </headerContent>
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                
+                <MessageStrip
+                    text="Clean Core Levels define the scoring multipliers and criteria for each level (A/B/C/D). Be careful when modifying these values as they affect all analyses."
+                    type="Warning"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <!-- Record Count -->
+                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title text="Clean Core Levels" level="H3"/>
+                    <Text text="{viewModel>/recordCount} records"/>
+                </FlexBox>
+                
+                <!-- Levels Table -->
+                <Table
+                    id="levelsTable"
+                    items="{/CleanCoreLevels}"
+                    mode="SingleSelectMaster"
+                    busy="{viewModel>/busy}"
+                    noDataText="No levels found. Click Create to add new levels.">
+                    
+                    <columns>
+                        <Column width="10%">
+                            <Text text="Level"/>
+                        </Column>
+                        <Column width="20%">
+                            <Text text="Level Name"/>
+                        </Column>
+                        <Column width="25%">
+                            <Text text="Description"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Tech Debt Multiplier"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Cloud Readiness Multiplier"/>
+                        </Column>
+                        <Column width="12%">
+                            <Text text="Upgrade Impact Multiplier"/>
+                        </Column>
+                        <Column width="9%" hAlign="End">
+                            <Text text="Actions"/>
+                        </Column>
+                    </columns>
+                    
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <ObjectStatus
+                                    text="{level}"
+                                    state="{= ${level} === 'A' ? 'Success' : ${level} === 'B' ? 'Information' : ${level} === 'C' ? 'Warning' : 'Error' }"/>
+                                <Text text="{levelName}" class="sapUiMediumText"/>
+                                <Text text="{description}" maxLines="2"/>
+                                <Text text="{technicalDebtMultiplier}"/>
+                                <Text text="{cloudReadinessMultiplier}"/>
+                                <Text text="{upgradeImpactMultiplier}"/>
+                                <HBox>
+                                    <Button
+                                        icon="sap-icon://edit"
+                                        type="Transparent"
+                                        press="onEdit"
+                                        tooltip="Edit"/>
+                                    <Button
+                                        icon="sap-icon://delete"
+                                        type="Transparent"
+                                        press="onDelete"
+                                        tooltip="Delete"
+                                        enabled="false"/>
+                                </HBox>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+                
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

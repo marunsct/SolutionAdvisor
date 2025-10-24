@@ -25,7 +25,7 @@ sap.ui.define([], function() {
             subtitle: "Manage performance limits",
             icon: "sap-icon://performance",
             recordCount: 0,
-            route: "AdminThresholds"
+            route: "AdminPerformanceThreshold"
           },
           {
             id: "examples",
@@ -33,7 +33,7 @@ sap.ui.define([], function() {
             subtitle: "Manage implementation examples",
             icon: "sap-icon://example",
             recordCount: 0,
-            route: "AdminExamples"
+            route: "AdminRealWorldExample"
           },
           {
             id: "levels",
@@ -41,7 +41,7 @@ sap.ui.define([], function() {
             subtitle: "Manage level definitions",
             icon: "sap-icon://org-chart",
             recordCount: 0,
-            route: "AdminLevels"
+            route: "AdminCleanCoreLevels"
           },
           {
             id: "objectTypes",
