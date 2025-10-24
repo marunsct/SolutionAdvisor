@@ -1,15 +1,60 @@
 const cds = require('@sap/cds');
 
 /**
- * Constraints Service - Handles performance thresholds and limitations display
+ * Constraints Service - Performance thresholds and limitations management
+ * 
+ * @class ConstraintsService
+ * @description
+ * Retrieves and evaluates performance thresholds, technical limitations,
+ * and compliance constraints relevant to a Clean Core analysis context.
+ * Checks user selections against defined thresholds and issues warnings
+ * when limits are exceeded.
+ * 
+ * Constraint categories:
+ * - Performance (e.g., max records per hour, API call limits)
+ * - Deployment (e.g., Cloud Public restrictions on custom ABAP)
+ * - Compliance (e.g., GDPR data residency, FDA validation requirements)
+ * 
+ * Data source: PerformanceThreshold entity with fields:
+ * - category, method, threshold value, level, deployment types
+ * - guidance when threshold exceeded
+ * 
+ * @author SAP Clean Core Team
+ * @version 1.0.0
  */
 class ConstraintsService {
+    /**
+     * Create a Constraints Service instance
+     * @param {Object} srv - CAP service instance (unused but kept for consistency)
+     */
     constructor(srv) {
         this.srv = srv;
     }
 
     /**
      * Get relevant constraints based on analysis context
+     * 
+     * @async
+     * @param {string} objectType - RICEFW object type (R/I/C/E/F/W)
+     * @param {string} deploymentType - S/4HANA flavor (Cloud Public/Private/On-Premise)
+     * @param {string} [volumeLevel] - Data volume indicator (Low/Medium/High)
+     * @param {string} [currentAnswer] - User's current answer selection
+     * 
+     * @returns {Promise<Array<Object>>} Array of relevant constraints
+     * @returns {string} id - Constraint UUID
+     * @returns {string} category - Constraint category (Performance/Deployment/Compliance)
+     * @returns {string} method - Implementation method being constrained
+     * @returns {string} threshold - Formatted threshold description
+     * @returns {string} level - Applicable Clean Core level (A/B/C/D)
+     * @returns {string} guidance - Guidance when threshold exceeded
+     * @returns {boolean} isViolated - Whether current selection violates constraint
+     * @returns {string} violationSeverity - Severity level (None/Warning/Error)
+     * @returns {string} warningMessage - Human-readable violation warning
+     * 
+     * @description
+     * Queries PerformanceThreshold entity for active constraints matching the
+     * object type and deployment. Checks each constraint against current context
+     * and flags violations with severity and guidance.
      */
     async getRelevantConstraints(objectType, deploymentType, volumeLevel, currentAnswer) {
         const { PerformanceThreshold } = cds.entities('sd');

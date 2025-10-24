@@ -3,6 +3,7 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:f="sap.f"
+    xmlns:form="sap.ui.layout.form"
     xmlns:core="sap.ui.core"
     xmlns:viz="sap.viz.ui5.controls">
     <Page
@@ -203,11 +204,11 @@
                         text="Decision Results"
                         key="results"
                         icon="sap-icon://decision">
-                        <f:SimpleForm
+                        <form:SimpleForm
                             id="resultsForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
-                            <f:content>
+                            <form:content>
                                 <Label id="recommendedLevelLabel" text="Recommended Clean Core Level"/>
                                 <ObjectStatus
                                     id="recommendedLevelValue"
@@ -225,8 +226,8 @@
                                 
                                 <Label id="businessImpactLabel" text="Business Impact"/>
                                 <Text id="businessImpactText" text="{businessImpact}"/>
-                            </f:content>
-                        </f:SimpleForm>
+                            </form:content>
+                        </form:SimpleForm>
                     </IconTabFilter>
                     
                     <IconTabFilter
@@ -234,11 +235,11 @@
                         text="Object Details"
                         key="object"
                         icon="sap-icon://detail-view">
-                        <f:SimpleForm
+                        <form:SimpleForm
                             id="objectForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
-                            <f:content>
+                            <form:content>
                                 <Label id="objRicefwIdLabel" text="RICEFW ID"/>
                                 <Text id="objRicefwIdText" text="{ricefwId}"/>
                                 
@@ -259,8 +260,8 @@
                                     id="objStatusValue"
                                     text="{status}"
                                     state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
-                            </f:content>
-                        </f:SimpleForm>
+                            </form:content>
+                        </form:SimpleForm>
                     </IconTabFilter>
                     
                     <IconTabFilter
@@ -268,11 +269,11 @@
                         text="Risk & Compliance"
                         key="risk"
                         icon="sap-icon://warning">
-                        <f:SimpleForm
+                        <form:SimpleForm
                             id="riskForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
-                            <f:content>
+                            <form:content>
                                 <Label id="riskAssessLabel" text="Risk Assessment"/>
                                 <ObjectStatus
                                     id="riskAssessValue"
@@ -287,8 +288,8 @@
                                     id="complianceValue"
                                     text="{complianceStatus}"
                                     state="{= ${complianceStatus} === 'Compliant' ? 'Success' : ${complianceStatus} === 'Requires Review' ? 'Warning' : 'Error' }"/>
-                            </f:content>
-                        </f:SimpleForm>
+                            </form:content>
+                        </form:SimpleForm>
                     </IconTabFilter>
                     
                     <IconTabFilter

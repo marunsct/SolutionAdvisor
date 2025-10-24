@@ -1,10 +1,40 @@
 const cds = require('@sap/cds');
+const LOG = cds.log('solutionadvisor');
 const DecisionEngine = require('./lib/decision-engine-consolidated');
 const ScoringService = require('./lib/scoring-service');
 const ConstraintsService = require('./lib/constraints-service');
 const ExamplesService = require('./lib/examples-service');
 const AnalyticsService = require('./lib/analytics-service');
 const AuditService = require('./lib/audit-service');
+
+/**
+ * Solution Advisor Service Implementation
+ * 
+ * This module implements the main CAP service for the SAP Clean Core Solution Advisor.
+ * It provides custom actions for wizard-based decision flows, analytics, scoring,
+ * and project management with multi-tenant support.
+ * 
+ * @module srv/service
+ * @author SAP Clean Core Team
+ * @version 1.0.0
+ * 
+ * @description
+ * Core responsibilities:
+ * - Wizard session management (start, resume, submit answers)
+ * - Clean Core analysis and scoring calculations
+ * - Project and user assignment management
+ * - Analytics data aggregation
+ * - Audit logging for compliance
+ * - Tenant context enforcement
+ * 
+ * @requires @sap/cds
+ * @requires ./lib/decision-engine-consolidated
+ * @requires ./lib/scoring-service
+ * @requires ./lib/constraints-service
+ * @requires ./lib/examples-service
+ * @requires ./lib/analytics-service
+ * @requires ./lib/audit-service
+ */
 
 module.exports = cds.service.impl(async function () {
     const {
@@ -13,7 +43,6 @@ module.exports = cds.service.impl(async function () {
         DecisionPaths,
         WizardSessions,
         QuestionFlows,
-        ConstraintLogs,
         ProjectUsers
     } = this.entities;
 
@@ -53,6 +82,26 @@ module.exports = cds.service.impl(async function () {
 
     /**
      * Start Wizard - Initialize a new wizard session
+     * 
+     * @async
+     * @param {Object} req - CDS request object
+     * @param {string} req.data.projectID - UUID of the project configuration
+     * @param {string} req.data.ricefwId - RICEFW ID in format [RICEFYW]-[0-9]{4}-[A-Z]{3}
+     * @param {string} req.data.objectType - Object type (R/I/C/E/F/W)
+     * @param {string} req.data.objectName - Name of the object being analyzed
+     * 
+     * @returns {Object} Session initialization response
+     * @returns {string} sessionID - Unique wizard session identifier
+     * @returns {string} analysisID - Unique analysis record identifier
+     * @returns {Object} firstQuestion - First question in the decision flow
+     * 
+     * @throws {400} Invalid RICEFW ID format
+     * @throws {500} Failed to start wizard (database or logic error)
+     * 
+     * @description
+     * Creates a new Clean Core analysis record and wizard session. Validates RICEFW ID
+     * format, initializes session with 24-hour expiry, and returns the first question
+     * from the decision tree based on object type. Logs audit trail for analysis creation.
      */
     this.on('startWizard', async (req) => {
         const { projectID, ricefwId, objectType, objectName } = req.data;
@@ -116,13 +165,37 @@ module.exports = cds.service.impl(async function () {
                 firstQuestion: firstQuestion
             };
         } catch (error) {
-            console.error('Error starting wizard:', error);
-            return req.error(500, `Failed to start wizard: ${error.message}`);
+            LOG.error('Error starting wizard:', error);
+            return req.error(500, req.t('error.startWizardFailed', [error.message]));
         }
     });
 
     /**
-     * Submit Answer - Process answer and get next question
+     * Submit Answer - Process wizard answer and get next question
+     * 
+     * @async
+     * @param {Object} req - CDS request object
+     * @param {string} req.data.sessionID - Active wizard session UUID
+     * @param {string} req.data.questionId - Current question identifier
+     * @param {string} req.data.selectedAnswer - User's selected answer text
+     * @param {number} [req.data.answerIndex] - Index of selected answer (0-based)
+     * @param {string} [req.data.userComments] - Optional user notes/comments
+     * @param {number} [req.data.timeSpent] - Time spent on question (seconds)
+     * 
+     * @returns {Object} Next step response
+     * @returns {boolean} isComplete - Whether wizard is complete
+     * @returns {Object} [nextQuestion] - Next question if not complete
+     * @returns {string} [recommendation] - Final clean core level (A/B/C/D) if complete
+     * @returns {string} [reasoning] - Justification for recommendation if complete
+     * @returns {Object} [scores] - Calculated scores if complete
+     * 
+     * @throws {404} Wizard session not found
+     * @throws {500} Failed to submit answer or calculate scores
+     * 
+     * @description
+     * Records user's answer in decision path, determines next question using decision engine,
+     * and calculates final scores when wizard completes. Updates analysis status to 'Completed'
+     * and wizard session to 'Completed' upon finishing all questions.
      */
     this.on('submitAnswer', async (req) => {
         const {
@@ -264,8 +337,8 @@ module.exports = cds.service.impl(async function () {
                 };
             }
         } catch (error) {
-            console.error('Error submitting answer:', error);
-            return req.error(500, `Failed to submit answer: ${error.message}`);
+            LOG.error('Error submitting answer:', error);
+            return req.error(500, req.t('error.submitAnswerFailed', [error.message]));
         }
     });
 
@@ -282,8 +355,8 @@ module.exports = cds.service.impl(async function () {
                 volumeLevel
             );
         } catch (error) {
-            console.error('Error getting constraints:', error);
-            return req.error(500, `Failed to get constraints: ${error.message}`);
+            LOG.error('Error getting constraints:', error);
+            return req.error(500, req.t('error.getConstraintsFailed', [error.message]));
         }
     });
 
@@ -300,8 +373,8 @@ module.exports = cds.service.impl(async function () {
                 keywords
             );
         } catch (error) {
-            console.error('Error getting examples:', error);
-            return req.error(500, `Failed to get examples: ${error.message}`);
+            LOG.error('Error getting examples:', error);
+            return req.error(500, req.t('error.getExamplesFailed', [error.message]));
         }
     });
 
@@ -314,8 +387,8 @@ module.exports = cds.service.impl(async function () {
         try {
             return await scoringService.calculateScores(analysisID);
         } catch (error) {
-            console.error('Error calculating scores:', error);
-            return req.error(500, `Failed to calculate scores: ${error.message}`);
+            LOG.error('Error calculating scores:', error);
+            return req.error(500, req.t('error.calculateScoresFailed', [error.message]));
         }
     });
 
@@ -355,8 +428,8 @@ module.exports = cds.service.impl(async function () {
                 }
             };
         } catch (error) {
-            console.error('Error resuming wizard:', error);
-            return req.error(500, `Failed to resume wizard: ${error.message}`);
+            LOG.error('Error resuming wizard:', error);
+            return req.error(500, req.t('error.resumeWizardFailed', [error.message]));
         }
     });
 
@@ -376,8 +449,8 @@ module.exports = cds.service.impl(async function () {
                 filename: filename
             };
         } catch (error) {
-            console.error('Error exporting flowchart:', error);
-            return req.error(500, `Failed to export flowchart: ${error.message}`);
+            LOG.error('Error exporting flowchart:', error);
+            return req.error(500, req.t('error.exportFlowchartFailed', [error.message]));
         }
     });
 
@@ -417,8 +490,8 @@ module.exports = cds.service.impl(async function () {
                 message: req.t('success.userAdded', [userName])
             };
         } catch (error) {
-            console.error('Error assigning user to project:', error);
-            return req.error(500, `Failed to assign user: ${error.message}`);
+            LOG.error('Error assigning user to project:', error);
+            return req.error(500, req.t('error.assignUserFailed', [error.message]));
         }
     });
 
@@ -438,8 +511,8 @@ module.exports = cds.service.impl(async function () {
                 message: req.t('success.userRemoved')
             };
         } catch (error) {
-            console.error('Error removing user from project:', error);
-            return req.error(500, `Failed to remove user: ${error.message}`);
+            LOG.error('Error removing user from project:', error);
+            return req.error(500, req.t('error.removeUserFailed', [error.message]));
         }
     });
 
@@ -475,8 +548,8 @@ module.exports = cds.service.impl(async function () {
 
             return projects;
         } catch (error) {
-            console.error('Error getting accessible projects:', error);
-            return req.error(500, `Failed to get accessible projects: ${error.message}`);
+            LOG.error('Error getting accessible projects:', error);
+            return req.error(500, req.t('error.getAccessibleProjectsFailed', [error.message]));
         }
     });
 
@@ -556,7 +629,7 @@ module.exports = cds.service.impl(async function () {
                 }
             }
         } catch (error) {
-            console.error('Error filtering projects by user:', error);
+            LOG.error('Error filtering projects by user:', error);
         }
     });
     */
@@ -581,7 +654,7 @@ module.exports = cds.service.impl(async function () {
                         compositeHealthScore: scores.compositeHealth
                     });
                 } catch (error) {
-                    console.error('Error enriching analysis with scores:', error);
+                    LOG.error('Error enriching analysis with scores:', error);
                 }
             }
         }
@@ -604,7 +677,7 @@ module.exports = cds.service.impl(async function () {
             const analyticsData = await analyticsService.getAnalyticsData(filters);
             return analyticsData;
         } catch (error) {
-            console.error('Error getting analytics data:', error);
+            LOG.error('Error getting analytics data:', error);
             return req.error(500, req.t('error.getAnalyticsDataFailed', [error.message]));
         }
     });

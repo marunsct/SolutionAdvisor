@@ -2,16 +2,47 @@ const cds = require('@sap/cds');
 const LOG = cds.log('decision-engine'); // Use proper CDS logging
 
 /**
- * Decision Engine - Handles wizard navigation and decision tree logic
- * Consolidated version with improvements from both implementations
+ * Decision Engine - Wizard navigation and decision tree logic
+ * 
+ * @class DecisionEngine
+ * @description
+ * Manages the dynamic question flow for Clean Core analysis wizard.
+ * Loads questions from QuestionFlow entity, parses navigation rules (JSON),
+ * and determines the next question or final recommendation based on user answers.
+ * 
+ * Navigation rules structure:
+ * {
+ *   "AnswerKey": {
+ *     "nextQuestion": "Q5",           // ID of next question
+ *     "finalAnswer": "Level A",       // OR final recommendation
+ *     "reasoning": "Explanation text" // Justification
+ *   }
+ * }
+ * 
+ * @author SAP Clean Core Team
+ * @version 1.0.0
+ * @since 2024
  */
 class DecisionEngine {
+    /**
+     * Create a Decision Engine instance
+     * @param {Object} srv - CAP service instance for entity access
+     */
     constructor(srv) {
         this.srv = srv;
     }
 
     /**
      * Get the first question for a given object type
+     * 
+     * @async
+     * @param {string} objectType - RICEFW object type (R/I/C/E/F/W)
+     * @returns {Promise<Object>} Formatted question with answers array
+     * @throws {Error} If no questions found for object type
+     * 
+     * @description
+     * Queries QuestionFlow entity for the first active question (displayOrder=1)
+     * matching the specified object type. Returns formatted question ready for UI.
      */
     async getFirstQuestion(objectType) {
         const { QuestionFlow } = cds.entities('sd');
@@ -29,9 +60,26 @@ class DecisionEngine {
 
     /**
      * Get the next question based on current answer
-     * @param {string} currentQuestionId - ID of the current question
-     * @param {string} selectedAnswer - ID or key of the selected answer
-     * @param {string} [objectType] - Type of object being analyzed (not used in this implementation but kept for API compatibility)
+     * 
+     * @async
+     * @param {string} currentQuestionId - Identifier of the current question
+     * @param {string} selectedAnswer - Key/ID of the selected answer
+     * @param {string} [objectType] - Object type (kept for API compatibility)
+     * 
+     * @returns {Promise<Object>} Next step object
+     * @returns {boolean} isComplete - Whether decision flow is complete
+     * @returns {Object} [nextQuestion] - Next question if not complete
+     * @returns {string} [recommendation] - Final level (A/B/C/D) if complete
+     * @returns {string} [reasoning] - Justification text if complete
+     * 
+     * @throws {Error} Invalid question or missing navigation rules
+     * @throws {Error} Invalid navigation rules JSON format
+     * @throws {Error} No matching navigation rule for selected answer
+     * 
+     * @description
+     * Parses navigation rules from current question's JSON configuration,
+     * looks up the rule for the selected answer, and either returns the
+     * next question or marks the flow as complete with a recommendation.
      */
     async getNextQuestion(currentQuestionId, selectedAnswer) {
         const { QuestionFlow } = cds.entities('sd');

@@ -10,40 +10,44 @@
         showHeader="true">
         <headerContent>
             <Button
-                id="analyticsButton"
+                id="projectsAnalyticsButton"
                 text="Analytics Dashboard"
                 icon="sap-icon://sales-quote"
                 press="onNavigateToAnalytics"
                 type="Emphasized"/>
         </headerContent>
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="projectsListVBox" class="sapUiSmallMargin">
                 <HeaderContainer
-                    id="projectsHeader"
+                    id="projectsHeaderContainer"
                     orientation="Horizontal"
                     backgroundDesign="Transparent">
                     <GenericTile
+                        id="totalProjectsTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
                         header="Total Projects"
                         subheader="All Projects"
                         press="onTilePress">
-                        <TileContent>
+                        <TileContent id="totalProjectsTileContent">
                             <NumericContent
+                                id="totalProjectsNumeric"
                                 value="{/projectsCount}"
                                 icon="sap-icon://product"
                                 withMargin="false"/>
                         </TileContent>
                     </GenericTile>
                     <GenericTile
+                        id="activeProjectsTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
                         header="Active Projects"
                         subheader="In Progress"
                         press="onTilePress">
-                        <TileContent>
+                        <TileContent id="activeProjectsTileContent">
                             <NumericContent
+                                id="activeProjectsNumeric"
                                 value="{/activeProjectsCount}"
                                 icon="sap-icon://activity-individual"
-                                state="Success"
+                                valueColor="Good"
                                 withMargin="false"/>
                         </TileContent>
                     </GenericTile>
@@ -63,65 +67,69 @@
                     growing="true"
                     growingThreshold="20">
                     <headerToolbar>
-                        <OverflowToolbar>
-                            <Title text="Projects" level="H2"/>
-                            <ToolbarSpacer/>
+                        <OverflowToolbar id="projectsTableToolbar">
+                            <Title id="projectsTableTitle" text="Projects" level="H2"/>
+                            <ToolbarSpacer id="projectsTableToolbarSpacer"/>
                             <SearchField
-                                id="searchField"
+                                id="projectsSearchField"
                                 width="200px"
                                 search="onSearch"
                                 placeholder="Search projects..."/>
                             <Button
+                                id="editProjectButton"
                                 text="Edit Project"
                                 icon="sap-icon://edit"
                                 press="onEditProject"
                                 visible="{= ${user>/isAdmin} !== false }"/>
                             <Button
+                                id="newProjectButton"
                                 text="New Project"
                                 icon="sap-icon://create"
                                 type="Emphasized"
                                 press="onCreateProject"/>
                             <Button
+                                id="viewAllAnalysesButton"
                                 text="View All Analyses"
                                 icon="sap-icon://activities"
                                 press="onViewAllAnalyses"/>
                         </OverflowToolbar>
                     </headerToolbar>
                     <columns>
-                        <Column>
-                            <Text text="Client Name"/>
+                        <Column id="clientNameColumn">
+                            <Text id="clientNameHeader" text="Client Name"/>
                         </Column>
-                        <Column>
-                            <Text text="Project Name"/>
+                        <Column id="projectNameColumn">
+                            <Text id="projectNameHeader" text="Project Name"/>
                         </Column>
-                        <Column>
-                            <Text text="Project Type"/>
+                        <Column id="projectTypeColumn">
+                            <Text id="projectTypeHeader" text="Project Type"/>
                         </Column>
-                        <Column>
-                            <Text text="S/4HANA Flavor"/>
+                        <Column id="s4FlavorColumn">
+                            <Text id="s4FlavorHeader" text="S/4HANA Flavor"/>
                         </Column>
-                        <Column>
-                            <Text text="Status"/>
+                        <Column id="statusColumn">
+                            <Text id="statusHeader" text="Status"/>
                         </Column>
-                        <Column>
-                            <Text text="Timeline"/>
+                        <Column id="timelineColumn">
+                            <Text id="timelineHeader" text="Timeline"/>
                         </Column>
-                        <Column>
-                            <Text text="Business Criticality"/>
+                        <Column id="businessCriticalityColumn">
+                            <Text id="businessCriticalityHeader" text="Business Criticality"/>
                         </Column>
                     </columns>
                     <items>
-                        <ColumnListItem type="Navigation" press="onProjectSelect">
+                        <ColumnListItem id="projectsTableItem" type="Navigation" press="onProjectSelect">
                             <cells>
-                                <ObjectIdentifier title="{clientName}"/>
-                                <Text text="{projectName}"/>
-                                <Text text="{projectType}"/>
-                                <Text text="{s4HanaFlavor}"/>
+                                <ObjectIdentifier id="clientNameCell" title="{clientName}"/>
+                                <Text id="projectNameCell" text="{projectName}"/>
+                                <Text id="projectTypeCell" text="{projectType}"/>
+                                <Text id="s4FlavorCell" text="{s4HanaFlavor}"/>
                                 <ObjectStatus
+                                    id="statusCell"
                                     text="{status}"
                                     state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
-                                <Text text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
-                                <Text text="{businessCriticality}"/>
+                                <Text id="timelineCell" text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <Text id="businessCriticalityCell" text="{businessCriticality}"/>
                             </cells>
                         </ColumnListItem>
                     </items>
