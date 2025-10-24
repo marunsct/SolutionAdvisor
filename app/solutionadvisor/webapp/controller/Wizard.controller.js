@@ -264,6 +264,7 @@ sap.ui.define([
             this._sessionId = null;
             this._analysisId = null;
             this._answeredQuestions = {};
+            this._wizardStartTime = null; // Initialize wizard start time tracker
         },
 
         onProjectStepActivate() {
@@ -585,14 +586,23 @@ sap.ui.define([
             const oWizardModel = this.getView().getModel("wizardModel");
             const oCurrentQuestion = oWizardModel.getProperty("/currentQuestion");
             const oHintModel = this.getView().getModel("hintModel");
+            const oConstraintsModel = this.getView().getModel("constraintsModel");
             
             // Check if this is a question-specific hint or RICEFW ID hint
             if (oCurrentQuestion && oCurrentQuestion.detailedHint) {
+                // Build performance context from current constraints
+                let performanceContext = null;
+                const aViolations = oConstraintsModel.getProperty("/violations");
+                if (aViolations && aViolations.length > 0) {
+                    performanceContext = "⚠️ Current Constraints:\n" +
+                        aViolations.map(v => `• ${v.name}: ${v.value} ${v.unit || ''}`).join("\n");
+                }
+                
                 // Show hint from current wizard question
                 oHintModel.setData({
                     questionText: oCurrentQuestion.questionText || "Question",
                     detailedHint: oCurrentQuestion.detailedHint,
-                    performanceContext: null // Can be extended later with constraint data
+                    performanceContext: performanceContext
                 });
             } else {
                 // Default to RICEFW ID format hint (for the initial step)
@@ -632,15 +642,18 @@ sap.ui.define([
         },
         
         onSaveDraft() {
-            const oWizard = this.byId("cleanCoreWizard");
+            const oWizardModel = this.getView().getModel("wizardModel");
             const oDraftModel = this.getView().getModel("draftModel");
             
-            // Update draft model with current progress
+            // Update draft model with current wizard progress from wizard model
             oDraftModel.setData({
-                currentStep: oWizard.getCurrentStep() === "projectStep" ? 1 : 
-                            oWizard.getCurrentStep() === "objectStep" ? 2 : 3,
-                totalSteps: 3,
-                timeSpent: Math.floor(Math.random() * 30) + 5 // Placeholder - would track actual time
+                currentStep: oWizardModel.getProperty("/currentStep") || 1,
+                totalSteps: oWizardModel.getProperty("/totalSteps") || 10,
+                timeSpent: this._calculateTimeSpent(),
+                sessionID: this._sessionId,
+                analysisID: this._analysisId,
+                currentQuestion: oWizardModel.getProperty("/currentQuestion"),
+                selectedAnswer: oWizardModel.getProperty("/selectedAnswer")
             });
             
             if (!this._saveDraftDialog) {
@@ -652,6 +665,15 @@ sap.ui.define([
             }
             
             this._saveDraftDialog.open();
+        },
+        
+        _calculateTimeSpent() {
+            // Calculate time spent since wizard started
+            if (!this._wizardStartTime) {
+                this._wizardStartTime = Date.now();
+            }
+            const timeSpentMs = Date.now() - this._wizardStartTime;
+            return Math.floor(timeSpentMs / 1000); // Return seconds
         },
         
         onShowRicefwHistory() {
@@ -848,6 +870,9 @@ sap.ui.define([
         onStartAnalysis() {
             const oWizardModel = this.getView().getModel("wizardModel");
             const oData = oWizardModel.getData();
+            
+            // Initialize wizard start time for time tracking
+            this._wizardStartTime = Date.now();
             
             // Show loading indicator
             this.getView().setBusy(true);
@@ -1047,13 +1072,6 @@ sap.ui.define([
             }
         },
 
-        // Update draft model with current progress
-        _calculateTimeSpent() {
-            // Implementation for time spent calculation
-            // This is a placeholder - in a real implementation, track start time when wizard is opened
-            return Math.floor(Math.random() * 30) + 5; // 5-35 minutes
-        },
-        
         // Save the current wizard progress as draft
         onCancelSaveDraft() {
             this._saveDraftDialog.close();
