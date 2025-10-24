@@ -326,7 +326,7 @@ sap.ui.define([
             this._validateObjectStep();
         },
         
-        _loadConstraints(sObjectType, sVolumeLevel = "Medium") {
+        _loadConstraints(sObjectType) {
             const oModel = this.getView().getModel();
             const oConstraintsModel = this.getView().getModel("constraintsModel");
             const oWizardModel = this.getView().getModel("wizardModel");
@@ -335,7 +335,7 @@ sap.ui.define([
             const sProjectId = oWizardModel.getProperty("/projectID");
             
             if (!sProjectId || !sObjectType) {
-                console.warn("Cannot load constraints without project and object type");
+                Log.warning("Cannot load constraints without project and object type");
                 return;
             }
             
@@ -345,49 +345,33 @@ sap.ui.define([
             oProjectBinding.requestObject().then((oProjectData) => {
                 const sDeploymentType = oProjectData.s4HanaFlavor || "Cloud Public";
                 
-                // Call backend service getRelevantConstraints
-                const sPath = "/getRelevantConstraints(objectType='" + sObjectType + 
-                              "',deploymentType='" + sDeploymentType + 
-                              "',volumeLevel='" + sVolumeLevel + "')";
+                // Load deployment and compliance constraints (client-side logic)
+                const aDeploymentConstraints = this._getDeploymentConstraints(
+                    sDeploymentType,
+                    sObjectType
+                );
+                oConstraintsModel.setProperty("/deploymentConstraints", aDeploymentConstraints);
                 
-                const oFunctionBinding = oModel.bindContext(sPath);
+                const aComplianceConstraints = this._getComplianceConstraints(
+                    oProjectData.complianceRequirements
+                );
+                oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
                 
-                oFunctionBinding.execute().then(() => {
-                    const oResult = oFunctionBinding.getBoundContext().getObject();
-                    
-                    // The function returns an array of constraints
-                    const aConstraints = oResult.value || [];
-                    oConstraintsModel.setProperty("/performanceConstraints", aConstraints);
-                    
-                    // Also load deployment and compliance constraints (client-side logic)
-                    const aDeploymentConstraints = this._getDeploymentConstraints(
-                        sDeploymentType,
-                        sObjectType
-                    );
-                    oConstraintsModel.setProperty("/deploymentConstraints", aDeploymentConstraints);
-                    
-                    const aComplianceConstraints = this._getComplianceConstraints(
-                        oProjectData.complianceRequirements
-                    );
-                    oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
-                    
+                // Query performance thresholds directly (simplified approach)
+                const aThresholdFilters = [
+                    new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
+                    new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+                ];
+                const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
+                
+                oThresholdBinding.requestContexts().then((aContexts) => {
+                    const aThresholds = aContexts.map(ctx => ctx.getObject());
+                    oConstraintsModel.setProperty("/performanceConstraints", aThresholds);
                 }).catch((oError) => {
-                    console.error("Failed to call getRelevantConstraints function:", oError);
-                    
-                    // Fallback to direct query if function fails
-                    const aThresholdFilters = [
-                        new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
-                        new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
-                    ];
-                    const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
-                    
-                    oThresholdBinding.requestContexts().then((aContexts) => {
-                        const aThresholds = aContexts.map(ctx => ctx.getObject());
-                        oConstraintsModel.setProperty("/performanceConstraints", aThresholds);
-                    });
+                    Log.error("Failed to load performance thresholds:", oError);
                 });
             }).catch((oError) => {
-                console.error("Failed to load project data:", oError);
+                Log.error("Failed to load project data:", oError);
             });
         },
         
@@ -457,43 +441,27 @@ sap.ui.define([
             return constraints;
         },
         
-        _loadExamples(sObjectType, sScenario = "", sKeywords = "") {
+        _loadExamples(sObjectType) {
             const oModel = this.getView().getModel();
             const oExamplesModel = this.getView().getModel("examplesModel");
             
             if (!sObjectType) {
-                console.warn("Cannot load examples without object type");
+                Log.warning("Cannot load examples without object type");
                 return;
             }
             
-            // Call backend service getContextualExamples
-            const sPath = "/getContextualExamples(objectType='" + sObjectType + 
-                          "',scenario='" + encodeURIComponent(sScenario) + 
-                          "',keywords='" + encodeURIComponent(sKeywords) + "')";
+            // Query examples directly (simplified approach)
+            const aExampleFilters = [
+                new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
+                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+            ];
+            const oExampleBinding = oModel.bindList("/RealWorldExamples", null, null, aExampleFilters);
             
-            const oFunctionBinding = oModel.bindContext(sPath);
-            
-            oFunctionBinding.execute().then(() => {
-                const oResult = oFunctionBinding.getBoundContext().getObject();
-                
-                // The function returns an array of examples
-                const aExamples = oResult.value || [];
+            oExampleBinding.requestContexts().then((aContexts) => {
+                const aExamples = aContexts.map(ctx => ctx.getObject());
                 oExamplesModel.setProperty("/examples", aExamples);
-                
             }).catch((oError) => {
-                console.error("Failed to call getContextualExamples function:", oError);
-                
-                // Fallback to direct query if function fails
-                const aExampleFilters = [
-                    new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
-                    new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
-                ];
-                const oExampleBinding = oModel.bindList("/RealWorldExamples", null, null, aExampleFilters);
-                
-                oExampleBinding.requestContexts().then((aContexts) => {
-                    const aExamples = aContexts.map(ctx => ctx.getObject());
-                    oExamplesModel.setProperty("/examples", aExamples);
-                });
+                Log.error("Failed to load real-world examples:", oError);
             });
         },
         
@@ -519,11 +487,11 @@ sap.ui.define([
             });
         },
         
-        onIndustryFilterChange(oEvent) {
+        onIndustryFilterChange() {
             this._applyExamplesFilters();
         },
         
-        onLevelFilterChange(oEvent) {
+        onLevelFilterChange() {
             this._applyExamplesFilters();
         },
         
@@ -639,24 +607,6 @@ sap.ui.define([
             this._saveDraftDialog.open();
         },
         
-        onConfirmSaveDraft() {
-            const oWizardModel = this.getView().getModel("wizardModel");
-            const oData = oWizardModel.getData();
-            
-            // In a real implementation, this would save to WizardSession entity
-            const draftName = sap.ui.getCore().byId("draftNameInput")?.getValue() || 
-                             `Draft - ${oData.objectName || oData.ricefwId}`;
-            
-            // Placeholder for actual save logic
-            MessageToast.show(`Draft "${draftName}" saved successfully. You can resume this analysis later.`);
-            
-            this._saveDraftDialog.close();
-        },
-        
-        onCancelSaveDraft() {
-            this._saveDraftDialog.close();
-        },
-        
         onShowRicefwHistory() {
             const oWizardModel = this.getView().getModel("wizardModel");
             const sRicefwId = oWizardModel.getProperty("/ricefwId");
@@ -696,7 +646,7 @@ sap.ui.define([
                 const aAnalyses = aContexts.map(ctx => ctx.getObject());
                 oHistoryModel.setProperty("/analyses", aAnalyses);
             }).catch((oError) => {
-                console.error("Failed to load RICEFW history:", oError);
+                Log.error("Failed to load RICEFW history:", oError);
                 MessageToast.show("Failed to load history");
             });
         },
@@ -806,7 +756,7 @@ sap.ui.define([
             const sObjectName = oWizardModel.getProperty("/objectName");
             
             const pattern = /^[RICEFYW]-[0-9]{4}-[A-Z]{3}$/;
-            const bValid = pattern.test(sRicefwId) && sObjectType && sObjectName;
+            const bValid = pattern.test(sRicefwId) && Boolean(sObjectType) && Boolean(sObjectName);
             
             this.byId("objectStep").setValidated(bValid);
             this._updateNextButtonState();
@@ -1094,7 +1044,7 @@ sap.ui.define([
                 this._analysisId = oResult.analysisID;
                 this._updateDraftSession(sDraftName);
             }).catch((oError) => {
-                console.error("Failed to save draft:", oError);
+                Log.error("Failed to save draft:", oError);
                 MessageBox.error("Failed to save draft: " + oError.message);
             });
         },
@@ -1122,30 +1072,13 @@ sap.ui.define([
                     });
                     this._saveDraftDialog.close();
                 }).catch((oError) => {
-                    console.error("Failed to save draft:", oError);
+                    Log.error("Failed to save draft:", oError);
                     MessageBox.error("Failed to save draft: " + oError.message);
                 });
             }).catch((oError) => {
-                console.error("Failed to load session:", oError);
+                Log.error("Failed to load session:", oError);
                 MessageBox.error("Failed to save draft: " + oError.message);
             });
-        },
-
-        onCancelSaveDraft() {
-            this._saveDraftDialog.close();
-        },
-
-        _calculateTimeSpent() {
-            // Implement time tracking logic
-            if (!this._wizardStartTime) {
-                this._wizardStartTime = new Date();
-            }
-            
-            const now = new Date();
-            const diffMs = now - this._wizardStartTime;
-            const diffMins = Math.floor(diffMs / 60000);
-            
-            return diffMins;
         },
 
         onWizardComplete() {
