@@ -3,13 +3,43 @@ const cds = require('@sap/cds');
 class AnalyticsService {
   /**
    * Get aggregated analytics data for dashboard
+   * @param {Object} filters - Optional filters (dateFrom, dateTo, ricefwTypes, cleanCoreLevels, projectId)
    * @returns {Object} Complete analytics data including KPIs and chart data
    */
-  async getAnalyticsData() {
+  async getAnalyticsData(filters = {}) {
     try {
-      // Get all analyses for calculations with tenant filtering for multi-tenancy support
-      const analyses = await SELECT.from('sd.CleanCoreAnalysis')
-        .where({ tenant: cds.context.tenant || 'default' });
+      // Build where clause with tenant filtering and optional filters
+      const whereClause = { tenant: cds.context.tenant || 'default' };
+      
+      // Add date range filter
+      if (filters.dateFrom) {
+        whereClause.createdAt = { '>=': filters.dateFrom };
+      }
+      if (filters.dateTo) {
+        if (whereClause.createdAt) {
+          whereClause.createdAt = { '>=': filters.dateFrom, '<=': filters.dateTo };
+        } else {
+          whereClause.createdAt = { '<=': filters.dateTo };
+        }
+      }
+      
+      // Add project filter
+      if (filters.projectId) {
+        whereClause.project_ID = filters.projectId;
+      }
+      
+      // Get all analyses for calculations with filters
+      let analyses = await SELECT.from('sd.CleanCoreAnalysis')
+        .where(whereClause);
+      
+      // Apply additional filters in JavaScript (for array-based filters)
+      if (filters.ricefwTypes && filters.ricefwTypes.length > 0) {
+        analyses = analyses.filter(a => filters.ricefwTypes.includes(a.objectType_code));
+      }
+      
+      if (filters.cleanCoreLevels && filters.cleanCoreLevels.length > 0) {
+        analyses = analyses.filter(a => filters.cleanCoreLevels.includes(a.recommendedLevel));
+      }
       
       if (!analyses || analyses.length === 0) {
         return this._getEmptyAnalyticsData();
@@ -20,6 +50,7 @@ class AnalyticsService {
       
       // Prepare chart data
       const levelDistribution = this._prepareLevelDistribution(analyses);
+      const ricefwTypeDistribution = this._prepareRicefwTypeDistribution(analyses);
       const trendData = await this._prepareTrendData();
       const riskMatrixData = this._prepareRiskMatrixData(analyses);
       const topObjects = this._prepareTopObjectsData(analyses);
@@ -27,6 +58,7 @@ class AnalyticsService {
       return {
         ...kpiData,
         levelDistribution,
+        ricefwTypeDistribution,
         trendData,
         riskMatrixData,
         topObjects,
@@ -74,6 +106,35 @@ class AnalyticsService {
       level,
       count: levelCounts[level],
       percentage: Math.round((levelCounts[level] / total) * 100)
+    }));
+  }
+
+  /**
+   * Prepare RICEFW type distribution data for bar chart
+   * @private
+   */
+  _prepareRicefwTypeDistribution(analyses) {
+    const typeCounts = {};
+    const typeNames = {
+      'Reports': 'Reports',
+      'Interfaces': 'Interfaces',
+      'Conversions': 'Conversions',
+      'Enhancements': 'Enhancements',
+      'Forms': 'Forms',
+      'Workflows': 'Workflows'
+    };
+    
+    analyses.forEach(analysis => {
+      const objectType = analysis.objectType_code || 'Unknown';
+      typeCounts[objectType] = (typeCounts[objectType] || 0) + 1;
+    });
+
+    const total = analyses.length;
+    
+    return Object.keys(typeCounts).map(type => ({
+      objectType: typeNames[type] || type,
+      count: typeCounts[type],
+      percentage: Math.round((typeCounts[type] / total) * 100)
     }));
   }
 
@@ -178,6 +239,7 @@ class AnalyticsService {
       upgradeImpactScore: 0,
       compositeHealthScore: 0,
       levelDistribution: [],
+      ricefwTypeDistribution: [],
       trendData: [],
       riskMatrixData: [],
       topObjects: [],

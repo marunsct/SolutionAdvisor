@@ -9,12 +9,16 @@
         title="New Clean Core Analysis"
         showHeader="true"
         showNavButton="true"
-        navButtonPress="onNavBack">
+        navButtonPress="onNavBack"
+        enableScrolling="true"
+        backgroundDesign="List">
         <content>
             <Wizard
                 id="cleanCoreWizard"
                 complete="onWizardComplete"
-                class="sapUiResponsiveMargin">
+                class="sapUiResponsiveMargin"
+                enableBranching="false"
+                backgroundDesign="Transparent">
                 
                 <!-- Step 1: Project Selection -->
                 <WizardStep
@@ -63,6 +67,7 @@
                         <HBox alignItems="Center" justifyContent="SpaceBetween">
                             <Label id="ricefwIdLabel" text="RICEFW ID" required="true"/>
                             <Button
+                                id="hintButtonObject"
                                 icon="sap-icon://hint"
                                 tooltip="Show detailed hint"
                                 press="onShowDetailedHint"
@@ -70,15 +75,16 @@
                         </HBox>
                         <Input
                             id="ricefwIdInput"
-                            width="300px"
+                            width="100%"
                             placeholder="e.g., I-0042-IMP"
                             liveChange="onRicefwIdChange"
-                            description="Format: [RICEFYW]-[0-9]&#123;4&#125;-[A-Z]&#123;3&#125;"/>
+                            description="Format: [RICEFYW]-[0-9]&#123;4&#125;-[A-Z]&#123;3&#125;"
+                            class="sapUiResponsiveContentPadding"/>
                         
                         <Label id="objectTypeLabel" text="Object Type" required="true" class="sapUiTinyMarginTop"/>
                         <ComboBox
                             id="objectTypeComboBox"
-                            width="300px"
+                            width="100%"
                             placeholder="Select object type..."
                             selectionChange="onObjectTypeSelect"
                             items="{
@@ -191,20 +197,22 @@
                                 </RadioButtonGroup>
                             </VBox>
                             
-                            <!-- Action Buttons -->
-                            <HBox id="actionButtonsHBox" alignItems="Center" class="sapUiSmallMarginTop">
+                            <!-- Action Buttons - Touch-friendly -->
+                            <HBox id="actionButtonsHBox" alignItems="Center" class="sapUiSmallMarginTop" wrap="Wrap">
                                 <Button id="detailedHintButton"
                                     text="Show Detailed Hint" 
                                     icon="sap-icon://hint" 
                                     press="onShowDetailedHint" 
-                                    class="sapUiTinyMarginEnd"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                    width="auto"
                                     visible="{= !!${wizardModel>/currentQuestion/detailedHint}}"/>
                                 <Button id="nextQuestionButton"
                                     text="Next Question" 
                                     type="Emphasized" 
                                     enabled="{= ${wizardModel>/selectedAnswerIndex} >= 0 &amp;&amp; !${wizardModel>/questionCompleted}}"
                                     press="onSubmitAnswer" 
-                                    class="sapUiTinyMarginEnd"/>
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
+                                    width="auto"/>
                             </HBox>
                         </VBox>
                     </Panel>

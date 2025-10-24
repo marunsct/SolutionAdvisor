@@ -11,7 +11,7 @@ class ConstraintsService {
     /**
      * Get relevant constraints based on analysis context
      */
-    async getRelevantConstraints(objectType, deploymentType, volumeLevel) {
+    async getRelevantConstraints(objectType, deploymentType, volumeLevel, currentAnswer) {
         const { PerformanceThreshold } = cds.entities('sd');
         
         // Build query to find relevant thresholds
@@ -32,14 +32,101 @@ class ConstraintsService {
             );
         }
         
-        // Format results
-        return filtered.map(constraint => ({
-            category: constraint.category,
-            method: constraint.method,
-            threshold: this.formatThreshold(constraint),
-            level: constraint.cleanCoreLevel,
-            guidance: constraint.whenExceeded
-        }));
+        // Format results with violation warnings
+        return filtered.map(constraint => {
+            const violation = this.checkViolation(constraint, volumeLevel, currentAnswer);
+            return {
+                id: constraint.ID,
+                category: constraint.category,
+                method: constraint.method,
+                threshold: this.formatThreshold(constraint),
+                level: constraint.cleanCoreLevel,
+                guidance: constraint.whenExceeded,
+                isViolated: violation.isViolated,
+                violationSeverity: violation.severity,
+                warningMessage: violation.message
+            };
+        });
+    }
+
+    /**
+     * Check if current selection violates a constraint
+     */
+    checkViolation(constraint, volumeLevel, currentAnswer) {
+        const result = {
+            isViolated: false,
+            severity: 'None',
+            message: null
+        };
+
+        // Check volume limit violation
+        if (constraint.volumeLimit && volumeLevel) {
+            const volumeValue = this.parseVolumeLevel(volumeLevel);
+            if (volumeValue > constraint.volumeLimit) {
+                result.isViolated = true;
+                result.severity = 'Error';
+                result.message = `Volume exceeds recommended limit of ${constraint.volumeLimit.toLocaleString()} records. ${constraint.whenExceeded}`;
+            }
+        }
+
+        // Check response time concerns based on method selection
+        if (constraint.responseTimeTarget && currentAnswer) {
+            if (this.isHighLatencyMethod(currentAnswer, constraint.method)) {
+                result.isViolated = true;
+                result.severity = 'Warning';
+                result.message = `Selected method may not meet ${constraint.responseTimeTarget}ms response time target. Consider ${constraint.method} instead.`;
+            }
+        }
+
+        // Check deployment compatibility
+        if (constraint.deploymentTypes && currentAnswer) {
+            if (this.isIncompatibleWithDeployment(currentAnswer, constraint.deploymentTypes)) {
+                result.isViolated = true;
+                result.severity = 'Error';
+                result.message = `This approach is not compatible with your deployment type. ${constraint.whenExceeded}`;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Parse volume level string to numeric value
+     */
+    parseVolumeLevel(volumeLevel) {
+        const match = volumeLevel.match(/(\d+)/);
+        if (match) {
+            const num = parseInt(match[1]);
+            if (volumeLevel.includes('million')) return num * 1000000;
+            if (volumeLevel.includes('thousand') || volumeLevel.includes('K')) return num * 1000;
+            return num;
+        }
+        return 0;
+    }
+
+    /**
+     * Check if selected method has high latency concerns
+     */
+    isHighLatencyMethod(answer, recommendedMethod) {
+        const highLatencyPatterns = ['batch', 'file transfer', 'mass upload', 'idoc'];
+        const answerLower = answer.toLowerCase();
+        return highLatencyPatterns.some(pattern => 
+            answerLower.includes(pattern) && !recommendedMethod.toLowerCase().includes(pattern)
+        );
+    }
+
+    /**
+     * Check if selection is incompatible with deployment type
+     */
+    isIncompatibleWithDeployment(answer, allowedDeployments) {
+        const cloudIncompatible = ['custom code', 'modification', 'user exit', 'badi'];
+        const answerLower = answer.toLowerCase();
+        
+        if (allowedDeployments.includes('Cloud Public')) {
+            return cloudIncompatible.some(pattern => answerLower.includes(pattern));
+        }
+        
+        return false;
     }
 
     /**

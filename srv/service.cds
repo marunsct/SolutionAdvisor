@@ -276,9 +276,15 @@ service solutionAdvisorService {
     };
 
     /**
-     * Get analytics dashboard data
+     * Get analytics dashboard data with optional filters
      */
-    function getAnalyticsData() returns {
+    function getAnalyticsData(
+        dateFrom          : Date,
+        dateTo            : Date,
+        ricefwTypes       : String,  // JSON array string
+        cleanCoreLevels   : String,  // JSON array string
+        projectId         : String
+    ) returns {
         technicalDebtScore   : Integer;
         cloudReadinessScore  : Integer;
         upgradeImpactScore   : Integer;
@@ -286,6 +292,11 @@ service solutionAdvisorService {
         totalAnalyses        : Integer;
         levelDistribution    : array of {
             level      : String;
+            count      : Integer;
+            percentage : Integer;
+        };
+        ricefwTypeDistribution : array of {
+            objectType : String;
             count      : Integer;
             percentage : Integer;
         };

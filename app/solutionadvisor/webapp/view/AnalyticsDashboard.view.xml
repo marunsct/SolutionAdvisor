@@ -21,6 +21,11 @@
           <Title text="Clean Core Analytics Overview" level="H2"/>
           <HBox>
             <Button 
+              icon="sap-icon://refresh" 
+              press="onRefresh" 
+              tooltip="Refresh analytics data"
+              class="sapUiTinyMarginEnd"/>
+            <Button 
               id="exportPDFButton"
               text="Export PDF" 
               press="onExportPDF" 
@@ -38,6 +43,74 @@
               ariaLabelledBy="exportExcelButton"/>
           </HBox>
         </FlexBox>
+        
+        <!-- Filter Panel -->
+        <Panel headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
+          <content>
+            <layout:Grid defaultSpan="XL3 L4 M6 S12" class="sapUiSmallMargin">
+              <VBox>
+                <Label text="Date Range"/>
+                <DateRangeSelection 
+                  id="dateRangeFilter"
+                  width="100%"
+                  dateValue="{filterModel>/dateFrom}"
+                  secondDateValue="{filterModel>/dateTo}"
+                  change="onFilterChange"
+                  placeholder="Select date range"/>
+              </VBox>
+              
+              <VBox>
+                <Label text="RICEFW Type"/>
+                <MultiComboBox 
+                  id="ricefwTypeFilter"
+                  width="100%"
+                  selectedKeys="{filterModel>/selectedRicefwTypes}"
+                  items="{filterModel>/ricefwTypes}"
+                  selectionChange="onFilterChange"
+                  placeholder="All Types">
+                  <core:Item key="{filterModel>code}" text="{filterModel>name}"/>
+                </MultiComboBox>
+              </VBox>
+              
+              <VBox>
+                <Label text="Clean Core Level"/>
+                <MultiComboBox 
+                  id="cleanCoreLevelFilter"
+                  width="100%"
+                  selectedKeys="{filterModel>/selectedCleanCoreLevels}"
+                  items="{filterModel>/cleanCoreLevels}"
+                  selectionChange="onFilterChange"
+                  placeholder="All Levels">
+                  <core:Item key="{filterModel>level}" text="{filterModel>level}"/>
+                </MultiComboBox>
+              </VBox>
+              
+              <VBox>
+                <Label text="Project"/>
+                <ComboBox 
+                  id="projectFilter"
+                  width="100%"
+                  selectedKey="{filterModel>/selectedProject}"
+                  items="{filterModel>/projects}"
+                  selectionChange="onFilterChange"
+                  placeholder="All Projects">
+                  <core:Item key="{filterModel>ID}" text="{filterModel>projectName}"/>
+                </ComboBox>
+              </VBox>
+            </layout:Grid>
+            
+            <HBox class="sapUiSmallMargin">
+              <Button 
+                text="Apply Filters" 
+                type="Emphasized" 
+                press="onApplyFilters"
+                class="sapUiTinyMarginEnd"/>
+              <Button 
+                text="Clear Filters" 
+                press="onClearFilters"/>
+            </HBox>
+          </content>
+        </Panel>
 
         <!-- KPI Tiles Section -->
         <Panel headerText="Key Performance Indicators" class="sapUiSmallMarginBottom">
@@ -143,6 +216,17 @@
               <viz:VizFrame 
                 id="levelDistributionChart" 
                 vizType="donut"
+                width="100%" 
+                height="300px">
+              </viz:VizFrame>
+            </VBox>
+
+            <!-- RICEFW Type Distribution Chart -->
+            <VBox class="sapUiSmallMargin">
+              <Title text="RICEFW Object Type Distribution" level="H4" class="sapUiSmallMarginBottom"/>
+              <viz:VizFrame 
+                id="ricefwTypeDistributionChart" 
+                vizType="bar"
                 width="100%" 
                 height="300px">
               </viz:VizFrame>

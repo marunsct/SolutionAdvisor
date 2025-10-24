@@ -22,7 +22,11 @@
     "@cap-js/sqlite": "^2",
     "@sap/cds-dk": "^9",
     "@sap/dev-cap-tools": "^1.47.10",
-    "cds-plugin-ui5": "^0.13.6"
+    "cds-plugin-ui5": "^0.13.6",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "@types/jest": "^29.5.8",
+    "@ui5/uiveri5": "^2.3.3"
   },
   "scripts": {
     "start": "cds-serve",
@@ -31,7 +35,14 @@
     "cds-watch": "cds watch --profile hybrid",
     "build": "mbt build",
     "deploy": "cf push mta_archives/SolutionAdvisor.mtar",
-    "watch-solutionadvisor": "cds watch --open sd.solutionadvisor/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-solutionadvisor": "cds watch --open sd.solutionadvisor/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern=test/unit",
+    "test:integration": "jest --testPathPattern=test/integration",
+    "test:e2e": "uiveri5",
+    "test:e2e:local": "uiveri5 --baseUrl=http://localhost:4004"
   },
   "private": true,
   "cds": {

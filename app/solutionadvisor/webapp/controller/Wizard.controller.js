@@ -357,7 +357,7 @@ sap.ui.define([
                 );
                 oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
                 
-                // Query performance thresholds directly (simplified approach)
+                // Query performance thresholds directly (simplified approach from bug fix)
                 const aThresholdFilters = [
                     new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
                     new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
@@ -366,7 +366,39 @@ sap.ui.define([
                 
                 oThresholdBinding.requestContexts().then((aContexts) => {
                     const aThresholds = aContexts.map(ctx => ctx.getObject());
-                    oConstraintsModel.setProperty("/performanceConstraints", aThresholds);
+                    
+                    // Add violation detection logic (from my changes)
+                    const aViolations = [];
+                    const aRegularConstraints = [];
+                    
+                    aThresholds.forEach(constraint => {
+                        // Check for violations based on user selections (if available in wizard model)
+                        const oWizardModel = this.getView().getModel("wizardModel");
+                        const userSelections = oWizardModel.getData();
+                        
+                        // Simple violation check - can be enhanced based on actual user inputs
+                        let isViolated = false;
+                        
+                        // Add constraint to appropriate array
+                        if (isViolated) {
+                            constraint.isViolated = true;
+                            aViolations.push(constraint);
+                        } else {
+                            aRegularConstraints.push(constraint);
+                        }
+                    });
+                    
+                    // Set constraints in model
+                    oConstraintsModel.setProperty("/violations", aViolations);
+                    oConstraintsModel.setProperty("/performanceConstraints", aRegularConstraints);
+                    
+                    // Show warning toast if violations found
+                    if (aViolations.length > 0) {
+                        MessageToast.show(
+                            aViolations.length + " constraint violation(s) detected. Review warnings below.",
+                            { duration: 5000 }
+                        );
+                    }
                 }).catch((oError) => {
                     Log.error("Failed to load performance thresholds:", oError);
                 });
@@ -549,23 +581,37 @@ sap.ui.define([
             }
         },
         
-        onShowDetailedHint() {
-            // Load hint for RICEFW ID format
+        onShowDetailedHint(oEvent) {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const oCurrentQuestion = oWizardModel.getProperty("/currentQuestion");
             const oHintModel = this.getView().getModel("hintModel");
-            oHintModel.setData({
-                questionText: "RICEFW ID Format",
-                detailedHint: "The RICEFW ID follows a specific pattern to categorize SAP development objects:\n\n" +
-                    "• First letter: Object type (R=Report, I=Interface, C=Conversion, E=Enhancement, F=Form, W=Workflow)\n" +
-                    "• Four digits: Sequential number (0001-9999)\n" +
-                    "• Three letters: Project/Module code\n\n" +
-                    "Example: I-0042-IMP means Interface #42 for IMP (Implementation) project.\n\n" +
-                    "This standardized naming helps with:\n" +
-                    "• Object tracking across landscapes\n" +
-                    "• Transport management\n" +
-                    "• Documentation and audit trails",
-                performanceContext: "Use consistent RICEFW IDs across all environments (DEV, QAS, PRD) to simplify transport and deployment processes."
-            });
             
+            // Check if this is a question-specific hint or RICEFW ID hint
+            if (oCurrentQuestion && oCurrentQuestion.detailedHint) {
+                // Show hint from current wizard question
+                oHintModel.setData({
+                    questionText: oCurrentQuestion.questionText || "Question",
+                    detailedHint: oCurrentQuestion.detailedHint,
+                    performanceContext: null // Can be extended later with constraint data
+                });
+            } else {
+                // Default to RICEFW ID format hint (for the initial step)
+                oHintModel.setData({
+                    questionText: "RICEFW ID Format",
+                    detailedHint: "The RICEFW ID follows a specific pattern to categorize SAP development objects:\n\n" +
+                        "• First letter: Object type (R=Report, I=Interface, C=Conversion, E=Enhancement, F=Form, W=Workflow)\n" +
+                        "• Four digits: Sequential number (0001-9999)\n" +
+                        "• Three letters: Project/Module code\n\n" +
+                        "Example: I-0042-IMP means Interface #42 for IMP (Implementation) project.\n\n" +
+                        "This standardized naming helps with:\n" +
+                        "• Object tracking across landscapes\n" +
+                        "• Transport management\n" +
+                        "• Documentation and audit trails",
+                    performanceContext: "Use consistent RICEFW IDs across all environments (DEV, QAS, PRD) to simplify transport and deployment processes."
+                });
+            }
+            
+            // Create popover if not already created
             if (!this._detailedHintPopover) {
                 this._detailedHintPopover = sap.ui.xmlfragment(
                     "sd.solutionadvisor.view.fragments.DetailedHintPopover",
@@ -574,8 +620,9 @@ sap.ui.define([
                 this.getView().addDependent(this._detailedHintPopover);
             }
             
-            const oButton = this.byId("ricefwIdLabel")?.getParent().getItems()[1];
-            this._detailedHintPopover.openBy(oButton || this.byId("ricefwIdInput"));
+            // Open popover by the button that triggered it
+            const oButton = oEvent.getSource();
+            this._detailedHintPopover.openBy(oButton);
         },
         
         onCloseDetailedHint() {

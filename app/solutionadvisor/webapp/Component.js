@@ -19,6 +19,20 @@ sap.ui.define([
 
             // set the device model
             this.setModel(models.createDeviceModel(), "device");
+            
+            // apply content density mode (responsive design)
+            this.getContentDensityClass = function () {
+                if (!this._sContentDensityClass) {
+                    if (!sap.ui.Device.support.touch) {
+                        // Desktop: use compact mode
+                        this._sContentDensityClass = "sapUiSizeCompact";
+                    } else {
+                        // Mobile/Tablet: use cozy mode for larger touch targets
+                        this._sContentDensityClass = "sapUiSizeCozy";
+                    }
+                }
+                return this._sContentDensityClass;
+            };
 
             // enable routing
             this.getRouter().initialize();

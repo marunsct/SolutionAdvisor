@@ -16,7 +16,9 @@
                 id="analysisHeader"
                 title="{objectName}"
                 number="{ricefwId}"
-                numberState="Information">
+                numberState="Information"
+                responsive="true"
+                fullScreenOptimized="true">
                 <statuses>
                     <ObjectStatus
                         text="{finalRecommendation}"

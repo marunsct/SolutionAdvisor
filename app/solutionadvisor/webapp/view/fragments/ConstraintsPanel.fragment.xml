@@ -17,6 +17,43 @@
                     showIcon="true"
                     class="sapUiSmallMarginBottom"/>
                 
+                <!-- Violation Warnings (Critical) -->
+                <VBox visible="{= ${constraintsModel>/violations}.length > 0 }" class="sapUiSmallMarginBottom">
+                    <MessageStrip
+                        text="⚠️ CONSTRAINT VIOLATIONS DETECTED - Review the issues below"
+                        type="Error"
+                        showIcon="true"
+                        showCloseButton="false"
+                        class="sapUiSmallMarginBottom"/>
+                    <List
+                        items="{constraintsModel>/violations}"
+                        noDataText="">
+                        <CustomListItem>
+                            <VBox class="sapUiSmallMargin">
+                                <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                    <HBox alignItems="Center">
+                                        <core:Icon 
+                                            src="{= ${constraintsModel>violationSeverity} === 'Error' ? 'sap-icon://error' : 'sap-icon://alert' }" 
+                                            color="{= ${constraintsModel>violationSeverity} === 'Error' ? '#BB0000' : '#E9730C' }"
+                                            class="sapUiTinyMarginEnd"/>
+                                        <Text text="{constraintsModel>category} - {constraintsModel>method}" class="sapUiMediumText"/>
+                                    </HBox>
+                                    <ObjectStatus 
+                                        text="{constraintsModel>violationSeverity}" 
+                                        state="{= ${constraintsModel>violationSeverity} === 'Error' ? 'Error' : 'Warning' }"/>
+                                </HBox>
+                                <MessageStrip
+                                    text="{constraintsModel>warningMessage}"
+                                    type="{= ${constraintsModel>violationSeverity} === 'Error' ? 'Error' : 'Warning' }"
+                                    showIcon="true"
+                                    showCloseButton="false"
+                                    class="sapUiTinyMarginTop"/>
+                                <Text text="Guidance: {constraintsModel>guidance}" class="sapUiTinyMarginTop sapUiSmallText"/>
+                            </VBox>
+                        </CustomListItem>
+                    </List>
+                </VBox>
+                
                 <!-- Performance Constraints Section -->
                 <VBox visible="{= ${constraintsModel>/performanceConstraints}.length > 0 }">
                     <Title text="Performance Thresholds" level="H4" class="sapUiTinyMarginTop"/>
@@ -25,14 +62,14 @@
                         noDataText="No performance constraints apply to this context">
                         <StandardListItem
                             title="{constraintsModel>category} - {constraintsModel>method}"
-                            description="Volume: {constraintsModel>volumeLimit} records | Size: {constraintsModel>sizeThreshold} | Frequency: {constraintsModel>frequencyLimit}"
-                            info="{constraintsModel>cleanCoreLevel}"
-                            infoState="{= ${constraintsModel>cleanCoreLevel} === 'Level A' ? 'Success' : ${constraintsModel>cleanCoreLevel} === 'Level B' ? 'Information' : 'Warning' }"
+                            description="Threshold: {constraintsModel>threshold}"
+                            info="{constraintsModel>level}"
+                            infoState="{= ${constraintsModel>isViolated} ? 'Error' : ${constraintsModel>level} === 'Level A' ? 'Success' : ${constraintsModel>level} === 'Level B' ? 'Information' : 'Warning' }"
                             type="Navigation"
-                            press=".onShowConstraintDetails">
+                            press=".onShowConstraintDetails"
+                            highlight="{= ${constraintsModel>isViolated} ? 'Error' : 'None' }">
                             <customData>
-                                <core:CustomData key="guidance" value="{constraintsModel>whenExceeded}"/>
-                                <core:CustomData key="alternative" value="{constraintsModel>alternativeSolution}"/>
+                                <core:CustomData key="guidance" value="{constraintsModel>guidance}"/>
                             </customData>
                         </StandardListItem>
                     </List>

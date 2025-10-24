@@ -336,3 +336,37 @@ entity ExampleLog : cuid {
     relevanceRating         : Integer; // 1-5 stars, optional user feedback
     tenant                  : String(36) not null;
 }
+
+/**
+ * AuditLog - Comprehensive audit trail for compliance and security
+ * Tracks: authentication, data changes, exports, constraint violations, config changes
+ */
+entity AuditLog : cuid {
+    // Event Classification
+    eventType               : String(50) not null; // AUTH, DATA_CHANGE, EXPORT, CONSTRAINT_VIOLATION, CONFIG_CHANGE, SECURITY
+    entityType              : String(100) not null; // CleanCoreAnalysis, ProjectConfiguration, User, etc.
+    entityId                : String(255) not null;
+    
+    // User Context
+    userId                  : String(255) not null;
+    userName                : String(255);
+    userEmail               : String(255);
+    
+    // Action Details
+    action                  : String(50) not null; // CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT, EXPORT_PDF, etc.
+    timestamp               : DateTime not null;
+    
+    // Request Context
+    ipAddress               : String(50);
+    userAgent               : String(500);
+    sessionId               : String(100);
+    
+    // Multi-tenancy
+    tenantId                : String(36);
+    
+    // Event Details (JSON)
+    details                 : String(5000); // JSON string containing before/after values, violations, etc.
+    
+    // Severity
+    severity                : String(20); // INFO, WARNING, ERROR, CRITICAL
+}

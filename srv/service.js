@@ -4,6 +4,7 @@ const ScoringService = require('./lib/scoring-service');
 const ConstraintsService = require('./lib/constraints-service');
 const ExamplesService = require('./lib/examples-service');
 const AnalyticsService = require('./lib/analytics-service');
+const AuditService = require('./lib/audit-service');
 
 module.exports = cds.service.impl(async function () {
     const {
@@ -22,6 +23,10 @@ module.exports = cds.service.impl(async function () {
     const constraintsService = new ConstraintsService(this);
     const examplesService = new ExamplesService(this);
     const analyticsService = new AnalyticsService();
+    const auditService = new AuditService();
+    
+    // Initialize audit service
+    await auditService.init();
 
     // ===============================
     // Tenant Context Enforcement
@@ -74,6 +79,9 @@ module.exports = cds.service.impl(async function () {
             };
 
             await INSERT.into(Analyses).entries(analysis);
+
+            // Audit log: Analysis created
+            await auditService.logDataChange(req, 'CREATE', 'CleanCoreAnalysis', analysisID, null, analysis);
 
             // Create wizard session
             const sessionID = cds.utils.uuid();
@@ -206,6 +214,28 @@ module.exports = cds.service.impl(async function () {
                         lastActivity: new Date().toISOString()
                     })
                     .where({ ID: sessionID });
+
+                // Send notifications for analysis completion and threshold violations
+                try {
+                    const notificationService = require('./lib/notification-service');
+                    const analysisData = await SELECT.one.from(Analyses).where({ ID: session.analysis_ID });
+                    const userData = {
+                        email: req.user?.id || 'user@example.com',
+                        name: req.user?.name || 'User',
+                        preferences: { emailNotifications: true, pushNotifications: false }
+                    };
+
+                    // Send analysis complete notification
+                    await notificationService.sendAnalysisCompleteNotification(analysisData, userData);
+
+                    // Check for threshold violations and send alerts if needed
+                    await notificationService.sendThresholdExceededNotification(analysisData, userData);
+                } catch (notifError) {
+                    // Log but don't fail the analysis completion
+                    if (LOG && LOG.error) {
+                        LOG.error('Failed to send notifications:', notifError);
+                    }
+                }
 
                 return {
                     nextQuestion: null,
@@ -562,7 +592,16 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('getAnalyticsData', async (req) => {
         try {
-            const analyticsData = await analyticsService.getAnalyticsData();
+            // Extract filter parameters from request
+            const filters = {
+                dateFrom: req.data.dateFrom,
+                dateTo: req.data.dateTo,
+                ricefwTypes: req.data.ricefwTypes ? JSON.parse(req.data.ricefwTypes) : null,
+                cleanCoreLevels: req.data.cleanCoreLevels ? JSON.parse(req.data.cleanCoreLevels) : null,
+                projectId: req.data.projectId
+            };
+            
+            const analyticsData = await analyticsService.getAnalyticsData(filters);
             return analyticsData;
         } catch (error) {
             console.error('Error getting analytics data:', error);

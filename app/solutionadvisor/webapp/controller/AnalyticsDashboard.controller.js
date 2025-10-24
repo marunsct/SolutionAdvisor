@@ -13,26 +13,103 @@ sap.ui.define([
     onInit: function() {
       const oRouter = this.getOwnerComponent().getRouter();
       oRouter.getRoute("AnalyticsDashboard").attachPatternMatched(this._onPatternMatched, this);
+      
+      // Initialize filter model
+      this._initializeFilterModel();
     },
 
     _onPatternMatched: function() {
-      // Load analytics data when view is displayed
+      // Load filter options and analytics data when view is displayed
+      this._loadFilterOptions();
       this._loadAnalyticsData();
+    },
+    
+    /**
+     * Initialize filter model with empty values
+     * @private
+     */
+    _initializeFilterModel: function() {
+      const oFilterModel = new JSONModel({
+        dateFrom: null,
+        dateTo: null,
+        selectedRicefwTypes: [],
+        selectedCleanCoreLevels: [],
+        selectedProject: null,
+        ricefwTypes: [],
+        cleanCoreLevels: [],
+        projects: []
+      });
+      this.getView().setModel(oFilterModel, "filterModel");
+    },
+    
+    /**
+     * Load filter dropdown options from backend
+     * @private
+     */
+    _loadFilterOptions: function() {
+      const oView = this.getView();
+      const oModel = oView.getModel();
+      const oFilterModel = oView.getModel("filterModel");
+      
+      // Load RICEFW types
+      const oRicefwBinding = oModel.bindList("/ObjectTypes");
+      oRicefwBinding.requestContexts().then((aContexts) => {
+        const aTypes = aContexts.map(ctx => ctx.getObject());
+        oFilterModel.setProperty("/ricefwTypes", aTypes);
+      }).catch((oError) => {
+        MessageToast.show("Failed to load RICEFW types");
+      });
+      
+      // Load Clean Core levels
+      const oLevelsBinding = oModel.bindList("/CleanCoreLevels");
+      oLevelsBinding.requestContexts().then((aContexts) => {
+        const aLevels = aContexts.map(ctx => ctx.getObject());
+        oFilterModel.setProperty("/cleanCoreLevels", aLevels);
+      }).catch((oError) => {
+        MessageToast.show("Failed to load Clean Core levels");
+      });
+      
+      // Load Projects
+      const oProjectsBinding = oModel.bindList("/ProjectConfiguration");
+      oProjectsBinding.requestContexts().then((aContexts) => {
+        const aProjects = aContexts.map(ctx => ctx.getObject());
+        oFilterModel.setProperty("/projects", aProjects);
+      }).catch((oError) => {
+        MessageToast.show("Failed to load projects");
+      });
     },
 
     /**
-     * Load analytics data from backend
+     * Load analytics data from backend with current filters
      * @private
      */
     _loadAnalyticsData: function() {
       const oView = this.getView();
       const oModel = oView.getModel();
+      const oFilterModel = oView.getModel("filterModel");
 
       // Show busy indicator
       oView.setBusy(true);
 
-      // Call backend function using OData V4 pattern
+      // Get filter values
+      const filters = oFilterModel ? oFilterModel.getData() : {};
+      
+      // Build filter parameters
+      const dateFrom = filters.dateFrom ? filters.dateFrom.toISOString().split('T')[0] : null;
+      const dateTo = filters.dateTo ? filters.dateTo.toISOString().split('T')[0] : null;
+      const ricefwTypes = filters.selectedRicefwTypes && filters.selectedRicefwTypes.length > 0 
+        ? JSON.stringify(filters.selectedRicefwTypes) : null;
+      const cleanCoreLevels = filters.selectedCleanCoreLevels && filters.selectedCleanCoreLevels.length > 0 
+        ? JSON.stringify(filters.selectedCleanCoreLevels) : null;
+      const projectId = filters.selectedProject || null;
+
+      // Call backend function using OData V4 pattern with parameters
       const oBinding = oModel.bindContext("/getAnalyticsData(...)");
+      if (dateFrom) oBinding.setParameter("dateFrom", dateFrom);
+      if (dateTo) oBinding.setParameter("dateTo", dateTo);
+      if (ricefwTypes) oBinding.setParameter("ricefwTypes", ricefwTypes);
+      if (cleanCoreLevels) oBinding.setParameter("cleanCoreLevels", cleanCoreLevels);
+      if (projectId) oBinding.setParameter("projectId", projectId);
       
       oBinding.execute().then(() => {
         const oResult = oBinding.getBoundContext().getObject();
@@ -52,6 +129,51 @@ sap.ui.define([
         MessageBox.error("Failed to load analytics data. Please try again.");
       });
     },
+    
+    /**
+     * Handle filter change events
+     */
+    onFilterChange: function() {
+      // Filter changes are tracked in the model automatically
+      // Actual filtering happens when Apply Filters button is pressed
+    },
+    
+    /**
+     * Apply filters and reload analytics data
+     */
+    onApplyFilters: function() {
+      this._loadAnalyticsData();
+      MessageToast.show("Filters applied successfully");
+    },
+    
+    /**
+     * Clear all filters and reload analytics data
+     */
+    onClearFilters: function() {
+      const oFilterModel = this.getView().getModel("filterModel");
+      oFilterModel.setProperty("/dateFrom", null);
+      oFilterModel.setProperty("/dateTo", null);
+      oFilterModel.setProperty("/selectedRicefwTypes", []);
+      oFilterModel.setProperty("/selectedCleanCoreLevels", []);
+      oFilterModel.setProperty("/selectedProject", null);
+      
+      // Clear UI controls
+      this.byId("dateRangeFilter")?.setDateValue(null);
+      this.byId("dateRangeFilter")?.setSecondDateValue(null);
+      this.byId("ricefwTypeFilter")?.setSelectedKeys([]);
+      this.byId("cleanCoreLevelFilter")?.setSelectedKeys([]);
+      this.byId("projectFilter")?.setSelectedKey(null);
+      
+      this._loadAnalyticsData();
+      MessageToast.show("Filters cleared");
+    },
+    
+    /**
+     * Refresh analytics data
+     */
+    onRefresh: function() {
+      this._loadAnalyticsData();
+    },
 
     /**
      * Setup all charts with data
@@ -59,6 +181,7 @@ sap.ui.define([
      */
     _setupCharts: function() {
       this._setupLevelDistributionChart();
+      this._setupRicefwTypeDistributionChart();
       this._setupTrendAnalysisChart();
       this._setupRiskMatrixChart();
     },
@@ -123,6 +246,77 @@ sap.ui.define([
       oVizFrame.removeAllFeeds();
       oVizFrame.addFeed(feedSize);
       oVizFrame.addFeed(feedColor);
+    },
+
+    /**
+     * Configure RICEFW Type Distribution Bar Chart
+     * @private
+     */
+    _setupRicefwTypeDistributionChart: function() {
+      const oVizFrame = this.byId("ricefwTypeDistributionChart");
+      const oAnalyticsModel = this.getView().getModel("analytics");
+      const ricefwData = oAnalyticsModel.getProperty("/ricefwTypeDistribution");
+
+      if (!ricefwData || ricefwData.length === 0) {
+        return;
+      }
+
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Object Type",
+          value: "{analytics>objectType}"
+        }],
+        measures: [{
+          name: "Count",
+          value: "{analytics>count}"
+        }],
+        data: {
+          path: "analytics>/ricefwTypeDistribution"
+        }
+      });
+
+      oVizFrame.setDataset(oDataset);
+      oVizFrame.setModel(oAnalyticsModel, "analytics");
+      
+      oVizFrame.setVizProperties({
+        plotArea: {
+          dataLabel: {
+            visible: true
+          }
+        },
+        valueAxis: {
+          title: {
+            text: "Number of Analyses"
+          }
+        },
+        categoryAxis: {
+          title: {
+            text: "Object Type"
+          }
+        },
+        title: {
+          visible: false
+        },
+        legend: {
+          visible: false
+        }
+      });
+
+      const feedValueAxis = new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: ["Count"]
+      });
+
+      const feedCategoryAxis = new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Object Type"]
+      });
+
+      oVizFrame.removeAllFeeds();
+      oVizFrame.addFeed(feedValueAxis);
+      oVizFrame.addFeed(feedCategoryAxis);
     },
 
     /**
