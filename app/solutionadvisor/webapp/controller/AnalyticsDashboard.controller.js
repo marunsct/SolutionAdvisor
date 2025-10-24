@@ -4,12 +4,51 @@ sap.ui.define([
   "sap/viz/ui5/data/FlattenedDataset",
   "sap/viz/ui5/controls/common/feeds/FeedItem",
   "sap/m/MessageToast",
-  "sap/m/MessageBox"
-], function (Controller, JSONModel, FlattenedDataset, FeedItem, MessageToast, MessageBox) {
+  "sap/m/MessageBox",
+  "sap/base/Log"
+], function (Controller, JSONModel, FlattenedDataset, FeedItem, MessageToast, MessageBox, Log) {
   "use strict";
 
+  /**
+   * Analytics Dashboard Controller
+   * 
+   * @class sd.solutionadvisor.controller.AnalyticsDashboard
+   * @extends sap.ui.core.mvc.Controller
+   * @description
+   * Manages the Clean Core Analytics Dashboard with KPIs, visualizations, and filtering.
+   * Retrieves aggregated analytics data from backend action (getAnalyticsData), renders
+   * charts using SAP VizFrame, and provides export to PDF/Excel functionality.
+   * 
+   * Key responsibilities:
+   * - Load and display analytics KPIs (avg tech debt, cloud readiness, upgrade impact)
+   * - Render charts (level distribution, RICEFW type distribution, trends, risk matrix)
+   * - Display top 10 complex objects table
+   * - Apply filters (date range, RICEFW types, clean core levels, project)
+   * - Export analytics to PDF and Excel
+   * - Navigate to drill-down views (individual analysis details)
+   * 
+   * Charts rendered:
+   * - Donut chart: Clean Core level distribution (A/B/C/D)
+   * - Donut chart: RICEFW type distribution (R/I/C/E/F/W)
+   * - Line chart: Score trends over time (monthly)
+   * - Bubble chart: Risk matrix (technical debt vs cloud readiness)
+   * 
+   * Models used:
+   * - analytics: Aggregated KPI and chart data from backend
+   * - filterModel: Filter selections (date, types, levels, project)
+   * 
+   * @author SAP Clean Core Team
+   * @version 1.0.0
+   * @public
+   */
   return Controller.extend("sd.solutionadvisor.controller.AnalyticsDashboard", {
     
+    /**
+     * Controller initialization
+     * @description
+     * Registers route matched handler and initializes filter model.
+     * @public
+     */
     onInit: function() {
       const oRouter = this.getOwnerComponent().getRouter();
       oRouter.getRoute("AnalyticsDashboard").attachPatternMatched(this._onPatternMatched, this);
@@ -124,7 +163,7 @@ sap.ui.define([
         oView.setBusy(false);
         MessageToast.show("Analytics data loaded successfully");
       }).catch((oError) => {
-        console.error("Failed to load analytics data:", oError);
+        Log.error("Failed to load analytics data:", oError);
         oView.setBusy(false);
         MessageBox.error("Failed to load analytics data. Please try again.");
       });
@@ -613,7 +652,7 @@ sap.ui.define([
         
         MessageToast.show("PDF exported successfully");
       } catch (error) {
-        console.error("Error exporting PDF:", error);
+        Log.error("Error exporting PDF:", error);
         MessageBox.error(
           "Failed to export PDF. " + error.message,
           { title: "Export Error" }
@@ -687,7 +726,7 @@ sap.ui.define([
         
         MessageToast.show("Excel file exported successfully");
       } catch (error) {
-        console.error("Error exporting Excel:", error);
+        Log.error("Error exporting Excel:", error);
         MessageBox.error(
           "Failed to export Excel file. " + error.message,
           { title: "Export Error" }

@@ -8,7 +8,50 @@ sap.ui.define([
 ], (Controller, JSONModel, MessageToast, MessageBox, ErrorHandler, Log) => {
     "use strict";
 
+    /**
+     * Wizard Controller - Clean Core Analysis Wizard
+     * 
+     * @class sd.solutionadvisor.controller.Wizard
+     * @extends sap.ui.core.mvc.Controller
+     * @description
+     * Manages the multi-step wizard for conducting Clean Core analyses.
+     * Handles dynamic question flows with branching logic, displays contextual
+     * constraints and real-world examples, calculates final scoring metrics,
+     * and supports draft save/resume functionality.
+     * 
+     * Key responsibilities:
+     * - Project and RICEFW object selection validation
+     * - Dynamic question rendering with answer selection
+     * - Decision path tracking and navigation
+     * - Real-time constraint violation detection
+     * - Contextual example filtering by industry/level
+     * - Detailed hint display in popovers
+     * - Final recommendation display with scoring dashboard
+     * - Draft save/resume with 24-hour expiry
+     * - RICEFW history view for existing analyses
+     * - Time tracking per question for complexity scoring
+     * 
+     * Models used:
+     * - wizardModel: Current wizard state (questions, answers, scores)
+     * - constraintsModel: Performance/deployment/compliance constraints
+     * - examplesModel: Real-world scenario examples
+     * - hintModel: Detailed hints and performance context
+     * - draftModel: Draft save/resume state
+     * - historyModel: RICEFW analysis history
+     * 
+     * @author SAP Clean Core Team
+     * @version 1.0.0
+     * @public
+     */
     return Controller.extend("sd.solutionadvisor.controller.Wizard", {
+        /**
+         * Controller initialization
+         * @description
+         * Sets up JSON models for wizard state, constraints, examples, hints, drafts,
+         * and history. Registers route matched handler for auto-project-selection.
+         * Initializes violation detection timer and time tracking.
+         * @public
+         */
         onInit() {
             // Initialize wizard model with dynamic question flow properties
             const oWizardModel = new JSONModel({
@@ -235,7 +278,7 @@ sap.ui.define([
             }).catch((oError) => {
                 this.getView().setBusy(false);
                 MessageBox.error("Failed to restore draft session");
-                console.error("Failed to load session:", oError);
+                Log.error("Failed to load session:", oError);
                 this._resetWizard();
             });
         },
@@ -374,9 +417,6 @@ sap.ui.define([
                     
                     aThresholds.forEach(constraint => {
                         // Check for violations based on user selections (if available in wizard model)
-                        const oWizardModel = this.getView().getModel("wizardModel");
-                        const userSelections = oWizardModel.getData();
-                        
                         // Simple violation check - can be enhanced based on actual user inputs
                         let isViolated = false;
                         
