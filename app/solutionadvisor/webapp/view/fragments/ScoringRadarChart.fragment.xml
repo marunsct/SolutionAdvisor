@@ -1,0 +1,43 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:html="http://www.w3.org/1999/xhtml">
+    
+    <VBox
+        id="radarChartContainer"
+        width="100%"
+        alignItems="Center"
+        class="sapUiSmallMargin">
+        
+        <Title text="Scoring Radar Chart" level="H4" class="sapUiSmallMarginBottom"/>
+        
+        <!-- SVG Container for D3.js Radar Chart -->
+        <core:HTML
+            id="radarChartSVG"
+            content="&lt;div id='radarChart' style='width: 400px; height: 400px;'&gt;&lt;/div&gt;"/>
+        
+        <!-- Legend -->
+        <HBox class="sapUiSmallMarginTop">
+            <HBox class="sapUiTinyMarginEnd">
+                <core:Icon src="sap-icon://circle-task-2" color="#5899DA" class="sapUiTinyMarginEnd"/>
+                <Text text="Technical Debt"/>
+            </HBox>
+            <HBox class="sapUiTinyMarginEnd">
+                <core:Icon src="sap-icon://circle-task-2" color="#E8743B" class="sapUiTinyMarginEnd"/>
+                <Text text="Cloud Readiness"/>
+            </HBox>
+            <HBox class="sapUiTinyMarginEnd">
+                <core:Icon src="sap-icon://circle-task-2" color="#19A979" class="sapUiTinyMarginEnd"/>
+                <Text text="Upgrade Impact"/>
+            </HBox>
+            <HBox>
+                <core:Icon src="sap-icon://circle-task-2" color="#ED4A7B" class="sapUiTinyMarginEnd"/>
+                <Text text="Composite Health"/>
+            </HBox>
+        </HBox>
+        
+        <Text 
+            text="Note: Larger area = Better (for CRS &amp; CHS), Smaller area = Better (for TDS &amp; UIS)" 
+            class="sapUiTinyMarginTop sapUiSmallText"/>
+    </VBox>
+</core:FragmentDefinition>
