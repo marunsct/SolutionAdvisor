@@ -21,159 +21,167 @@
                 fullScreenOptimized="true">
                 <statuses>
                     <ObjectStatus
+                        id="recommendationStatus"
                         text="{finalRecommendation}"
                         state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
                     <ObjectStatus
+                        id="analysisStatus"
                         text="{status}"
                         state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
                 </statuses>
                 <attributes>
-                    <ObjectAttribute title="Object Type" text="{objectType}"/>
-                    <ObjectAttribute title="Risk Assessment" text="{riskAssessment}"/>
-                    <ObjectAttribute title="Analysis Date" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                    <ObjectAttribute id="objectTypeAttr" title="Object Type" text="{objectType}"/>
+                    <ObjectAttribute id="riskAssessmentAttr" title="Risk Assessment" text="{riskAssessment}"/>
+                    <ObjectAttribute id="analysisDateAttr" title="Analysis Date" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
                 </attributes>
             </ObjectHeader>
             
             <!-- Scoring Dashboard - Responsive -->
             <Panel
+                id="scoringPanel"
                 headerText="Scoring Metrics Dashboard"
                 class="sapUiResponsiveMargin">
                 <headerToolbar>
-                    <Toolbar>
-                        <Title text="Scoring Metrics Dashboard"/>
-                        <ToolbarSpacer/>
+                    <Toolbar id="scoringToolbar">
+                        <Title id="scoringToolbarTitle" text="Scoring Metrics Dashboard"/>
+                        <ToolbarSpacer id="scoringToolbarSpacer"/>
                         <Button
+                            id="scoringDrillDownBtn"
                             text="View Breakdown"
                             icon="sap-icon://drill-down"
                             press="onScoringDrillDown"
                             type="Transparent"/>
                     </Toolbar>
                 </headerToolbar>
-                <VBox class="sapUiSmallMargin">
+                <VBox id="scoringContentBox" class="sapUiSmallMargin">
                     <!-- Desktop/Tablet Layout -->
-                    <HBox justifyContent="SpaceAround" class="sapUiHideOnPhone">
-                        <VBox alignItems="Center" width="200px">
-                            <Title text="Technical Debt" level="H4"/>
+                    <HBox id="desktopScoresBox" justifyContent="SpaceAround" class="sapUiHideOnPhone">
+                        <VBox id="techDebtBox" alignItems="Center" width="200px">
+                            <Title id="techDebtTitle" text="Technical Debt" level="H4"/>
                             <ProgressIndicator
+                                id="techDebtProgress"
                                 percentValue="{technicalDebtScore}"
                                 displayValue="{technicalDebtScore}"
                                 state="{= ${technicalDebtScore} &lt; 30 ? 'Success' : ${technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"
                                 width="100%"
                                 height="40px"/>
-                            <Text text="Lower is better" class="sapUiTinyMarginTop"/>
+                            <Text id="techDebtHelp" text="Lower is better" class="sapUiTinyMarginTop"/>
                         </VBox>
                         
-                        <VBox alignItems="Center" width="200px">
-                            <Title text="Cloud Readiness" level="H4"/>
+                        <VBox id="cloudReadyBox" alignItems="Center" width="200px">
+                            <Title id="cloudReadyTitle" text="Cloud Readiness" level="H4"/>
                             <ProgressIndicator
+                                id="cloudReadyProgress"
                                 percentValue="{cloudReadinessScore}"
                                 displayValue="{cloudReadinessScore}"
                                 state="{= ${cloudReadinessScore} &gt; 70 ? 'Success' : ${cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"
                                 width="100%"
                                 height="40px"/>
-                            <Text text="Higher is better" class="sapUiTinyMarginTop"/>
+                            <Text id="cloudReadyHelp" text="Higher is better" class="sapUiTinyMarginTop"/>
                         </VBox>
                         
-                        <VBox alignItems="Center" width="200px">
-                            <Title text="Upgrade Impact" level="H4"/>
+                        <VBox id="upgradeImpBox" alignItems="Center" width="200px">
+                            <Title id="upgradeImpTitle" text="Upgrade Impact" level="H4"/>
                             <ProgressIndicator
+                                id="upgradeImpProgress"
                                 percentValue="{upgradeImpactScore}"
                                 displayValue="{upgradeImpactScore}"
                                 state="{= ${upgradeImpactScore} &lt; 30 ? 'Success' : ${upgradeImpactScore} &lt; 60 ? 'Warning' : 'Error' }"
                                 width="100%"
                                 height="40px"/>
-                            <Text text="Lower is better" class="sapUiTinyMarginTop"/>
+                            <Text id="upgradeImpHelp" text="Lower is better" class="sapUiTinyMarginTop"/>
                         </VBox>
                         
-                        <VBox alignItems="Center" width="200px">
-                            <Title text="Composite Health" level="H4"/>
+                        <VBox id="compositeBox" alignItems="Center" width="200px">
+                            <Title id="compositeTitle" text="Composite Health" level="H4"/>
                             <ProgressIndicator
+                                id="compositeProgress"
                                 percentValue="{compositeHealthScore}"
                                 displayValue="{compositeHealthScore}"
                                 state="{= ${compositeHealthScore} &gt; 70 ? 'Success' : ${compositeHealthScore} &gt; 40 ? 'Warning' : 'Error' }"
                                 width="100%"
                                 height="40px"/>
-                            <Text text="Overall Health" class="sapUiTinyMarginTop"/>
+                            <Text id="compositeHelp" text="Overall Health" class="sapUiTinyMarginTop"/>
                         </VBox>
                     </HBox>
                     
                     <!-- Mobile Layout - Tile Style -->
-                    <VBox class="sapUiShowOnPhone">
-                        <HBox class="sapUiSmallMarginBottom">
+                    <VBox id="mobileScoresBox" class="sapUiShowOnPhone">
+                        <HBox id="mobileRow1" class="sapUiSmallMarginBottom">
                             <GenericTile 
+                                id="mobileTechDebtTile"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                 header="Technical Debt" 
                                 subheader="Lower is better"
-                                size="M"
                                 width="48%"
                                 press="onScoringDrillDown">
                                 <tileContent>
-                                    <TileContent>
+                                    <TileContent id="mobileTechDebtContent">
                                         <content>
                                             <NumericContent 
+                                                id="mobileTechDebtNumeric"
                                                 value="{technicalDebtScore}" 
                                                 indicator="{= ${technicalDebtScore} &lt; 30 ? 'Up' : ${technicalDebtScore} &lt; 60 ? 'None' : 'Down' }"
-                                                valueColor="{= ${technicalDebtScore} &lt; 30 ? 'Good' : ${technicalDebtScore} &lt; 60 ? 'Critical' : 'Error' }"
-                                                size="S"/>
+                                                valueColor="{= ${technicalDebtScore} &lt; 30 ? 'Good' : ${technicalDebtScore} &lt; 60 ? 'Critical' : 'Error' }"/>
                                         </content>
                                     </TileContent>
                                 </tileContent>
                             </GenericTile>
                             <GenericTile 
+                                id="mobileCloudReadyTile"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                 header="Cloud Readiness" 
                                 subheader="Higher is better"
-                                size="M"
                                 width="48%"
                                 press="onScoringDrillDown">
                                 <tileContent>
-                                    <TileContent>
+                                    <TileContent id="mobileCloudReadyContent">
                                         <content>
                                             <NumericContent 
+                                                id="mobileCloudReadyNumeric"
                                                 value="{cloudReadinessScore}" 
                                                 indicator="{= ${cloudReadinessScore} &gt; 70 ? 'Up' : ${cloudReadinessScore} &gt; 40 ? 'None' : 'Down' }"
-                                                valueColor="{= ${cloudReadinessScore} &gt; 70 ? 'Good' : ${cloudReadinessScore} &gt; 40 ? 'Critical' : 'Error' }"
-                                                size="S"/>
+                                                valueColor="{= ${cloudReadinessScore} &gt; 70 ? 'Good' : ${cloudReadinessScore} &gt; 40 ? 'Critical' : 'Error' }"/>
                                         </content>
                                     </TileContent>
                                 </tileContent>
                             </GenericTile>
                         </HBox>
-                        <HBox class="sapUiSmallMarginBottom">
+                        <HBox id="mobileRow2" class="sapUiSmallMarginBottom">
                             <GenericTile 
+                                id="mobileUpgradeImpTile"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                 header="Upgrade Impact" 
                                 subheader="Lower is better"
-                                size="M"
                                 width="48%"
                                 press="onScoringDrillDown">
                                 <tileContent>
-                                    <TileContent>
+                                    <TileContent id="mobileUpgradeImpContent">
                                         <content>
                                             <NumericContent 
+                                                id="mobileUpgradeImpNumeric"
                                                 value="{upgradeImpactScore}" 
                                                 indicator="{= ${upgradeImpactScore} &lt; 30 ? 'Up' : ${upgradeImpactScore} &lt; 60 ? 'None' : 'Down' }"
-                                                valueColor="{= ${upgradeImpactScore} &lt; 30 ? 'Good' : ${upgradeImpactScore} &lt; 60 ? 'Critical' : 'Error' }"
-                                                size="S"/>
+                                                valueColor="{= ${upgradeImpactScore} &lt; 30 ? 'Good' : ${upgradeImpactScore} &lt; 60 ? 'Critical' : 'Error' }"/>
                                         </content>
                                     </TileContent>
                                 </tileContent>
                             </GenericTile>
                             <GenericTile 
+                                id="mobileCompositeTile"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                 header="Composite Health" 
                                 subheader="Overall health"
-                                size="M"
                                 width="48%"
                                 press="onScoringDrillDown">
                                 <tileContent>
-                                    <TileContent>
+                                    <TileContent id="mobileCompositeContent">
                                         <content>
                                             <NumericContent 
+                                                id="mobileCompositeNumeric"
                                                 value="{compositeHealthScore}" 
                                                 indicator="{= ${compositeHealthScore} &gt; 70 ? 'Up' : ${compositeHealthScore} &gt; 40 ? 'None' : 'Down' }"
-                                                valueColor="{= ${compositeHealthScore} &gt; 70 ? 'Good' : ${compositeHealthScore} &gt; 40 ? 'Critical' : 'Error' }"
-                                                size="S"/>
+                                                valueColor="{= ${compositeHealthScore} &gt; 70 ? 'Good' : ${compositeHealthScore} &gt; 40 ? 'Critical' : 'Error' }"/>
                                         </content>
                                     </TileContent>
                                 </tileContent>
@@ -182,7 +190,7 @@
                     </VBox>
                     
                     <!-- Radar Chart Section - dynamically loaded by controller -->
-                    <VBox id="radarChartContainer" class="sapUiSmallMarginTop"/>
+                    <VBox id="analysisRadarChartContainer" class="sapUiSmallMarginTop"/>
                 </VBox>
             </Panel>
             
@@ -191,58 +199,64 @@
                 class="sapUiResponsiveContentPadding">
                 <items>
                     <IconTabFilter
+                        id="resultsTab"
                         text="Decision Results"
                         key="results"
                         icon="sap-icon://decision">
                         <f:SimpleForm
+                            id="resultsForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
                             <f:content>
-                                <Label text="Recommended Clean Core Level"/>
+                                <Label id="recommendedLevelLabel" text="Recommended Clean Core Level"/>
                                 <ObjectStatus
+                                    id="recommendedLevelValue"
                                     text="{finalRecommendation}"
                                     state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
                                 
-                                <Label text="Reasoning"/>
-                                <Text text="{finalReasoning}"/>
+                                <Label id="reasoningLabel" text="Reasoning"/>
+                                <Text id="reasoningText" text="{finalReasoning}"/>
                                 
-                                <Label text="Estimated Effort"/>
-                                <Text text="{estimatedEffort} person-days"/>
+                                <Label id="effortLabel" text="Estimated Effort"/>
+                                <Text id="effortText" text="{estimatedEffort} person-days"/>
                                 
-                                <Label text="Technical Complexity"/>
-                                <Text text="{technicalComplexity}"/>
+                                <Label id="complexityLabel" text="Technical Complexity"/>
+                                <Text id="complexityText" text="{technicalComplexity}"/>
                                 
-                                <Label text="Business Impact"/>
-                                <Text text="{businessImpact}"/>
+                                <Label id="businessImpactLabel" text="Business Impact"/>
+                                <Text id="businessImpactText" text="{businessImpact}"/>
                             </f:content>
                         </f:SimpleForm>
                     </IconTabFilter>
                     
                     <IconTabFilter
+                        id="objectTab"
                         text="Object Details"
                         key="object"
                         icon="sap-icon://detail-view">
                         <f:SimpleForm
+                            id="objectForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
                             <f:content>
-                                <Label text="RICEFW ID"/>
-                                <Text text="{ricefwId}"/>
+                                <Label id="objRicefwIdLabel" text="RICEFW ID"/>
+                                <Text id="objRicefwIdText" text="{ricefwId}"/>
                                 
-                                <Label text="Object Type"/>
-                                <Text text="{objectType}"/>
+                                <Label id="objTypeLabel" text="Object Type"/>
+                                <Text id="objTypeText" text="{objectType}"/>
                                 
-                                <Label text="Object Name"/>
-                                <Text text="{objectName}"/>
+                                <Label id="objNameLabel" text="Object Name"/>
+                                <Text id="objNameText" text="{objectName}"/>
                                 
-                                <Label text="Description"/>
-                                <Text text="{objectDescription}"/>
+                                <Label id="objDescLabel" text="Description"/>
+                                <Text id="objDescText" text="{objectDescription}"/>
                                 
-                                <Label text="Analysis Date"/>
-                                <Text text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <Label id="objAnalysisDateLabel" text="Analysis Date"/>
+                                <Text id="objAnalysisDateText" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
                                 
-                                <Label text="Status"/>
+                                <Label id="objStatusLabel" text="Status"/>
                                 <ObjectStatus
+                                    id="objStatusValue"
                                     text="{status}"
                                     state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
                             </f:content>
@@ -250,23 +264,27 @@
                     </IconTabFilter>
                     
                     <IconTabFilter
+                        id="riskTab"
                         text="Risk & Compliance"
                         key="risk"
                         icon="sap-icon://warning">
                         <f:SimpleForm
+                            id="riskForm"
                             editable="false"
                             layout="ResponsiveGridLayout">
                             <f:content>
-                                <Label text="Risk Assessment"/>
+                                <Label id="riskAssessLabel" text="Risk Assessment"/>
                                 <ObjectStatus
+                                    id="riskAssessValue"
                                     text="{riskAssessment}"
                                     state="{= ${riskAssessment} === 'Low' ? 'Success' : ${riskAssessment} === 'Medium' ? 'Warning' : 'Error' }"/>
                                 
-                                <Label text="Business Impact"/>
-                                <Text text="{businessImpact}"/>
+                                <Label id="riskBusinessImpactLabel" text="Business Impact"/>
+                                <Text id="riskBusinessImpactText" text="{businessImpact}"/>
                                 
-                                <Label text="Compliance Status"/>
+                                <Label id="complianceLabel" text="Compliance Status"/>
                                 <ObjectStatus
+                                    id="complianceValue"
                                     text="{complianceStatus}"
                                     state="{= ${complianceStatus} === 'Compliant' ? 'Success' : ${complianceStatus} === 'Requires Review' ? 'Warning' : 'Error' }"/>
                             </f:content>
@@ -274,11 +292,13 @@
                     </IconTabFilter>
                     
                     <IconTabFilter
+                        id="flowchartTab"
                         text="Decision Flowchart"
                         key="flowchart"
                         icon="sap-icon://org-chart">
-                        <VBox class="sapUiSmallMargin" height="600px">
+                        <VBox id="flowchartBox" class="sapUiSmallMargin" height="600px">
                             <MessageStrip
+                                id="flowchartInfoStrip"
                                 text="Visual representation of the decision path taken during analysis"
                                 type="Information"
                                 showIcon="true"
@@ -290,17 +310,20 @@
             </IconTabBar>
         </content>
         <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer/>
+            <OverflowToolbar id="analysisFooter">
+                <ToolbarSpacer id="analysisFooterSpacer"/>
                 <Button
+                    id="viewFlowchartBtn"
                     text="View Flowchart"
                     icon="sap-icon://org-chart"
                     press="onViewFlowchart"/>
                 <Button
+                    id="exportFlowchartPNGBtn"
                     text="Export PNG"
                     icon="sap-icon://camera"
                     press="onExportFlowchartPNG"/>
                 <Button
+                    id="exportFlowchartPDFBtn"
                     text="Export PDF"
                     icon="sap-icon://pdf-attachment"
                     press="onExportFlowchartPDF"/>

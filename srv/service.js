@@ -62,7 +62,7 @@ module.exports = cds.service.impl(async function () {
             // Validate RICEFW ID format
             const ricefwPattern = /^[RICEFYW]-[0-9]{4}-[A-Z]{3}$/;
             if (!ricefwPattern.test(ricefwId)) {
-                return req.error(400, 'Invalid RICEFW ID format. Expected format: [RICEFYW]-[0-9]{4}-[A-Z]{3}');
+                return req.error(400, req.t('error.invalidRicefwId'));
             }
 
             // Create new analysis record
@@ -142,7 +142,7 @@ module.exports = cds.service.impl(async function () {
                 .where({ ID: sessionID, tenant: tenant });
 
             if (!session) {
-                return req.error(404, 'Wizard session not found');
+                return req.error(404, req.t('error.wizardSessionNotFound'));
             }
 
             // Get question details
@@ -331,7 +331,7 @@ module.exports = cds.service.impl(async function () {
                 .where({ ID: sessionID, tenant: tenant });
 
             if (!session) {
-                return req.error(404, 'Wizard session not found');
+                return req.error(404, req.t('error.wizardSessionNotFound'));
             }
 
             // Update session status
@@ -394,7 +394,7 @@ module.exports = cds.service.impl(async function () {
                 .where({ project_ID: projectId, userId: userId, tenant: tenant });
 
             if (existing) {
-                return req.error(409, `User ${userName} is already assigned to this project`);
+                return req.error(409, req.t('error.userAlreadyAssigned', [userName]));
             }
 
             // Create assignment
@@ -414,7 +414,7 @@ module.exports = cds.service.impl(async function () {
 
             return {
                 ID: newAssignmentId,
-                message: `User ${userName} added successfully`
+                message: req.t('success.userAdded', [userName])
             };
         } catch (error) {
             console.error('Error assigning user to project:', error);
@@ -435,7 +435,7 @@ module.exports = cds.service.impl(async function () {
 
             return {
                 success: true,
-                message: 'User removed successfully'
+                message: req.t('success.userRemoved')
             };
         } catch (error) {
             console.error('Error removing user from project:', error);
@@ -605,7 +605,7 @@ module.exports = cds.service.impl(async function () {
             return analyticsData;
         } catch (error) {
             console.error('Error getting analytics data:', error);
-            return req.error(500, 'Failed to retrieve analytics data: ' + error.message);
+            return req.error(500, req.t('error.getAnalyticsDataFailed', [error.message]));
         }
     });
 });
