@@ -1,0 +1,19 @@
+<core:View
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    height="100%">
+    <GenericTile
+        class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout adminTile"
+        header="Administration"
+        subheader="System configuration"
+        press="onPress">
+        <TileContent>
+            <ImageContent src="sap-icon://settings" />
+        </TileContent>
+        <TileContent>
+            <NewsContent
+                contentText="Manage master data and system settings"
+                subheader="Admin Panel" />
+        </TileContent>
+    </GenericTile>
+</core:View>

@@ -1,0 +1,26 @@
+<core:View
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:tileContent="sap.m.library.TileContent"
+    height="100%">
+    <GenericTile
+        class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout"
+        header="Start New Analysis"
+        subheader="Guided wizard for RICEFW analysis"
+        press="onPress">
+        <TileContent>
+            <NumericContent
+                value="{tile>/kpis/totalAnalyses}"
+                scale=""
+                valueColor="Good"
+                indicator="{= ${tile>/trends/analysesChange} > 0 ? 'Up' : ${tile>/trends/analysesChange} &lt; 0 ? 'Down' : 'None' }"
+                withMargin="false">
+            </NumericContent>
+        </TileContent>
+        <TileContent>
+            <NewsContent
+                contentText="{= ${tile>/kpis/pendingAnalyses} + ' analyses pending completion' }"
+                subheader="Quick Start" />
+        </TileContent>
+    </GenericTile>
+</core:View>
