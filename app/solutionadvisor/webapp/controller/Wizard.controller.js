@@ -122,15 +122,167 @@ sap.ui.define([
             });
             this.getView().setModel(oHistoryModel, "historyModel");
 
+            // Initialize progress tracking model
+            const oProgressModel = new JSONModel({
+                percentComplete: 0,
+                currentStepIndex: 0,
+                totalSteps: 0,
+                questionsAnswered: 0,
+                estimatedTimeRemaining: 0,
+                progressText: "Not started",
+                isError: false,
+                errorMessage: "",
+                canContinue: true,
+                lastSaveTime: null,
+                autoSaveEnabled: true
+            });
+            this.getView().setModel(oProgressModel, "progressModel");
+
             // Initialize time tracking
             this._wizardStartTime = new Date();
             this._sessionId = null;
             this._analysisId = null;
             this._answeredQuestions = {};
+            this._questionStartTime = null;
+            this._autoSaveTimer = null;
+
+            // Start auto-save timer (every 2 minutes)
+            this._startAutoSave();
 
             // Attach to route matched event
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("Wizard").attachPatternMatched(this._onRouteMatched, this);
+        },
+
+        /**
+         * Start auto-save timer for wizard progress
+         * @private
+         */
+        _startAutoSave() {
+            const oProgressModel = this.getView().getModel("progressModel");
+            
+            if (this._autoSaveTimer) {
+                clearInterval(this._autoSaveTimer);
+            }
+
+            // Auto-save every 2 minutes if enabled
+            this._autoSaveTimer = setInterval(() => {
+                if (oProgressModel.getProperty("/autoSaveEnabled") && this._sessionId) {
+                    this._autoSaveProgress();
+                }
+            }, 120000); // 2 minutes
+        },
+
+        /**
+         * Auto-save wizard progress
+         * @private
+         */
+        _autoSaveProgress() {
+            try {
+                const oProgressModel = this.getView().getModel("progressModel");
+                const oWizardModel = this.getView().getModel("wizardModel");
+                
+                // Only auto-save if we have a session and there's progress
+                if (!this._sessionId || oProgressModel.getProperty("/currentStepIndex") === 0) {
+                    return;
+                }
+
+                this._saveWizardProgress(true); // true = silent auto-save
+                oProgressModel.setProperty("/lastSaveTime", new Date());
+            } catch (oError) {
+                Log.error("Auto-save failed:", oError);
+                // Don't show error to user for auto-save failures
+            }
+        },
+
+        /**
+         * Update progress tracking
+         * @param {number} currentStep - Current step index
+         * @param {number} totalSteps - Total number of steps
+         * @private
+         */
+        _updateProgress(currentStep, totalSteps) {
+            const oProgressModel = this.getView().getModel("progressModel");
+            
+            const percentComplete = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
+            const questionsAnswered = Object.keys(this._answeredQuestions).length;
+            
+            // Calculate estimated time remaining based on average time per question
+            const elapsedTime = Date.now() - this._wizardStartTime.getTime();
+            const avgTimePerQuestion = questionsAnswered > 0 ? elapsedTime / questionsAnswered : 60000; // Default 1min
+            const remainingQuestions = totalSteps - currentStep;
+            const estimatedTimeRemaining = Math.round((remainingQuestions * avgTimePerQuestion) / 60000); // in minutes
+
+            oProgressModel.setData({
+                percentComplete: percentComplete,
+                currentStepIndex: currentStep,
+                totalSteps: totalSteps,
+                questionsAnswered: questionsAnswered,
+                estimatedTimeRemaining: estimatedTimeRemaining,
+                progressText: `Question ${currentStep} of ${totalSteps}`,
+                isError: false,
+                errorMessage: "",
+                canContinue: true,
+                lastSaveTime: oProgressModel.getProperty("/lastSaveTime"),
+                autoSaveEnabled: oProgressModel.getProperty("/autoSaveEnabled")
+            });
+        },
+
+        /**
+         * Handle wizard errors with enhanced error reporting
+         * @param {Error} oError - Error object
+         * @param {string} sContext - Context where error occurred
+         * @param {boolean} bRecoverable - Whether the error is recoverable
+         * @private
+         */
+        _handleWizardError(oError, sContext, bRecoverable = true) {
+            const oProgressModel = this.getView().getModel("progressModel");
+            
+            Log.error(`Wizard error in ${sContext}:`, oError);
+
+            let sErrorMessage = "An unexpected error occurred.";
+            let bCanContinue = bRecoverable;
+
+            // Check for specific error types
+            if (ErrorHandler.handleWizardSpecificError(oError, this.getView().getModel("wizardModel").getProperty("/objectType"))) {
+                // Error was handled by ErrorHandler
+                oProgressModel.setProperty("/isError", true);
+                oProgressModel.setProperty("/canContinue", bRecoverable);
+                return;
+            }
+
+            // Extract user-friendly error message
+            if (oError.message) {
+                sErrorMessage = oError.message;
+            } else if (typeof oError === 'string') {
+                sErrorMessage = oError;
+            }
+
+            // Update progress model
+            oProgressModel.setProperty("/isError", true);
+            oProgressModel.setProperty("/errorMessage", sErrorMessage);
+            oProgressModel.setProperty("/canContinue", bCanContinue);
+
+            // Show error to user
+            if (bRecoverable) {
+                MessageBox.warning(sErrorMessage + "\n\nYou can try again or save your progress and return later.", {
+                    title: "Warning",
+                    actions: [MessageBox.Action.OK],
+                    onClose: () => {
+                        // Clear error state after user acknowledges
+                        oProgressModel.setProperty("/isError", false);
+                        oProgressModel.setProperty("/errorMessage", "");
+                    }
+                });
+            } else {
+                MessageBox.error(sErrorMessage + "\n\nPlease save your progress and contact support if the issue persists.", {
+                    title: "Error",
+                    actions: [MessageBox.Action.OK]
+                });
+            }
+
+            // Log for analytics
+            ErrorHandler.logErrorForAnalytics(oError, sContext);
         },
 
         _onRouteMatched(oEvent) {
