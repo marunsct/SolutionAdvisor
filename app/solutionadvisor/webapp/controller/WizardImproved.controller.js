@@ -31,9 +31,16 @@ sap.ui.define([
             // Initialize error handler
             this._errorHandler = new ErrorHandler();
             
+            // Initialize validation state
+            this._validationErrors = [];
+            this._hasUnsavedChanges = false;
+            
             // Attach to route matched event
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("Wizard").attachPatternMatched(this._onRouteMatched, this);
+            
+            // Attach browser close/refresh warning
+            window.addEventListener("beforeunload", this._onBeforeUnload.bind(this));
         },
         
         /**
@@ -704,13 +711,30 @@ sap.ui.define([
         },
         
         onCancel() {
-            MessageBox.confirm("Do you want to cancel the analysis?", {
-                onClose: (sAction) => {
-                    if (sAction === MessageBox.Action.OK) {
-                        this.onNavBack();
+            if (this._hasUnsavedChanges) {
+                MessageBox.warning(
+                    "You have unsaved changes in your analysis. Are you sure you want to cancel?",
+                    {
+                        title: "Unsaved Changes",
+                        actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                        emphasizedAction: MessageBox.Action.NO,
+                        onClose: (sAction) => {
+                            if (sAction === MessageBox.Action.YES) {
+                                this._hasUnsavedChanges = false;
+                                this.onNavBack();
+                            }
+                        }
                     }
-                }
-            });
+                );
+            } else {
+                MessageBox.confirm("Do you want to cancel the analysis?", {
+                    onClose: (sAction) => {
+                        if (sAction === MessageBox.Action.OK) {
+                            this.onNavBack();
+                        }
+                    }
+                });
+            }
         },
         
         onNavBack() {
@@ -726,6 +750,195 @@ sap.ui.define([
                 // Navigate back to project list
                 this.getOwnerComponent().getRouter().navTo("ProjectsList");
             }
+        },
+        
+        /**
+         * Enhanced error handling methods
+         */
+        
+        /**
+         * Validate wizard input fields
+         */
+        _validateWizardInput() {
+            this._validationErrors = [];
+            const oWizardModel = this.getView().getModel("wizardModel");
+            
+            // Validate RICEFW ID
+            const sRicefwId = oWizardModel.getProperty("/ricefwId");
+            if (!sRicefwId || !/^[RICEFYW]-[0-9]{4}-[A-Z]{3}$/.test(sRicefwId)) {
+                this._validationErrors.push({
+                    field: "RICEFW ID",
+                    message: "RICEFW ID must follow pattern: [RICEFYW]-[0-9]{4}-[A-Z]{3} (e.g., R-0042-FIN)"
+                });
+            }
+            
+            // Validate object name
+            const sObjectName = oWizardModel.getProperty("/objectName");
+            if (!sObjectName || sObjectName.trim().length < 3) {
+                this._validationErrors.push({
+                    field: "Object Name",
+                    message: "Object name must be at least 3 characters"
+                });
+            }
+            
+            // Validate object type
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            if (!sObjectType) {
+                this._validationErrors.push({
+                    field: "Object Type",
+                    message: "Please select an object type (Report, Interface, Conversion, etc.)"
+                });
+            }
+            
+            return this._validationErrors.length === 0;
+        },
+        
+        /**
+         * Show validation errors to user
+         */
+        _showValidationErrors() {
+            if (this._validationErrors.length === 0) {
+                return;
+            }
+            
+            let sErrorMessage = "Please correct the following errors:\n\n";
+            this._validationErrors.forEach((oError, index) => {
+                sErrorMessage += `${index + 1}. ${oError.field}: ${oError.message}\n`;
+            });
+            
+            MessageBox.error(sErrorMessage, {
+                title: "Validation Error",
+                styleClass: "sapUiSizeCompact"
+            });
+        },
+        
+        /**
+         * Handle service errors with user-friendly messages
+         */
+        _handleServiceError(oError, sContext) {
+            let sMessage = "An error occurred";
+            let sDetails = "";
+            
+            if (oError.error && oError.error.message) {
+                sDetails = oError.error.message;
+            } else if (oError.message) {
+                sDetails = oError.message;
+            }
+            
+            // Map technical errors to user-friendly messages
+            if (sDetails.includes("404")) {
+                sMessage = "The requested data was not found. Please try refreshing the page.";
+            } else if (sDetails.includes("403")) {
+                sMessage = "You don't have permission to perform this action.";
+            } else if (sDetails.includes("500")) {
+                sMessage = "A server error occurred. Please try again later or contact support.";
+            } else if (sDetails.includes("timeout") || sDetails.includes("network")) {
+                sMessage = "Network connection issue. Please check your connection and try again.";
+            } else if (sContext) {
+                sMessage = sContext;
+            }
+            
+            MessageBox.error(sMessage, {
+                title: "Error",
+                details: sDetails,
+                styleClass: "sapUiSizeCompact",
+                actions: [MessageBox.Action.CLOSE, "Retry"],
+                emphasizedAction: "Retry",
+                onClose: (sAction) => {
+                    if (sAction === "Retry") {
+                        this._retryLastOperation();
+                    }
+                }
+            });
+        },
+        
+        /**
+         * Retry last failed operation
+         */
+        _retryLastOperation() {
+            if (this._lastFailedOperation) {
+                MessageToast.show("Retrying operation...");
+                this._lastFailedOperation();
+            }
+        },
+        
+        /**
+         * Show recovery options when wizard session is lost
+         */
+        _showSessionRecoveryDialog() {
+            MessageBox.warning(
+                "Your wizard session was lost or expired. Would you like to:\n\n" +
+                "• Start a new analysis\n" +
+                "• Resume from a saved draft\n" +
+                "• Return to project list",
+                {
+                    title: "Session Lost",
+                    actions: ["New Analysis", "Resume Draft", "Go Back"],
+                    emphasizedAction: "Resume Draft",
+                    onClose: (sAction) => {
+                        if (sAction === "New Analysis") {
+                            this._startNewAnalysis();
+                        } else if (sAction === "Resume Draft") {
+                            this._showResumeDraftDialog();
+                        } else {
+                            this.onNavBack();
+                        }
+                    }
+                }
+            );
+        },
+        
+        /**
+         * Handle browser close/refresh warning
+         */
+        _onBeforeUnload(oEvent) {
+            if (this._hasUnsavedChanges && this._sessionId) {
+                const sMessage = "You have an unsaved analysis in progress. Are you sure you want to leave?";
+                oEvent.preventDefault();
+                oEvent.returnValue = sMessage;
+                return sMessage;
+            }
+        },
+        
+        /**
+         * Start new analysis (helper for recovery)
+         */
+        _startNewAnalysis() {
+            this._wizardStartTime = new Date();
+            this._sessionId = null;
+            this._analysisId = null;
+            this._hasUnsavedChanges = false;
+            this._initModels();
+            MessageToast.show("Starting new analysis...");
+        },
+        
+        /**
+         * Show resume draft dialog (helper for recovery)
+         */
+        _showResumeDraftDialog() {
+            MessageBox.information(
+                "Draft resume functionality requires selecting from saved drafts.",
+                {
+                    title: "Resume Draft",
+                    onClose: () => {
+                        this.onNavBack();
+                    }
+                }
+            );
+        },
+        
+        /**
+         * Track unsaved changes
+         */
+        _markUnsavedChanges() {
+            this._hasUnsavedChanges = true;
+        },
+        
+        /**
+         * Clear unsaved changes flag
+         */
+        _clearUnsavedChanges() {
+            this._hasUnsavedChanges = false;
         }
     });
 });

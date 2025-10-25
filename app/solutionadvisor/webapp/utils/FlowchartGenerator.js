@@ -634,6 +634,334 @@ sap.ui.define([], function() {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        },
+        
+        /**
+         * Enhanced interactivity features
+         */
+        
+        /**
+         * Add hover tooltips to nodes
+         * @param {Object} node - D3 node selection
+         * @param {Object} data - Node data
+         * @private
+         */
+        _addNodeTooltip: function(node, data) {
+            if (!node || !data) return;
+            
+            // Create tooltip div if it doesn't exist
+            let tooltip = document.getElementById("flowchart-tooltip");
+            if (!tooltip) {
+                tooltip = document.createElement("div");
+                tooltip.id = "flowchart-tooltip";
+                tooltip.style.cssText = `
+                    position: absolute;
+                    background: rgba(0, 0, 0, 0.9);
+                    color: white;
+                    padding: 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    pointer-events: none;
+                    z-index: 10000;
+                    max-width: 300px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                    display: none;
+                `;
+                document.body.appendChild(tooltip);
+            }
+            
+            node.on("mouseover", (event, d) => {
+                const tooltipHtml = this._buildTooltipContent(d.data);
+                tooltip.innerHTML = tooltipHtml;
+                tooltip.style.display = "block";
+                tooltip.style.left = (event.pageX + 10) + "px";
+                tooltip.style.top = (event.pageY - 30) + "px";
+            })
+            .on("mousemove", (event) => {
+                tooltip.style.left = (event.pageX + 10) + "px";
+                tooltip.style.top = (event.pageY - 30) + "px";
+            })
+            .on("mouseout", () => {
+                tooltip.style.display = "none";
+            });
+        },
+        
+        /**
+         * Build tooltip HTML content
+         * @param {Object} data - Node data
+         * @returns {string} HTML string
+         * @private
+         */
+        _buildTooltipContent: function(data) {
+            let html = "";
+            
+            if (data.step) {
+                html += `<div style="font-weight: bold; margin-bottom: 6px;">Step ${data.step}</div>`;
+            }
+            
+            if (data.question) {
+                html += `<div style="margin-bottom: 4px;"><strong>Question:</strong><br/>${data.question}</div>`;
+            }
+            
+            if (data.answer) {
+                html += `<div style="margin-bottom: 4px;"><strong>Answer:</strong><br/>${data.answer}</div>`;
+            }
+            
+            if (data.hint) {
+                html += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3);">
+                    <strong>Hint:</strong><br/>${data.hint}
+                </div>`;
+            }
+            
+            if (data.type) {
+                html += `<div style="margin-top: 4px; color: #87CEEB;"><em>Node Type: ${data.type}</em></div>`;
+            }
+            
+            return html || "<div>No additional information</div>";
+        },
+        
+        /**
+         * Handle node click events
+         * @param {Object} event - Click event
+         * @param {Object} d - Node data
+         * @private
+         */
+        _onNodeClick: function(event, d) {
+            // Highlight clicked node and path
+            this._highlightDecisionPath(d);
+            
+            // Show detailed information dialog (if available)
+            if (window.sap && window.sap.m && window.sap.m.MessageBox) {
+                const message = this._buildNodeDetailsMessage(d.data);
+                window.sap.m.MessageBox.information(message, {
+                    title: `Step ${d.data.step || 'N/A'} Details`,
+                    styleClass: "sapUiSizeCompact"
+                });
+            }
+            
+            event.stopPropagation();
+        },
+        
+        /**
+         * Build detailed message for node
+         * @param {Object} data - Node data
+         * @returns {string} Message text
+         * @private
+         */
+        _buildNodeDetailsMessage: function(data) {
+            let message = "";
+            
+            if (data.question) {
+                message += `Question:\n${data.question}\n\n`;
+            }
+            
+            if (data.answer) {
+                message += `Your Answer:\n${data.answer}\n\n`;
+            }
+            
+            if (data.hint) {
+                message += `Guidance:\n${data.hint}\n\n`;
+            }
+            
+            if (data.timestamp) {
+                message += `Answered: ${new Date(data.timestamp).toLocaleString()}`;
+            }
+            
+            return message || "No details available";
+        },
+        
+        /**
+         * Highlight the decision path from root to selected node
+         * @param {Object} targetNode - Target D3 node
+         * @private
+         */
+        _highlightDecisionPath: function(targetNode) {
+            // Reset all nodes and links
+            d3.selectAll(".node rect")
+                .style("stroke-width", 2)
+                .style("opacity", 0.3);
+            
+            d3.selectAll(".link")
+                .style("stroke-width", 2)
+                .style("opacity", 0.3)
+                .style("stroke", "#999");
+            
+            // Highlight path from root to selected node
+            let currentNode = targetNode;
+            const pathNodes = [];
+            
+            while (currentNode) {
+                pathNodes.push(currentNode);
+                currentNode = currentNode.parent;
+            }
+            
+            // Highlight nodes in path
+            pathNodes.forEach(node => {
+                d3.select(node.data.element || node) 
+                    .select("rect")
+                    .style("stroke-width", 4)
+                    .style("opacity", 1);
+            });
+            
+            // Highlight links in path
+            d3.selectAll(".link")
+                .each(function(d) {
+                    if (pathNodes.includes(d.source) && pathNodes.includes(d.target)) {
+                        d3.select(this)
+                            .style("stroke-width", 4)
+                            .style("opacity", 1)
+                            .style("stroke", "#0078D4")
+                            .transition()
+                            .duration(500)
+                            .style("stroke-width", 3);
+                    }
+                });
+        },
+        
+        /**
+         * Add node click animation
+         * @param {Object} node - D3 node selection
+         * @private
+         */
+        _addNodeClickAnimation: function(node) {
+            if (!node) return;
+            
+            node.on("click", function() {
+                d3.select(this).select("rect")
+                    .transition()
+                    .duration(200)
+                    .attr("width", 190)
+                    .attr("height", 75)
+                    .attr("x", -95)
+                    .attr("y", -37.5)
+                    .transition()
+                    .duration(200)
+                    .attr("width", 180)
+                    .attr("height", 70)
+                    .attr("x", -90)
+                    .attr("y", -35);
+            });
+        },
+        
+        /**
+         * Add path highlighting on hover
+         * @param {Object} links - D3 link selection
+         * @private
+         */
+        _addPathHoverEffect: function(links) {
+            if (!links) return;
+            
+            links.on("mouseover", function() {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .style("stroke-width", 4)
+                    .style("stroke", "#0078D4");
+            })
+            .on("mouseout", function() {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .style("stroke-width", 2)
+                    .style("stroke", "#999");
+            });
+        },
+        
+        /**
+         * Enable node dragging (for manual layout adjustment)
+         * @param {Object} node - D3 node selection
+         * @private
+         */
+        _enableNodeDragging: function(node) {
+            if (!node || !d3.drag) return;
+            
+            const drag = d3.drag()
+                .on("start", function(event, d) {
+                    d3.select(this).raise().classed("dragging", true);
+                })
+                .on("drag", function(event, d) {
+                    d.x = event.y;
+                    d.y = event.x;
+                    d3.select(this).attr("transform", `translate(${d.y},${d.x})`);
+                    
+                    // Update connected links
+                    d3.selectAll(".link")
+                        .filter(l => l.source === d || l.target === d)
+                        .attr("d", d3.linkHorizontal()
+                            .x(linkData => linkData.y)
+                            .y(linkData => linkData.x)
+                        );
+                })
+                .on("end", function() {
+                    d3.select(this).classed("dragging", false);
+                });
+            
+            node.call(drag);
+        },
+        
+        /**
+         * Add search/filter functionality for nodes
+         * @param {string} searchText - Text to search for
+         * @param {string} containerId - Container ID
+         */
+        searchNodes: function(searchText, containerId) {
+            if (!searchText || !containerId) return;
+            
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const searchLower = searchText.toLowerCase();
+            
+            // Reset all nodes
+            d3.selectAll(".node rect")
+                .style("opacity", 1)
+                .style("stroke-width", 2);
+            
+            // Highlight matching nodes
+            d3.selectAll(".node")
+                .each(function(d) {
+                    const question = (d.data.question || "").toLowerCase();
+                    const answer = (d.data.answer || "").toLowerCase();
+                    
+                    if (question.includes(searchLower) || answer.includes(searchLower)) {
+                        d3.select(this).select("rect")
+                            .style("stroke-width", 4)
+                            .style("stroke", "#FF6B6B");
+                    } else {
+                        d3.select(this).select("rect")
+                            .style("opacity", 0.3);
+                    }
+                });
+        },
+        
+        /**
+         * Reset flowchart view (clear highlights, reset zoom)
+         * @param {string} containerId - Container ID
+         */
+        resetFlowchartView: function(containerId) {
+            if (!containerId) return;
+            
+            // Reset node styles
+            d3.selectAll(".node rect")
+                .style("opacity", 1)
+                .style("stroke-width", 2);
+            
+            // Reset link styles
+            d3.selectAll(".link")
+                .style("opacity", 1)
+                .style("stroke-width", 2)
+                .style("stroke", "#999");
+            
+            // Reset zoom
+            const container = document.getElementById(containerId);
+            if (container) {
+                const svg = d3.select(`#${containerId} svg`);
+                if (svg.node() && svg.node().__zoom) {
+                    svg.transition()
+                        .duration(750)
+                        .call(d3.zoom().transform, d3.zoomIdentity);
+                }
+            }
         }
     };
 });

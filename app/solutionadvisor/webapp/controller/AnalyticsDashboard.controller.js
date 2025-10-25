@@ -732,6 +732,344 @@ sap.ui.define([
           { title: "Export Error" }
         );
       }
+    },
+    
+    /**
+     * Additional Trend Analysis Views
+     */
+    
+    /**
+     * Show year-over-year comparison chart
+     */
+    onShowYearOverYearComparison: function() {
+      const oView = this.getView();
+      const oModel = oView.getModel();
+      
+      // Fetch year-over-year data
+      oView.setBusy(true);
+      
+      const oBinding = oModel.bindContext("/getYearOverYearComparison(...)");
+      oBinding.execute().then(() => {
+        const oResult = oBinding.getBoundContext().getObject();
+        
+        // Create comparison model
+        const oComparisonModel = new JSONModel(oResult);
+        oView.setModel(oComparisonModel, "comparisonModel");
+        
+        // Render comparison chart
+        this._renderYearOverYearChart();
+        
+        oView.setBusy(false);
+        MessageToast.show("Year-over-year comparison loaded");
+      }).catch((oError) => {
+        oView.setBusy(false);
+        MessageBox.error("Failed to load year-over-year comparison: " + oError.message);
+      });
+    },
+    
+    /**
+     * Render year-over-year comparison chart
+     * @private
+     */
+    _renderYearOverYearChart: function() {
+      const oView = this.getView();
+      const oComparisonModel = oView.getModel("comparisonModel");
+      
+      if (!oComparisonModel) {
+        return;
+      }
+      
+      const oVizFrame = oView.byId("idYearOverYearChart");
+      if (!oVizFrame) {
+        return;
+      }
+      
+      // Configure viz frame for comparison
+      oVizFrame.setVizType("column");
+      oVizFrame.setModel(oComparisonModel);
+      
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Year",
+          value: "{year}"
+        }],
+        measures: [{
+          name: "Technical Debt",
+          value: "{technicalDebt}"
+        }, {
+          name: "Cloud Readiness",
+          value: "{cloudReadiness}"
+        }, {
+          name: "Upgrade Impact",
+          value: "{upgradeImpact}"
+        }],
+        data: {
+          path: "/yearlyData"
+        }
+      });
+      
+      oVizFrame.setDataset(oDataset);
+      oVizFrame.addFeed(new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Year"]
+      }));
+      oVizFrame.addFeed(new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: ["Technical Debt", "Cloud Readiness", "Upgrade Impact"]
+      }));
+    },
+    
+    /**
+     * Show project-to-project comparison
+     */
+    onShowProjectComparison: function() {
+      const oView = this.getView();
+      const oFilterModel = oView.getModel("filterModel");
+      const aSelectedProjects = oFilterModel.getProperty("/selectedProjects") || [];
+      
+      if (aSelectedProjects.length < 2) {
+        MessageBox.warning("Please select at least 2 projects to compare");
+        return;
+      }
+      
+      const oModel = oView.getModel();
+      oView.setBusy(true);
+      
+      const oBinding = oModel.bindContext("/compareProjects(...)");
+      oBinding.setParameter("projectIds", aSelectedProjects);
+      oBinding.execute().then(() => {
+        const oResult = oBinding.getBoundContext().getObject();
+        
+        // Create comparison model
+        const oProjectComparisonModel = new JSONModel(oResult);
+        oView.setModel(oProjectComparisonModel, "projectComparisonModel");
+        
+        // Render comparison table/chart
+        this._renderProjectComparisonChart();
+        
+        oView.setBusy(false);
+        MessageToast.show("Project comparison loaded");
+      }).catch((oError) => {
+        oView.setBusy(false);
+        MessageBox.error("Failed to load project comparison: " + oError.message);
+      });
+    },
+    
+    /**
+     * Render project comparison chart
+     * @private
+     */
+    _renderProjectComparisonChart: function() {
+      const oView = this.getView();
+      const oComparisonModel = oView.getModel("projectComparisonModel");
+      
+      if (!oComparisonModel) {
+        return;
+      }
+      
+      const oVizFrame = oView.byId("idProjectComparisonChart");
+      if (!oVizFrame) {
+        return;
+      }
+      
+      // Configure radar/spider chart for multi-dimensional comparison
+      oVizFrame.setVizType("radar");
+      oVizFrame.setModel(oComparisonModel);
+      
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Metric",
+          value: "{metric}"
+        }],
+        measures: oComparisonModel.getProperty("/projects").map((proj, idx) => ({
+          name: proj.projectName,
+          value: `{value${idx}}`
+        })),
+        data: {
+          path: "/comparisonData"
+        }
+      });
+      
+      oVizFrame.setDataset(oDataset);
+    },
+    
+    /**
+     * Show monthly trend analysis with moving averages
+     */
+    onShowMonthlyTrends: function() {
+      const oView = this.getView();
+      const oModel = oView.getModel();
+      const oFilterModel = oView.getModel("filterModel");
+      
+      const sDateFrom = oFilterModel.getProperty("/dateFrom");
+      const sDateTo = oFilterModel.getProperty("/dateTo");
+      
+      oView.setBusy(true);
+      
+      const oBinding = oModel.bindContext("/getMonthlyTrends(...)");
+      oBinding.setParameter("dateFrom", sDateFrom || new Date(new Date().setMonth(new Date().getMonth() - 12)).toISOString());
+      oBinding.setParameter("dateTo", sDateTo || new Date().toISOString());
+      oBinding.execute().then(() => {
+        const oResult = oBinding.getBoundContext().getObject();
+        
+        // Calculate moving averages
+        const trendData = this._calculateMovingAverages(oResult.monthlyData, 3);
+        
+        // Create trend model
+        const oTrendModel = new JSONModel({
+          monthlyData: trendData,
+          showMovingAverage: true
+        });
+        oView.setModel(oTrendModel, "trendModel");
+        
+        // Render trend chart
+        this._renderMonthlyTrendChart();
+        
+        oView.setBusy(false);
+        MessageToast.show("Monthly trends loaded with moving averages");
+      }).catch((oError) => {
+        oView.setBusy(false);
+        MessageBox.error("Failed to load monthly trends: " + oError.message);
+      });
+    },
+    
+    /**
+     * Calculate moving averages for trend smoothing
+     * @param {Array} data - Array of monthly data points
+     * @param {number} window - Moving average window size (default: 3)
+     * @returns {Array} Data with moving averages
+     * @private
+     */
+    _calculateMovingAverages: function(data, window = 3) {
+      if (!data || data.length === 0) {
+        return [];
+      }
+      
+      return data.map((point, index) => {
+        if (index < window - 1) {
+          return {
+            ...point,
+            technicalDebtMA: null,
+            cloudReadinessMA: null,
+            upgradeImpactMA: null
+          };
+        }
+        
+        const windowData = data.slice(index - window + 1, index + 1);
+        
+        return {
+          ...point,
+          technicalDebtMA: this._average(windowData.map(d => d.technicalDebt)),
+          cloudReadinessMA: this._average(windowData.map(d => d.cloudReadiness)),
+          upgradeImpactMA: this._average(windowData.map(d => d.upgradeImpact))
+        };
+      });
+    },
+    
+    /**
+     * Calculate average of array
+     * @param {Array} arr - Array of numbers
+     * @returns {number} Average value
+     * @private
+     */
+    _average: function(arr) {
+      if (!arr || arr.length === 0) {
+        return 0;
+      }
+      return arr.reduce((sum, val) => sum + val, 0) / arr.length;
+    },
+    
+    /**
+     * Render monthly trend chart with moving averages
+     * @private
+     */
+    _renderMonthlyTrendChart: function() {
+      const oView = this.getView();
+      const oTrendModel = oView.getModel("trendModel");
+      
+      if (!oTrendModel) {
+        return;
+      }
+      
+      const oVizFrame = oView.byId("idMonthlyTrendChart");
+      if (!oVizFrame) {
+        return;
+      }
+      
+      // Configure dual-axis line chart (actuals + moving averages)
+      oVizFrame.setVizType("dual_line");
+      oVizFrame.setModel(oTrendModel);
+      
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Month",
+          value: "{month}"
+        }],
+        measures: [{
+          name: "Technical Debt",
+          value: "{technicalDebt}"
+        }, {
+          name: "Technical Debt (MA)",
+          value: "{technicalDebtMA}"
+        }, {
+          name: "Cloud Readiness",
+          value: "{cloudReadiness}"
+        }, {
+          name: "Cloud Readiness (MA)",
+          value: "{cloudReadinessMA}"
+        }],
+        data: {
+          path: "/monthlyData"
+        }
+      });
+      
+      oVizFrame.setDataset(oDataset);
+      oVizFrame.addFeed(new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Month"]
+      }));
+      oVizFrame.addFeed(new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: ["Technical Debt", "Cloud Readiness"]
+      }));
+      oVizFrame.addFeed(new FeedItem({
+        uid: "valueAxis2",
+        type: "Measure",
+        values: ["Technical Debt (MA)", "Cloud Readiness (MA)"]
+      }));
+    },
+    
+    /**
+     * Toggle between different chart types for trend visualization
+     */
+    onToggleChartType: function(oEvent) {
+      const sSelectedType = oEvent.getParameter("selectedItem").getKey();
+      const oVizFrame = this.getView().byId("idTrendChart");
+      
+      if (oVizFrame) {
+        oVizFrame.setVizType(sSelectedType);
+        MessageToast.show(`Chart type changed to: ${sSelectedType}`);
+      }
+    },
+    
+    /**
+     * Export trend analysis to separate report
+     */
+    onExportTrendReport: function() {
+      const oView = this.getView();
+      const oTrendModel = oView.getModel("trendModel");
+      
+      if (!oTrendModel) {
+        MessageBox.warning("No trend data available to export");
+        return;
+      }
+      
+      // Create detailed trend report (PDF)
+      MessageToast.show("Trend report export functionality - to be implemented with jsPDF");
     }
   });
 });
