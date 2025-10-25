@@ -6,6 +6,7 @@ const ConstraintsService = require('./lib/constraints-service');
 const ExamplesService = require('./lib/examples-service');
 const AnalyticsService = require('./lib/analytics-service');
 const AuditService = require('./lib/audit-service');
+const SecurityMiddleware = require('./lib/security-middleware');
 
 /**
  * Solution Advisor Service Implementation
