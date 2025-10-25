@@ -17,12 +17,12 @@
     >
         <content>
             <l:VerticalLayout
-                id="historyMainLayout"
+                id="ricefwHistory_MainLayout"
                 width="100%"
             >
                 <!-- Summary Header -->
                 <f:SimpleForm
-                    id="historySummaryForm"
+                    id="ricefwHistory_SummaryForm"
                     editable="false"
                     layout="ResponsiveGridLayout"
                     labelSpanXL="4"
@@ -39,47 +39,47 @@
                 >
                     <f:content>
                         <Label
-                            id="historyRicefwIdLabel"
+                            id="ricefwHistory_RicefwIdLabel"
                             text="RICEFW ID"
                         />
                         <Text
-                            id="historyRicefwIdText"
+                            id="ricefwHistory_RicefwIdText"
                             text="{historyModel>/ricefwId}"
                         />
 
                         <Label
-                            id="historyObjectTypeLabel"
+                            id="ricefwHistory_ObjectTypeLabel"
                             text="Object Type"
                         />
                         <Text
-                            id="historyObjectTypeText"
+                            id="ricefwHistory_ObjectTypeText"
                             text="{historyModel>/objectType}"
                         />
 
                         <Label
-                            id="historyTotalAnalysesLabel"
+                            id="ricefwHistory_TotalAnalysesLabel"
                             text="Total Analyses"
                         />
                         <Text
-                            id="historyTotalAnalysesText"
+                            id="ricefwHistory_TotalAnalysesText"
                             text="{historyModel>/totalAnalyses}"
                         />
 
                         <Label
-                            id="historyLatestDecisionLabel"
+                            id="ricefwHistory_LatestDecisionLabel"
                             text="Latest Decision"
                         />
                         <Text
-                            id="historyLatestDecisionText"
+                            id="ricefwHistory_LatestDecisionText"
                             text="{historyModel>/latestDecision}"
                         />
 
                         <Label
-                            id="historyFirstAnalysisLabel"
+                            id="ricefwHistory_FirstAnalysisLabel"
                             text="First Analysis"
                         />
                         <Text
-                            id="historyFirstAnalysisText"
+                            id="ricefwHistory_FirstAnalysisText"
                             text="{
                             path: 'historyModel>/firstAnalysisDate',
                             formatter: '.formatter.formatDate'
@@ -87,11 +87,11 @@
                         />
 
                         <Label
-                            id="historyLastAnalysisLabel"
+                            id="ricefwHistory_LastAnalysisLabel"
                             text="Last Analysis"
                         />
                         <Text
-                            id="historyLastAnalysisText"
+                            id="ricefwHistory_LastAnalysisText"
                             text="{
                             path: 'historyModel>/lastAnalysisDate',
                             formatter: '.formatter.formatDate'
@@ -100,15 +100,15 @@
                     </f:content>
                 </f:SimpleForm>
 
-                <Toolbar id="historyToolbar">
+                <Toolbar id="ricefwHistory_Toolbar">
                     <Title
-                        id="historyTimelineTitle"
+                        id="ricefwHistory_TimelineTitle"
                         text="Decision Timeline"
                         level="H4"
                     />
-                    <ToolbarSpacer id="historyToolbarSpacer" />
+                    <ToolbarSpacer id="ricefwHistory_ToolbarSpacer" />
                     <Button
-                        id="exportHistoryBtn"
+                        id="ricefwHistory_ExportBtn"
                         text="Export"
                         icon="sap-icon://excel-attachment"
                         press=".onExportHistory"
@@ -117,7 +117,7 @@
 
                 <!-- Trend Chart -->
                 <Panel
-                    id="trendChartPanel"
+                    id="ricefwHistory_TrendChartPanel"
                     headerText="Clean Core Level Trend"
                     expandable="true"
                     expanded="true"
@@ -125,12 +125,12 @@
                 >
                     <content>
                         <VBox
-                            id="trendChartBox"
+                            id="ricefwHistory_TrendChartBox"
                             height="250px"
                             width="100%"
                         >
                             <viz:VizFrame
-                                id="historyTrendChart"
+                                id="ricefwHistory_TrendChart"
                                 vizType="line"
                                 width="100%"
                                 height="100%"
@@ -151,29 +151,29 @@
                             >
                                 <viz:dataset>
                                     <vizData:FlattenedDataset
-                                        id="historyDataset"
+                                        id="ricefwHistory_Dataset"
                                         data="{historyModel>/trendData}"
                                     >
                                         <vizData:dimensions>
                                             <vizData:DimensionDefinition
-                                                id="historyDateDimension"
+                                                id="ricefwHistory_DateDimension"
                                                 name="Analysis Date"
                                                 value="{historyModel>analysisDate}"
                                             />
                                         </vizData:dimensions>
                                         <vizData:measures>
                                             <vizData:MeasureDefinition
-                                                id="historyLevelMeasure"
+                                                id="ricefwHistory_LevelMeasure"
                                                 name="Level Score"
                                                 value="{historyModel>levelScore}"
                                             />
                                             <vizData:MeasureDefinition
-                                                id="historyTechDebtMeasure"
+                                                id="ricefwHistory_TechDebtMeasure"
                                                 name="Technical Debt"
                                                 value="{historyModel>technicalDebtScore}"
                                             />
                                             <vizData:MeasureDefinition
-                                                id="historyCloudReadyMeasure"
+                                                id="ricefwHistory_CloudReadyMeasure"
                                                 name="Cloud Readiness"
                                                 value="{historyModel>cloudReadinessScore}"
                                             />
@@ -182,13 +182,13 @@
                                 </viz:dataset>
                                 <viz:feeds>
                                     <vizFeeds:FeedItem
-                                        id="historyValueFeed"
+                                        id="ricefwHistory_ValueFeed"
                                         uid="valueAxis"
                                         type="Measure"
                                         values="Level Score,Technical Debt,Cloud Readiness"
                                     />
                                     <vizFeeds:FeedItem
-                                        id="historyCategoryFeed"
+                                        id="ricefwHistory_CategoryFeed"
                                         uid="categoryAxis"
                                         type="Dimension"
                                         values="Analysis Date"
@@ -201,14 +201,14 @@
 
                 <!-- History Timeline List -->
                 <Panel
-                    id="timelinePanel"
+                    id="ricefwHistory_TimelinePanel"
                     headerText="Detailed History"
                     expandable="false"
                     class="sapUiResponsiveMargin"
                 >
                     <content>
                         <Table
-                            id="historyTable"
+                            id="ricefwHistory_Table"
                             items="{
                                 path: 'historyModel>/analyses',
                                 sorter: {
@@ -223,65 +223,65 @@
                         >
                             <columns>
                                 <Column
-                                    id="historyDateColumn"
+                                    id="ricefwHistory_DateColumn"
                                     width="12em"
                                 >
                                     <Text
-                                        id="historyDateHeader"
+                                        id="ricefwHistory_DateHeader"
                                         text="Analysis Date"
                                     />
                                 </Column>
                                 <Column
-                                    id="historyLevelColumn"
+                                    id="ricefwHistory_LevelColumn"
                                     width="8em"
                                 >
                                     <Text
-                                        id="historyLevelHeader"
+                                        id="ricefwHistory_LevelHeader"
                                         text="Level"
                                     />
                                 </Column>
                                 <Column
-                                    id="historyTechDebtColumn"
+                                    id="ricefwHistory_TechDebtColumn"
                                     width="10em"
                                 >
                                     <Text
-                                        id="historyTechDebtHeader"
+                                        id="ricefwHistory_TechDebtHeader"
                                         text="Tech Debt"
                                     />
                                 </Column>
                                 <Column
-                                    id="historyCloudReadyColumn"
+                                    id="ricefwHistory_CloudReadyColumn"
                                     width="10em"
                                 >
                                     <Text
-                                        id="historyCloudReadyHeader"
+                                        id="ricefwHistory_CloudReadyHeader"
                                         text="Cloud Ready"
                                     />
                                 </Column>
                                 <Column
-                                    id="historyUpgradeColumn"
+                                    id="ricefwHistory_UpgradeColumn"
                                     width="10em"
                                 >
                                     <Text
-                                        id="historyUpgradeHeader"
+                                        id="ricefwHistory_UpgradeHeader"
                                         text="Upgrade Impact"
                                     />
                                 </Column>
                                 <Column
-                                    id="historyAnalystColumn"
+                                    id="ricefwHistory_AnalystColumn"
                                     width="12em"
                                 >
                                     <Text
-                                        id="historyAnalystHeader"
+                                        id="ricefwHistory_AnalystHeader"
                                         text="Analyst"
                                     />
                                 </Column>
                                 <Column
-                                    id="historyActionsColumn"
+                                    id="ricefwHistory_ActionsColumn"
                                     width="8em"
                                 >
                                     <Text
-                                        id="historyActionsHeader"
+                                        id="ricefwHistory_ActionsHeader"
                                         text="Actions"
                                     />
                                 </Column>
@@ -289,40 +289,40 @@
 
                             <items>
                                 <ColumnListItem
-                                    id="historyListItem"
+                                    id="ricefwHistory_ListItem"
                                     type="Active"
                                 >
                                     <cells>
-                                        <VBox id="historyDateCell">
+                                        <VBox id="ricefwHistory_DateCell">
                                             <Text
-                                                id="historyDateText"
+                                                id="ricefwHistory_DateText"
                                                 text="{
                                                 path: 'historyModel>analysisDate',
                                                 formatter: '.formatter.formatDate'
                                             }"
                                             />
                                             <ObjectStatus
-                                                id="historyLatestStatus"
+                                                id="ricefwHistory_LatestStatus"
                                                 text="{= ${historyModel>isLatest} ? 'Latest' : '' }"
                                                 state="Success"
                                                 visible="{historyModel>isLatest}"
                                             />
                                         </VBox>
                                         <ObjectStatus
-                                            id="historyLevelStatus"
+                                            id="ricefwHistory_LevelStatus"
                                             text="{historyModel>recommendedLevel}"
                                             state="{= ${historyModel>recommendedLevel} === 'Level A' ? 'Success' :
                                                      ${historyModel>recommendedLevel} === 'Level B' ? 'Information' :
                                                      ${historyModel>recommendedLevel} === 'Level C' ? 'Warning' :
                                                      'Error' }"
                                         />
-                                        <VBox id="historyTechDebtCell">
+                                        <VBox id="ricefwHistory_TechDebtCell">
                                             <Text
-                                                id="historyTechDebtText"
+                                                id="ricefwHistory_TechDebtText"
                                                 text="{historyModel>technicalDebtScore}"
                                             />
                                             <ProgressIndicator
-                                                id="historyTechDebtProgress"
+                                                id="ricefwHistory_TechDebtProgress"
                                                 percentValue="{historyModel>technicalDebtScore}"
                                                 displayValue="{historyModel>technicalDebtScore}%"
                                                 state="{= ${historyModel>technicalDebtScore} > 70 ? 'Error' :
@@ -330,13 +330,13 @@
                                                          'Success' }"
                                             />
                                         </VBox>
-                                        <VBox id="historyCloudReadyCell">
+                                        <VBox id="ricefwHistory_CloudReadyCell">
                                             <Text
-                                                id="historyCloudReadyText"
+                                                id="ricefwHistory_CloudReadyText"
                                                 text="{historyModel>cloudReadinessScore}"
                                             />
                                             <ProgressIndicator
-                                                id="historyCloudReadyProgress"
+                                                id="ricefwHistory_CloudReadyProgress"
                                                 percentValue="{historyModel>cloudReadinessScore}"
                                                 displayValue="{historyModel>cloudReadinessScore}%"
                                                 state="{= ${historyModel>cloudReadinessScore} > 70 ? 'Success' :
@@ -344,13 +344,13 @@
                                                          'Error' }"
                                             />
                                         </VBox>
-                                        <VBox id="historyUpgradeCell">
+                                        <VBox id="ricefwHistory_UpgradeCell">
                                             <Text
-                                                id="historyUpgradeText"
+                                                id="ricefwHistory_UpgradeText"
                                                 text="{historyModel>upgradeImpactScore}"
                                             />
                                             <ProgressIndicator
-                                                id="historyUpgradeProgress"
+                                                id="ricefwHistory_UpgradeProgress"
                                                 percentValue="{historyModel>upgradeImpactScore}"
                                                 displayValue="{historyModel>upgradeImpactScore}%"
                                                 state="{= ${historyModel>upgradeImpactScore} > 70 ? 'Error' :
@@ -358,27 +358,27 @@
                                                          'Success' }"
                                             />
                                         </VBox>
-                                        <VBox id="historyAnalystCell">
+                                        <VBox id="ricefwHistory_AnalystCell">
                                             <Text
-                                                id="historyAnalystText"
+                                                id="ricefwHistory_AnalystText"
                                                 text="{historyModel>createdBy}"
                                             />
                                             <Text
-                                                id="historyProjectText"
+                                                id="ricefwHistory_ProjectText"
                                                 text="{historyModel>projectName}"
                                                 class="sapUiSmallMarginTop"
                                             />
                                         </VBox>
-                                        <HBox id="historyActionsCell">
+                                        <HBox id="ricefwHistory_ActionsCell">
                                             <Button
-                                                id="viewHistoryDetailsButton"
+                                                id="ricefwHistory_ViewDetailsBtn"
                                                 icon="sap-icon://detail-view"
                                                 type="Transparent"
                                                 tooltip="View Details"
                                                 press=".onViewHistoryDetails"
                                             />
                                             <Button
-                                                id="copyAnalysisButton"
+                                                id="ricefwHistory_CopyAnalysisBtn"
                                                 icon="sap-icon://copy"
                                                 type="Transparent"
                                                 tooltip="Copy Analysis"
@@ -403,7 +403,7 @@
 
         <beginButton>
             <Button
-                id="closeHistoryDialogBtn"
+                id="ricefwHistory_CloseBtn"
                 text="Close"
                 press=".onCloseHistoryDialog"
             />
