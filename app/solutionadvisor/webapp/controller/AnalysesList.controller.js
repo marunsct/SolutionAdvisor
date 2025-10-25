@@ -21,11 +21,11 @@ sap.ui.define([
                 isFiltered: false
             });
             this.getView().setModel(oViewModel, "viewModel");
-            
+
             // Attach to route matched event
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("AnalysesList").attachPatternMatched(this._onRouteMatched, this);
-            
+
             // Load counts when model is available
             const oModel = this.getView().getModel();
             if (oModel) {
@@ -43,15 +43,15 @@ sap.ui.define([
             const oArgs = oEvent.getParameter("arguments");
             const sProjectId = oArgs.projectId;
             const sProjectName = decodeURIComponent(oArgs.projectName || "");
-            
+
             const oViewModel = this.getView().getModel("viewModel");
-            
+
             if (sProjectId && sProjectId !== "all") {
                 // Set project filter
                 oViewModel.setProperty("/projectId", sProjectId);
                 oViewModel.setProperty("/projectName", sProjectName);
                 oViewModel.setProperty("/isFiltered", true);
-                
+
                 // Apply filter to table
                 this._applyProjectFilter(sProjectId);
             } else {
@@ -59,7 +59,7 @@ sap.ui.define([
                 oViewModel.setProperty("/projectId", null);
                 oViewModel.setProperty("/projectName", "All Projects");
                 oViewModel.setProperty("/isFiltered", false);
-                
+
                 // Clear filter from table
                 const oTable = this.byId("analysesTable");
                 if (oTable) {
@@ -69,7 +69,7 @@ sap.ui.define([
                     }
                 }
             }
-            
+
             // Reload counts with filter
             this._loadCounts();
         },
@@ -77,14 +77,14 @@ sap.ui.define([
         _applyProjectFilter(sProjectId) {
             const oTable = this.byId("analysesTable");
             if (!oTable) return;
-            
+
             const oBinding = oTable.getBinding("items");
             if (!oBinding) return;
-            
+
             const aFilters = [
                 new Filter("projectConfig_ID", FilterOperator.EQ, sProjectId)
             ];
-            
+
             oBinding.filter(aFilters);
         },
 
@@ -93,10 +93,10 @@ sap.ui.define([
             if (!oModel) {
                 return;
             }
-            
+
             const oViewModel = this.getView().getModel("viewModel");
             const sProjectId = oViewModel.getProperty("/projectId");
-            
+
             // Build base filters for project context
             const aBaseFilters = [];
             if (sProjectId && sProjectId !== "all") {
@@ -174,48 +174,51 @@ sap.ui.define([
             const sStatus = oContext.getProperty("status");
 
             if (sStatus === "In Progress") {
-                // Check if there's a saved draft session
-                this._checkForDraft(sAnalysisId);
+                // Navigate to wizard to resume/complete the analysis
+                this._navigateToWizard(sAnalysisId);
             } else {
-                // Navigate to analysis details
+                // Navigate to analysis details for completed analyses
                 this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
                     key: sAnalysisId
                 });
             }
         },
 
-        _checkForDraft(sAnalysisId) {
+        _navigateToWizard(sAnalysisId) {
+            // First check if there's a saved draft session
             const oModel = this.getView().getModel();
-            
+
             const aFilters = [
                 new Filter("analysis_ID", FilterOperator.EQ, sAnalysisId),
                 new Filter("sessionStatus", FilterOperator.EQ, "Paused")
             ];
             const oBinding = oModel.bindList("/WizardSessions", null, null, aFilters);
-            
+
             oBinding.requestContexts().then((aContexts) => {
                 if (aContexts && aContexts.length > 0) {
+                    // Draft exists - show resume dialog
                     const oSession = aContexts[0].getObject();
                     this._showResumeDraftDialog(sAnalysisId, oSession);
                 } else {
-                    // No draft found, view as normal
-                    this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
-                        key: sAnalysisId
+                    // No draft - navigate to wizard with analysisId to resume/continue
+                    this.getOwnerComponent().getRouter().navTo("Wizard", {
+                        analysisId: sAnalysisId
                     });
+                    MessageToast.show("Resuming in-progress analysis...");
                 }
             }).catch((oError) => {
-                console.error("Failed to check for draft:", oError);
-                // On error, just navigate to analysis details
-                this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
-                    key: sAnalysisId
+                // On error, just navigate to wizard
+                this.getOwnerComponent().getRouter().navTo("Wizard", {
+                    analysisId: sAnalysisId
                 });
+                MessageToast.show("Resuming in-progress analysis...");
             });
         },
 
         _showResumeDraftDialog(sAnalysisId, oSession) {
             const sSavedDate = new Date(oSession.lastActivity).toLocaleString();
             const bExpired = oSession.expiresAt && new Date() > new Date(oSession.expiresAt);
-            
+
             MessageBox.confirm(
                 `A draft was saved on ${sSavedDate} (${oSession.currentStep}/${oSession.totalSteps} steps completed).` +
                 (bExpired ? "\n\nWarning: This draft has expired and may not be recoverable." : ""),
@@ -247,7 +250,7 @@ sap.ui.define([
             // Get project context
             const oViewModel = this.getView().getModel("viewModel");
             const sProjectId = oViewModel.getProperty("/projectId");
-            
+
             if (sProjectId && sProjectId !== "all") {
                 // Navigate to wizard with project context
                 this.getOwnerComponent().getRouter().navTo("Wizard", {

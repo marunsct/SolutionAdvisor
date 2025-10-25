@@ -85,7 +85,7 @@
                     <FlexBox
                         id="analysisDetails_ScoringTilesContainer"
                         wrap="Wrap"
-                        justifyContent="Center"
+                        justifyContent="SpaceAround"
                         alignItems="Center"
                         class="scoringTilesContainer"
                     >

@@ -3,81 +3,96 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
-    xmlns:f="sap.f">
+    xmlns:f="sap.f"
+>
     <Page
         id="analysesListPage"
         title="{= ${viewModel>/isFiltered} ? 'Analyses for ' + ${viewModel>/projectName} : 'Clean Core Analyses' }"
-        showHeader="true">
+        showHeader="true"
+    >
         <content>
-            <VBox id="analysesListVBox" class="sapUiSmallMargin">
+            <VBox
+                id="analysesListVBox"
+                class="sapUiSmallMargin"
+            >
                 <MessageStrip
                     id="projectFilterInfo"
                     visible="{viewModel>/isFiltered}"
                     text="Showing analyses for project: {viewModel>/projectName}"
                     type="Information"
                     showIcon="true"
-                    class="sapUiSmallMarginBottom"/>
+                    class="sapUiSmallMarginBottom"
+                />
                 <HeaderContainer
                     id="analysesHeader"
                     orientation="Horizontal"
-                    backgroundDesign="Transparent">
+                    backgroundDesign="Transparent"
+                >
                     <GenericTile
                         id="totalAnalysesTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
                         header="Total Analyses"
-                        subheader="All Analyses">
+                        subheader="All Analyses"
+                    >
                         <TileContent id="totalAnalysesTileContent">
                             <NumericContent
                                 id="totalAnalysesNumeric"
                                 value="{viewModel>/analysesCount}"
                                 icon="sap-icon://activities"
-                                withMargin="false"/>
+                                withMargin="false"
+                            />
                         </TileContent>
                     </GenericTile>
                     <GenericTile
                         id="levelATile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
                         header="Level A"
-                        subheader="Fully Clean Core">
+                        subheader="Fully Clean Core"
+                    >
                         <TileContent id="levelATileContent">
                             <NumericContent
                                 id="levelANumeric"
                                 value="{viewModel>/levelACount}"
                                 icon="sap-icon://accept"
                                 valueColor="Good"
-                                withMargin="false"/>
+                                withMargin="false"
+                            />
                         </TileContent>
                     </GenericTile>
                     <GenericTile
                         id="levelBTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
                         header="Level B"
-                        subheader="Enhanced Clean Core">
+                        subheader="Enhanced Clean Core"
+                    >
                         <TileContent id="levelBTileContent">
                             <NumericContent
                                 id="levelBNumeric"
                                 value="{viewModel>/levelBCount}"
                                 icon="sap-icon://future"
                                 valueColor="Neutral"
-                                withMargin="false"/>
+                                withMargin="false"
+                            />
                         </TileContent>
                     </GenericTile>
                     <GenericTile
                         id="levelCTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
                         header="Level C"
-                        subheader="Compliant Modifications">
+                        subheader="Compliant Modifications"
+                    >
                         <TileContent id="levelCTileContent">
                             <NumericContent
                                 id="levelCNumeric"
                                 value="{viewModel>/levelCCount}"
                                 icon="sap-icon://customize"
                                 valueColor="Critical"
-                                withMargin="false"/>
+                                withMargin="false"
+                            />
                         </TileContent>
                     </GenericTile>
                 </HeaderContainer>
-                
+
                 <Table
                     id="analysesTable"
                     items="{
@@ -90,80 +105,157 @@
                     mode="SingleSelectMaster"
                     selectionChange="onAnalysisSelect"
                     growing="true"
-                    growingThreshold="20">
+                    growingThreshold="20"
+                >
                     <headerToolbar>
                         <OverflowToolbar id="analysesTableToolbar">
-                            <Title id="analysesTableTitle" text="Analyses" level="H2"/>
-                            <ToolbarSpacer id="analysesTableToolbarSpacer"/>
+                            <Title
+                                id="analysesTableTitle"
+                                text="Analyses"
+                                level="H2"
+                            />
+                            <ToolbarSpacer id="analysesTableToolbarSpacer" />
                             <SearchField
                                 id="analysesSearchField"
                                 width="200px"
                                 search="onSearch"
-                                placeholder="Search analyses..."/>
+                                placeholder="Search analyses..."
+                            />
                             <Button
                                 id="newAnalysisButton"
                                 text="New Analysis"
                                 icon="sap-icon://add"
                                 type="Emphasized"
-                                press="onStartWizard"/>
+                                press="onStartWizard"
+                            />
                             <Button
                                 id="backToProjectsButton"
                                 text="Back to Projects"
                                 icon="sap-icon://navigation-left-arrow"
-                                press="onBackToProjects"/>
+                                press="onBackToProjects"
+                            />
                         </OverflowToolbar>
                     </headerToolbar>
                     <columns>
-                        <Column id="ricefwIdColumn" width="10%">
-                            <Text id="ricefwIdHeader" text="RICEFW ID"/>
+                        <Column
+                            id="ricefwIdColumn"
+                            width="10%"
+                        >
+                            <Text
+                                id="ricefwIdHeader"
+                                text="RICEFW ID"
+                            />
                         </Column>
-                        <Column id="objectNameColumn" width="20%">
-                            <Text id="objectNameHeader" text="Object Name"/>
+                        <Column
+                            id="objectNameColumn"
+                            width="20%"
+                        >
+                            <Text
+                                id="objectNameHeader"
+                                text="Object Name"
+                            />
                         </Column>
-                        <Column id="typeColumn" width="10%">
-                            <Text id="typeHeader" text="Type"/>
+                        <Column
+                            id="typeColumn"
+                            width="10%"
+                        >
+                            <Text
+                                id="typeHeader"
+                                text="Type"
+                            />
                         </Column>
-                        <Column id="cleanCoreLevelColumn" width="12%">
-                            <Text id="cleanCoreLevelHeader" text="Clean Core Level"/>
+                        <Column
+                            id="cleanCoreLevelColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="cleanCoreLevelHeader"
+                                text="Clean Core Level"
+                            />
                         </Column>
-                        <Column id="techDebtColumn" width="12%">
-                            <Text id="techDebtHeader" text="Technical Debt"/>
+                        <Column
+                            id="techDebtColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="techDebtHeader"
+                                text="Technical Debt"
+                            />
                         </Column>
-                        <Column id="cloudReadyColumn" width="12%">
-                            <Text id="cloudReadyHeader" text="Cloud Readiness"/>
+                        <Column
+                            id="cloudReadyColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="cloudReadyHeader"
+                                text="Cloud Readiness"
+                            />
                         </Column>
-                        <Column id="analysesStatusColumn" width="12%">
-                            <Text id="analysesStatusHeader" text="Status"/>
+                        <Column
+                            id="analysesStatusColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="analysesStatusHeader"
+                                text="Status"
+                            />
                         </Column>
-                        <Column id="dateColumn" width="12%">
-                            <Text id="dateHeader" text="Date"/>
+                        <Column
+                            id="dateColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="dateHeader"
+                                text="Date"
+                            />
                         </Column>
                     </columns>
                     <items>
-                        <ColumnListItem id="analysesTableItem" type="Navigation" press="onAnalysisSelect">
+                        <ColumnListItem
+                            id="analysesTableItem"
+                            type="Navigation"
+                            press="onAnalysisSelect"
+                        >
                             <cells>
-                                <Text id="ricefwIdCell" text="{ricefwId}"/>
-                                <ObjectIdentifier id="objectNameCell" title="{objectName}" text="{objectDescription}"/>
-                                <Text id="objectTypeCell" text="{objectType}"/>
+                                <Text
+                                    id="ricefwIdCell"
+                                    text="{ricefwId}"
+                                />
+                                <ObjectIdentifier
+                                    id="objectNameCell"
+                                    title="{objectName}"
+                                    text="{objectDescription}"
+                                />
+                                <Text
+                                    id="objectTypeCell"
+                                    text="{objectType}"
+                                />
                                 <ObjectStatus
                                     id="finalRecommendationCell"
                                     text="{finalRecommendation}"
-                                    state="{= ${finalRecommendation} === 'Level A' ? 'Success' : ${finalRecommendation} === 'Level B' ? 'Information' : ${finalRecommendation} === 'Level C' ? 'Warning' : 'Error' }"/>
+                                    state="{= ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error'}"
+                                />
                                 <ProgressIndicator
                                     id="techDebtCell"
                                     percentValue="{technicalDebtScore}"
                                     displayValue="{technicalDebtScore}"
-                                    state="{= ${technicalDebtScore} &lt; 30 ? 'Success' : ${technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"/>
+                                    state="{= ${technicalDebtScore} &lt; 30 ? 'Success' : ${technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"
+                                />
                                 <ProgressIndicator
                                     id="cloudReadyCell"
                                     percentValue="{cloudReadinessScore}"
                                     displayValue="{cloudReadinessScore}"
-                                    state="{= ${cloudReadinessScore} &gt; 70 ? 'Success' : ${cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"/>
+                                    state="{= ${cloudReadinessScore} &gt; 70 ? 'Success' : ${cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"
+                                />
                                 <ObjectStatus
                                     id="analysesStatusCell"
                                     text="{status}"
-                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"/>
-                                <Text id="analysisDateCell" text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'None' }"
+                                />
+                                <Text
+                                    id="analysisDateCell"
+                                    text="{path: 'analysisDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"
+                                />
                             </cells>
                         </ColumnListItem>
                     </items>
