@@ -1,4 +1,5 @@
 const cds = require('@sap/cds');
+const cacheService = require('./cache-service');
 
 /**
  * Constraints Service - Performance thresholds and limitations management
@@ -9,6 +10,8 @@ const cds = require('@sap/cds');
  * and compliance constraints relevant to a Clean Core analysis context.
  * Checks user selections against defined thresholds and issues warnings
  * when limits are exceeded.
+ * 
+ * Uses caching layer for master data (PerformanceThreshold) with 1-hour TTL.
  * 
  * Constraint categories:
  * - Performance (e.g., max records per hour, API call limits)
@@ -59,14 +62,23 @@ class ConstraintsService {
     async getRelevantConstraints(objectType, deploymentType, volumeLevel, currentAnswer) {
         const { PerformanceThreshold } = cds.entities('sd');
         
-        // Build query to find relevant thresholds
-        const constraints = await SELECT.from(PerformanceThreshold)
-            .where({
-                isActive: true,
-                and: {
-                    applicableObjectTypes: { like: `%${this.getObjectCode(objectType)}%` }
-                }
-            });
+        // Try to get from cache first
+        const cacheKey = `${objectType || 'all'}_${deploymentType || 'all'}`;
+        let constraints = cacheService.get('PerformanceThreshold', cacheKey, 'master');
+        
+        if (!constraints) {
+            // Build query to find relevant thresholds
+            constraints = await SELECT.from(PerformanceThreshold)
+                .where({
+                    isActive: true,
+                    and: {
+                        applicableObjectTypes: { like: `%${this.getObjectCode(objectType)}%` }
+                    }
+                });
+            
+            // Cache the raw constraint data
+            cacheService.set('PerformanceThreshold', cacheKey, constraints, null, 'master');
+        }
         
         // Filter by deployment type if provided
         let filtered = constraints;
@@ -77,7 +89,7 @@ class ConstraintsService {
             );
         }
         
-        // Format results with violation warnings
+        // Format results with violation warnings (don't cache this as it's context-specific)
         return filtered.map(constraint => {
             const violation = this.checkViolation(constraint, volumeLevel, currentAnswer);
             return {

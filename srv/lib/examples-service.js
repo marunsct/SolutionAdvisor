@@ -1,7 +1,11 @@
 const cds = require('@sap/cds');
+const cacheService = require('./cache-service');
 
 /**
  * Examples Service - Handles real-world examples display
+ * 
+ * Uses caching for frequently accessed examples by object type.
+ * Cache TTL: 10 minutes (default cache tier)
  */
 class ExamplesService {
     constructor(srv) {
@@ -27,27 +31,38 @@ class ExamplesService {
     async getContextualExamples(objectType, scenario, keywords, context = {}, limit = 5) {
         const { RealWorldExample } = cds.entities('sd');
         
-        // Start with object type filter
-        let query = SELECT.from(RealWorldExample)
-            .where({ objectType, isActive: true });
+        // Generate cache key based on object type and filters
+        const cacheKey = `${objectType}_${context.industry || 'all'}_${context.cleanCoreLevel || 'all'}`;
+        let examples = cacheService.get('RealWorldExample', cacheKey);
         
-        // Apply optional filters from context
-        if (context.industry) {
-            query = query.and({ industry: context.industry });
+        if (!examples) {
+            // Start with object type filter
+            let query = SELECT.from(RealWorldExample)
+                .where({ objectType, isActive: true });
+            
+            // Apply optional filters from context
+            if (context.industry) {
+                query = query.and({ industry: context.industry });
+            }
+            
+            if (context.cleanCoreLevel) {
+                query = query.and({ cleanCoreLevel: context.cleanCoreLevel });
+            }
+            
+            examples = await query;
+            
+            // Cache the raw examples
+            if (examples && examples.length > 0) {
+                cacheService.set('RealWorldExample', cacheKey, examples);
+            }
         }
-        
-        if (context.cleanCoreLevel) {
-            query = query.and({ cleanCoreLevel: context.cleanCoreLevel });
-        }
-        
-        const examples = await query;
         
         // Return empty array if no examples found
         if (!examples || examples.length === 0) {
             return [];
         }
         
-        // Calculate relevance scores with enhanced algorithm
+        // Calculate relevance scores with enhanced algorithm (don't cache this as it's context-specific)
         let scored = examples.map(example => {
             const score = this.calculateRelevance(example, scenario, keywords, context);
             return {
