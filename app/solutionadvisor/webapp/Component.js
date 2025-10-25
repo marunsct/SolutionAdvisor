@@ -1,8 +1,11 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "sd/solutionadvisor/model/models",
-    "sd/solutionadvisor/localService/MockService"
-], (UIComponent, models, MockService) => {
+    "sd/solutionadvisor/localService/MockService",
+    "sd/solutionadvisor/services/NotificationService",
+    "sd/solutionadvisor/services/SearchService",
+    "sd/solutionadvisor/services/ThemeService"
+], (UIComponent, models, MockService, NotificationService, SearchService, ThemeService) => {
     "use strict";
 
     return UIComponent.extend("sd.solutionadvisor.Component", {
@@ -40,6 +43,9 @@ sap.ui.define([
             // Initialize mock services for local development and testing
             // We check URL parameter or local storage to determine if mock mode is active
             this._initMockServices();
+            
+            // Initialize shell services (notifications, search, theme)
+            this._initShellServices();
         },
         
         /**
@@ -85,6 +91,55 @@ sap.ui.define([
                 }
                 return false;
             }
+        },
+        
+        /**
+         * Initialize shell services (notifications, search, theme)
+         * @private
+         */
+        _initShellServices() {
+            // Initialize notification service
+            this._oNotificationService = new NotificationService(this);
+            this.setModel(this._oNotificationService.getModel(), "notifications");
+            
+            // Initialize search service
+            this._oSearchService = new SearchService(this);
+            this.setModel(this._oSearchService.getModel(), "search");
+            
+            // Initialize theme service
+            this._oThemeService = new ThemeService(this);
+            this.setModel(this._oThemeService.getModel(), "theme");
+            
+            if (sap.base && sap.base.Log) {
+                sap.base.Log.info("Component: Shell services initialized (notifications, search, theme)");
+            }
+        },
+        
+        /**
+         * Get notification service instance
+         * @returns {sd.solutionadvisor.services.NotificationService} Notification service
+         * @public
+         */
+        getNotificationService() {
+            return this._oNotificationService;
+        },
+        
+        /**
+         * Get search service instance
+         * @returns {sd.solutionadvisor.services.SearchService} Search service
+         * @public
+         */
+        getSearchService() {
+            return this._oSearchService;
+        },
+        
+        /**
+         * Get theme service instance
+         * @returns {sd.solutionadvisor.services.ThemeService} Theme service
+         * @public
+         */
+        getThemeService() {
+            return this._oThemeService;
         }
     });
 });

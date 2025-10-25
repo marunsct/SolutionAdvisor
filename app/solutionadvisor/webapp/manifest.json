@@ -27,16 +27,114 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "undefined-undefined": {
+        "SolutionAdvisor-wizard": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "wizard",
+          "title": "Start New Analysis",
+          "subTitle": "Create Clean Core Analysis",
+          "icon": "sap-icon://action",
+          "signature": {
+            "parameters": {
+              "projectId": {
+                "required": false,
+                "filter": {
+                  "value": "{projectId}",
+                  "format": "plain"
+                }
+              },
+              "sessionId": {
+                "required": false,
+                "filter": {
+                  "value": "{sessionId}",
+                  "format": "plain"
+                }
+              },
+              "analysisId": {
+                "required": false,
+                "filter": {
+                  "value": "{analysisId}",
+                  "format": "plain"
+                }
+              }
+            },
+            "additionalParameters": "allowed"
+          }
+        },
+        "SolutionAdvisor-projects": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "projects",
+          "title": "My Projects",
+          "subTitle": "S/4HANA Implementation Projects",
+          "icon": "sap-icon://folder",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
           }
         },
-        "solitionadvisor-display": {
-          "semanticObject": "solitionadvisor",
-          "action": "display",
-          "title": "{{solitionadvisor-display.flpTitle}}",
+        "SolutionAdvisor-analytics": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "analytics",
+          "title": "Analytics Dashboard",
+          "subTitle": "Clean Core Metrics & Trends",
+          "icon": "sap-icon://bar-chart",
+          "signature": {
+            "parameters": {
+              "projectId": {
+                "required": false,
+                "filter": {
+                  "value": "{projectId}",
+                  "format": "plain"
+                }
+              },
+              "dateFrom": {
+                "required": false
+              },
+              "dateTo": {
+                "required": false
+              }
+            },
+            "additionalParameters": "allowed"
+          }
+        },
+        "SolutionAdvisor-analyses": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "analyses",
+          "title": "All Analyses",
+          "subTitle": "RICEFW Object Analyses",
+          "icon": "sap-icon://list",
+          "signature": {
+            "parameters": {
+              "projectId": {
+                "required": false,
+                "filter": {
+                  "value": "{projectId}",
+                  "format": "plain"
+                }
+              },
+              "status": {
+                "required": false,
+                "filter": {
+                  "value": "{status}",
+                  "format": "plain"
+                }
+              },
+              "level": {
+                "required": false,
+                "filter": {
+                  "value": "{level}",
+                  "format": "plain"
+                }
+              }
+            },
+            "additionalParameters": "allowed"
+          }
+        },
+        "SolutionAdvisor-admin": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "admin",
+          "title": "Administration",
+          "subTitle": "Master Data & Configuration",
+          "icon": "sap-icon://settings",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
