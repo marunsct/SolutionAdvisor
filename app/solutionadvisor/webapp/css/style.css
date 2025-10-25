@@ -986,3 +986,121 @@ html {
 #flowchartSvgContainer::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* ============================================
+   NOTIFICATION CENTER STYLING
+   ============================================ */
+
+/* Notification Badge on Shell Bar */
+.notificationBadge {
+    position: relative;
+}
+
+.notificationBadge::after {
+    content: attr(data-count);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #e53935;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0.125rem 0.375rem;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Notification Popover Styling */
+#notificationPopover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+#notificationPopover .sapMPopoverCont {
+    padding: 0;
+}
+
+/* Notification List Item Unread State */
+.sapUiNotificationListItemUnread {
+    background-color: #f5f9ff;
+    border-left: 4px solid #0854a0;
+}
+
+.sapUiNotificationListItemUnread:hover {
+    background-color: #e8f3ff;
+}
+
+/* Notification Title Bold for Unread */
+.sapUiNotificationTitle {
+    font-weight: 600;
+}
+
+/* Notification Icon Color States */
+.notificationIconCritical {
+    color: #e53935;
+}
+
+.notificationIconWarning {
+    color: #ff9800;
+}
+
+.notificationIconSuccess {
+    color: #4caf50;
+}
+
+.notificationIconInfo {
+    color: #2196f3;
+}
+
+/* Notification Tab Bar */
+#notificationTabs {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#notificationTabs .sapMITBFilter {
+    font-size: 0.875rem;
+}
+
+/* Notification List Container */
+#notificationsList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Notification Empty State */
+#notificationsList .sapMListNoData {
+    padding: 2rem;
+    text-align: center;
+    color: #757575;
+}
+
+/* Notification Action Buttons */
+.notificationActions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+/* Notification Timestamp */
+.notificationTimestamp {
+    font-size: 0.75rem;
+    color: #757575;
+}
+
+/* Notification Settings Dialog */
+.notificationSettingsPanel {
+    padding: 1rem;
+}
+
+/* Responsive Notification Center */
+@media (max-width: 600px) {
+    #notificationPopover {
+        max-width: 95vw !important;
+        max-height: 85vh !important;
+    }
+    
+    #notificationsList {
+        max-height: 60vh;
+    }
+}
+

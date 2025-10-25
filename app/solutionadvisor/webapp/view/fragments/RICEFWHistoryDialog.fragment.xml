@@ -1,0 +1,250 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:viz="sap.viz.ui5.controls">
+    
+    <Dialog
+        id="ricefwHistoryDialog"
+        title="RICEFW Object History - {historyModel>/ricefwId}"
+        contentWidth="900px"
+        contentHeight="700px"
+        resizable="true"
+        draggable="true">
+        
+        <content>
+            <l:VerticalLayout width="100%">
+                
+                <!-- Summary Header -->
+                <f:SimpleForm
+                    id="historyS ummaryForm"
+                    editable="false"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="2"
+                    columnsL="2"
+                    columnsM="1">
+                    <f:content>
+                        <Label text="RICEFW ID"/>
+                        <Text text="{historyModel>/ricefwId}"/>
+                        
+                        <Label text="Object Type"/>
+                        <Text text="{historyModel>/objectType}"/>
+                        
+                        <Label text="Total Analyses"/>
+                        <Text text="{historyModel>/totalAnalyses}"/>
+                        
+                        <Label text="Latest Decision"/>
+                        <Text text="{historyModel>/latestDecision}"/>
+                        
+                        <Label text="First Analysis"/>
+                        <Text text="{
+                            path: 'historyModel>/firstAnalysisDate',
+                            formatter: '.formatter.formatDate'
+                        }"/>
+                        
+                        <Label text="Last Analysis"/>
+                        <Text text="{
+                            path: 'historyModel>/lastAnalysisDate',
+                            formatter: '.formatter.formatDate'
+                        }"/>
+                    </f:content>
+                </f:SimpleForm>
+                
+                <Toolbar id="historyToolbar">
+                    <Title id="historyTimelineTitle" text="Decision Timeline" level="H4"/>
+                    <ToolbarSpacer id="historyToolbarSpacer"/>
+                    <Button
+                        id="exportHistoryBtn"
+                        text="Export"
+                        icon="sap-icon://excel-attachment"
+                        press=".onExportHistory"/>
+                </Toolbar>
+                
+                <!-- Trend Chart -->
+                <Panel
+                    id="trendChartPanel"
+                    headerText="Clean Core Level Trend"
+                    expandable="true"
+                    expanded="true"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox id="trendChartBox" height="250px" width="100%">
+                            <viz:VizFrame
+                                id="historyTrendChart"
+                                vizType="line"
+                                width="100%"
+                                height="100%"
+                                uiConfig="{applicationSet:'fiori'}"
+                                vizProperties="{
+                                    title: {
+                                        visible: false
+                                    },
+                                    plotArea: {
+                                        dataLabel: {
+                                            visible: true
+                                        }
+                                    },
+                                    legend: {
+                                        visible: true
+                                    }
+                                }">
+                                <viz:dataset>
+                                    <viz:FlattenedDataset data="{historyModel>/trendData}">
+                                        <viz:dimensions>
+                                            <viz:DimensionDefinition name="Analysis Date" value="{historyModel>analysisDate}"/>
+                                        </viz:dimensions>
+                                        <viz:measures>
+                                            <viz:MeasureDefinition name="Level Score" value="{historyModel>levelScore}"/>
+                                            <viz:MeasureDefinition name="Technical Debt" value="{historyModel>technicalDebtScore}"/>
+                                            <viz:MeasureDefinition name="Cloud Readiness" value="{historyModel>cloudReadinessScore}"/>
+                                        </viz:measures>
+                                    </viz:FlattenedDataset>
+                                </viz:dataset>
+                                <viz:feeds>
+                                    <viz:FeedItem uid="valueAxis" type="Measure" values="Level Score,Technical Debt,Cloud Readiness"/>
+                                    <viz:FeedItem uid="categoryAxis" type="Dimension" values="Analysis Date"/>
+                                </viz:feeds>
+                            </viz:VizFrame>
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- History Timeline List -->
+                <Panel
+                    id="timelinePanel"
+                    headerText="Detailed History"
+                    expandable="false"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <Table
+                            id="historyTable"
+                            items="{
+                                path: 'historyModel>/analyses',
+                                sorter: {
+                                    path: 'analysisDate',
+                                    descending: true
+                                }
+                            }"
+                            growing="true"
+                            growingThreshold="10"
+                            mode="SingleSelectMaster"
+                            selectionChange=".onHistoryItemSelect">
+                            
+                            <columns>
+                                <Column width="12em">
+                                    <Text text="Analysis Date"/>
+                                </Column>
+                                <Column width="8em">
+                                    <Text text="Level"/>
+                                </Column>
+                                <Column width="10em">
+                                    <Text text="Tech Debt"/>
+                                </Column>
+                                <Column width="10em">
+                                    <Text text="Cloud Ready"/>
+                                </Column>
+                                <Column width="10em">
+                                    <Text text="Upgrade Impact"/>
+                                </Column>
+                                <Column width="12em">
+                                    <Text text="Analyst"/>
+                                </Column>
+                                <Column width="8em">
+                                    <Text text="Actions"/>
+                                </Column>
+                            </columns>
+                            
+                            <items>
+                                <ColumnListItem type="Active">
+                                    <cells>
+                                        <VBox>
+                                            <Text text="{
+                                                path: 'historyModel>analysisDate',
+                                                formatter: '.formatter.formatDate'
+                                            }"/>
+                                            <ObjectStatus
+                                                text="{= ${historyModel>isLatest} ? 'Latest' : '' }"
+                                                state="Success"
+                                                visible="{historyModel>isLatest}"/>
+                                        </VBox>
+                                        <ObjectStatus
+                                            text="{historyModel>recommendedLevel}"
+                                            state="{= ${historyModel>recommendedLevel} === 'Level A' ? 'Success' :
+                                                     ${historyModel>recommendedLevel} === 'Level B' ? 'Information' :
+                                                     ${historyModel>recommendedLevel} === 'Level C' ? 'Warning' :
+                                                     'Error' }"/>
+                                        <VBox>
+                                            <Text text="{historyModel>technicalDebtScore}"/>
+                                            <ProgressIndicator
+                                                percentValue="{historyModel>technicalDebtScore}"
+                                                displayValue="{historyModel>technicalDebtScore}%"
+                                                state="{= ${historyModel>technicalDebtScore} > 70 ? 'Error' :
+                                                         ${historyModel>technicalDebtScore} > 40 ? 'Warning' :
+                                                         'Success' }"/>
+                                        </VBox>
+                                        <VBox>
+                                            <Text text="{historyModel>cloudReadinessScore}"/>
+                                            <ProgressIndicator
+                                                percentValue="{historyModel>cloudReadinessScore}"
+                                                displayValue="{historyModel>cloudReadinessScore}%"
+                                                state="{= ${historyModel>cloudReadinessScore} > 70 ? 'Success' :
+                                                         ${historyModel>cloudReadinessScore} > 40 ? 'Warning' :
+                                                         'Error' }"/>
+                                        </VBox>
+                                        <VBox>
+                                            <Text text="{historyModel>upgradeImpactScore}"/>
+                                            <ProgressIndicator
+                                                percentValue="{historyModel>upgradeImpactScore}"
+                                                displayValue="{historyModel>upgradeImpactScore}%"
+                                                state="{= ${historyModel>upgradeImpactScore} > 70 ? 'Error' :
+                                                         ${historyModel>upgradeImpactScore} > 40 ? 'Warning' :
+                                                         'Success' }"/>
+                                        </VBox>
+                                        <VBox>
+                                            <Text text="{historyModel>createdBy}"/>
+                                            <Text text="{historyModel>projectName}" class="sapUiSmallMarginTop"/>
+                                        </VBox>
+                                        <HBox>
+                                            <Button
+                                                icon="sap-icon://detail-view"
+                                                type="Transparent"
+                                                tooltip="View Details"
+                                                press=".onViewHistoryDetails"/>
+                                            <Button
+                                                icon="sap-icon://copy"
+                                                type="Transparent"
+                                                tooltip="Copy Analysis"
+                                                press=".onCopyAnalysis"/>
+                                        </HBox>
+                                    </cells>
+                                    
+                                    <customData>
+                                        <core:CustomData key="analysisId" value="{historyModel>ID}"/>
+                                    </customData>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </content>
+                </Panel>
+                
+            </l:VerticalLayout>
+        </content>
+        
+        <beginButton>
+            <Button
+                id="closeHistoryDialogBtn"
+                text="Close"
+                press=".onCloseHistoryDialog"/>
+        </beginButton>
+        
+    </Dialog>
+</core:FragmentDefinition>

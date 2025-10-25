@@ -37,6 +37,7 @@ env/
 
 # auto generated wildcard
 db/.env
+.env
 # added by cds
 
 

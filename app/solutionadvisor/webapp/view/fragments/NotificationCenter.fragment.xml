@@ -1,0 +1,175 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    
+    <Popover
+        id="notificationPopover"
+        class="sapUiContentPadding"
+        placement="Bottom"
+        showHeader="true"
+        title="Notifications"
+        contentWidth="380px"
+        contentHeight="500px">
+        
+        <customHeader>
+            <Bar id="notificationHeaderBar">
+                <contentLeft>
+                    <Title id="notificationTitle" text="Notifications" level="H5"/>
+                </contentLeft>
+                <contentRight>
+                    <Button
+                        id="closeNotificationBtn"
+                        icon="sap-icon://decline"
+                        type="Transparent"
+                        press=".onCloseNotificationCenter"
+                        tooltip="Close"/>
+                    <Button
+                        id="refreshNotificationBtn"
+                        icon="sap-icon://refresh"
+                        type="Transparent"
+                        press=".onRefreshNotifications"
+                        tooltip="Refresh"/>
+                    <Button
+                        id="markAllReadBtn"
+                        text="Mark All Read"
+                        type="Transparent"
+                        press=".onMarkAllNotificationsRead"
+                        enabled="{= ${notificationModel>/unreadCount} > 0 }"/>
+                </contentRight>
+            </Bar>
+        </customHeader>
+        
+        <content>
+            <VBox id="notificationContentBox">
+                <!-- Filter Tabs -->
+                <IconTabBar
+                    id="notificationTabs"
+                    select=".onNotificationTabSelect"
+                    class="sapUiResponsiveContentPadding">
+                    <items>
+                        <IconTabFilter
+                            id="allNotificationsTab"
+                            key="all"
+                            text="All"
+                            count="{notificationModel>/totalCount}">
+                        </IconTabFilter>
+                        <IconTabFilter
+                            id="unreadNotificationsTab"
+                            key="unread"
+                            text="Unread"
+                            count="{notificationModel>/unreadCount}">
+                        </IconTabFilter>
+                        <IconTabFilter
+                            id="constraintNotificationsTab"
+                            key="constraint"
+                            text="Constraints"
+                            icon="sap-icon://warning"
+                            iconColor="Critical"
+                            count="{notificationModel>/constraintCount}">
+                        </IconTabFilter>
+                        <IconTabFilter
+                            id="infoNotificationsTab"
+                            key="info"
+                            text="Info"
+                            icon="sap-icon://information"
+                            iconColor="Neutral">
+                        </IconTabFilter>
+                    </items>
+                </IconTabBar>
+                
+                <!-- Notifications List -->
+                <List
+                    id="notificationsList"
+                    items="{
+                        path: 'notificationModel>/notifications',
+                        sorter: {
+                            path: 'timestamp',
+                            descending: true
+                        }
+                    }"
+                    mode="None"
+                    noDataText="No notifications"
+                    growing="true"
+                    growingThreshold="20">
+                    
+                    <CustomListItem
+                        type="Active"
+                        press=".onNotificationPress">
+                        
+                        <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                            <VBox class="sapUiSmallMarginEnd" width="80%">
+                                <HBox alignItems="Center">
+                                    <core:Icon
+                                        src="{= ${notificationModel>type} === 'ConstraintViolation' ? 'sap-icon://warning' : 
+                                             ${notificationModel>type} === 'AnalysisComplete' ? 'sap-icon://accept' :
+                                             ${notificationModel>type} === 'ProjectAssigned' ? 'sap-icon://person-placeholder' :
+                                             'sap-icon://information' }"
+                                        color="{= ${notificationModel>severity} === 'Error' ? 'Critical' :
+                                                ${notificationModel>severity} === 'Warning' ? 'Critical' :
+                                                'Neutral' }"
+                                        class="sapUiTinyMarginEnd"/>
+                                    <Text
+                                        text="{notificationModel>title}"
+                                        class="{= ${notificationModel>isRead} ? '' : 'sapUiNotificationTitle' }"
+                                        maxLines="1"/>
+                                </HBox>
+                                <Text
+                                    text="{notificationModel>message}"
+                                    class="sapUiTinyMarginTop"
+                                    maxLines="2"/>
+                                <Text
+                                    text="{
+                                        path: 'notificationModel>timestamp',
+                                        formatter: '.formatter.formatDateTime'
+                                    }"
+                                    class="sapUiTinyMarginTop sapUiSmallMarginBottom"
+                                    wrapping="false"/>
+                            </VBox>
+                            <VBox alignItems="End">
+                                <Button
+                                    id="markReadBtn"
+                                    icon="sap-icon://accept"
+                                    type="Transparent"
+                                    tooltip="Mark as Read"
+                                    visible="{= !${notificationModel>isRead} }"
+                                    press=".onMarkNotificationRead"/>
+                                <Button
+                                    id="deleteNotificationBtn"
+                                    icon="sap-icon://delete"
+                                    type="Transparent"
+                                    tooltip="Delete"
+                                    press=".onDeleteNotification"/>
+                            </VBox>
+                        </HBox>
+                        
+                        <customData>
+                            <core:CustomData 
+                                key="notificationId" 
+                                value="{notificationModel>id}" />
+                            <core:CustomData 
+                                key="isRead" 
+                                value="{notificationModel>isRead}" />
+                        </customData>
+                    </CustomListItem>
+                </List>
+            </VBox>
+        </content>
+        
+        <footer>
+            <Toolbar id="notificationFooterToolbar">
+                <ToolbarSpacer id="notificationFooterSpacer"/>
+                <Button
+                    id="clearAllBtn"
+                    text="Clear All"
+                    type="Transparent"
+                    press=".onClearAllNotifications"
+                    enabled="{= ${notificationModel>/totalCount} > 0 }"/>
+                <Button
+                    id="notificationSettingsBtn"
+                    text="Settings"
+                    type="Emphasized"
+                    press=".onOpenNotificationSettings"/>
+            </Toolbar>
+        </footer>
+    </Popover>
+</core:FragmentDefinition>

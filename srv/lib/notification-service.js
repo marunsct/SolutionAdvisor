@@ -9,9 +9,11 @@
  * 
  * Supports multiple notification channels:
  * - In-app notifications (stored in database)
- * - Email notifications (via SAP Destination Service)
+ * - Email notifications (via SAP Destination Service or SMTP)
  * - Push notifications (via SAP Mobile Services)
  */
+
+const cds = require('@sap/cds');
 
 class NotificationService {
     /**
@@ -406,8 +408,6 @@ class NotificationService {
      */
     async _sendEmailNotification(notification, userData) {
         try {
-            // In production, use SAP Destination Service to connect to email service
-            // For now, log the email attempt
             const emailContent = {
                 to: userData.email,
                 subject: notification.title,
@@ -415,10 +415,43 @@ class NotificationService {
                 priority: notification.severity === 'Error' ? 'High' : 'Normal'
             };
 
-            console.log('NotificationService: Email notification sent to:', userData.email);
-            console.log('Email subject:', emailContent.subject);
+            // Try to get mail service configuration from CDS
+            const mailConfig = cds.env.requires.mail;
             
-            return { success: true, emailSent: true };
+            if (mailConfig && mailConfig.kind === 'smtp') {
+                // Use nodemailer for SMTP-based email
+                const nodemailer = require('nodemailer');
+                
+                const transporter = nodemailer.createTransporter({
+                    host: mailConfig.host || process.env.SMTP_HOST,
+                    port: mailConfig.port || process.env.SMTP_PORT || 587,
+                    secure: mailConfig.secure || false, // true for 465, false for other ports
+                    auth: {
+                        user: mailConfig.user || process.env.SMTP_USER,
+                        pass: mailConfig.pass || process.env.SMTP_PASS
+                    }
+                });
+
+                await transporter.sendMail({
+                    from: mailConfig.from || process.env.SMTP_FROM || '"SAP Clean Core Advisor" <noreply@cleancore.sap.com>',
+                    to: emailContent.to,
+                    subject: emailContent.subject,
+                    html: emailContent.body,
+                    priority: emailContent.priority.toLowerCase()
+                });
+
+                console.log('NotificationService: Email sent successfully to:', userData.email);
+                return { success: true, emailSent: true };
+                
+            } else {
+                // Fallback: Log email (development mode)
+                console.log('NotificationService: Email notification (not sent - no SMTP config)');
+                console.log('To:', emailContent.to);
+                console.log('Subject:', emailContent.subject);
+                console.log('Priority:', emailContent.priority);
+                
+                return { success: true, emailSent: false, mode: 'log-only' };
+            }
         } catch (error) {
             console.error('NotificationService: Failed to send email:', error);
             // Don't throw - email failure should not block notification creation

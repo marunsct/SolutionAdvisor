@@ -16,6 +16,7 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "node-cache": "^5.1.2",
+    "nodemailer": "^6.9.7",
     "passport": "^0.7.0",
     "xlsx": "^0.18.5"
   },
@@ -50,7 +51,27 @@
     "requires": {
       "[production]": {
         "db": "hana",
-        "auth": "xsuaa"
+        "auth": "xsuaa",
+        "mail": {
+          "kind": "smtp",
+          "host": "${env:SMTP_HOST}",
+          "port": "${env:SMTP_PORT}",
+          "secure": false,
+          "user": "${env:SMTP_USER}",
+          "pass": "${env:SMTP_PASS}",
+          "from": "${env:SMTP_FROM}"
+        }
+      },
+      "[development]": {
+        "mail": {
+          "kind": "smtp",
+          "host": "${env:SMTP_HOST}",
+          "port": "${env:SMTP_PORT}",
+          "secure": false,
+          "user": "${env:SMTP_USER}",
+          "pass": "${env:SMTP_PASS}",
+          "from": "SAP Clean Core Advisor <noreply@cleancore.local>"
+        }
       },
       "auth": {
         "[development]": {

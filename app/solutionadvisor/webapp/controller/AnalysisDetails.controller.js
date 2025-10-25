@@ -328,6 +328,74 @@ sap.ui.define([
         },
 
         /**
+         * Zoom in on flowchart
+         */
+        onZoomIn() {
+            this._applyZoom(1.2); // Zoom in by 20%
+        },
+
+        /**
+         * Zoom out on flowchart
+         */
+        onZoomOut() {
+            this._applyZoom(0.8); // Zoom out by 20%
+        },
+
+        /**
+         * Reset flowchart zoom to original size
+         */
+        onResetZoom() {
+            const container = document.getElementById("flowchartSvgContainer");
+            if (!container) return;
+            
+            const svg = container.querySelector("svg");
+            if (svg && typeof window.d3 !== 'undefined' && window.d3.select) {
+                const d3Svg = window.d3.select(svg);
+                
+                // Reset to identity transform
+                const zoom = window.d3.zoom();
+                d3Svg.call(zoom.transform, window.d3.zoomIdentity);
+                
+                MessageToast.show("Zoom reset");
+            }
+        },
+
+        /**
+         * Apply zoom transformation
+         * @param {number} scaleFactor - Zoom scale factor
+         * @private
+         */
+        _applyZoom(scaleFactor) {
+            const container = document.getElementById("flowchartSvgContainer");
+            if (!container) return;
+            
+            const svg = container.querySelector("svg");
+            if (svg && typeof window.d3 !== 'undefined' && window.d3.select && window.d3.zoom) {
+                const d3Svg = window.d3.select(svg);
+                const currentTransform = window.d3.zoomTransform(svg);
+                
+                // Calculate new scale
+                const newScale = currentTransform.k * scaleFactor;
+                
+                // Constrain scale between 0.3 and 3
+                if (newScale < 0.3 || newScale > 3) {
+                    MessageToast.show(newScale < 0.3 ? "Minimum zoom reached" : "Maximum zoom reached");
+                    return;
+                }
+                
+                // Apply transformation
+                const zoom = window.d3.zoom();
+                const newTransform = window.d3.zoomIdentity
+                    .translate(currentTransform.x, currentTransform.y)
+                    .scale(newScale);
+                    
+                d3Svg.transition()
+                    .duration(300)
+                    .call(zoom.transform, newTransform);
+            }
+        },
+
+        /**
          * Setup radar chart for scoring visualization
          * @private
          */
