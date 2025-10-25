@@ -8,27 +8,254 @@
 
         <script>
             window["sap-ushell-config"] = {
-  "defaultRenderer": "fiori2",
-  "renderers": {
-    "fiori2": {
-      "componentData": {
-        "config": {
-          "enableSearch": false
-        }
-      }
-    }
-  },
-  "applications": {
-    "solitionadvisor-display": {
-      "title": "SAP Solution Advisor",
-      "description": "SAP Solution Advisor",
-      "applicationType": "URL",
-      "navigationMode": "newWindowThenEmbedded",
-      "url": "./solutionadvisor/webapp",
-      "additionalInformation": "SAPUI5.Component=sd.solutionadvisor"
-    }
-  }
-};
+                "defaultRenderer": "fiori2",
+                "bootstrapPlugins": {
+                    "ShellPlugin": {
+                        "component": "sd.solutionadvisor.shellplugin"
+                    }
+                },
+                "renderers": {
+                    "fiori2": {
+                        "componentData": {
+                            "config": {
+                                "enableSearch": true,
+                                "enablePersonalization": true,
+                                "enableHelp": true,
+                                "enableUserDefaultParameters": true,
+                                "enableNotifications": true,
+                                "enableRecentActivity": true,
+                                "enableTileActionsIcon": false,
+                                "applications": {
+                                    "Shell-home": {}
+                                },
+                                "rootIntent": "Shell-home"
+                            }
+                        }
+                    }
+                },
+                "services": {
+                    "LaunchPage": {
+                        "adapter": {
+                            "config": {
+                                "catalogs": [{
+                                    "id": "sd_solutionadvisor_catalog",
+                                    "title": "Solution Advisor",
+                                    "tiles": [
+                                        {
+                                            "id": "wizard-tile",
+                                            "title": "Start New Analysis",
+                                            "subtitle": "Guided wizard for RICEFW analysis",
+                                            "icon": "sap-icon://action",
+                                            "info": "Quick Start",
+                                            "size": "1x1",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "keywords": ["wizard", "analysis", "ricefw"],
+                                            "target": {
+                                                "semanticObject": "SolutionAdvisor",
+                                                "action": "wizard"
+                                            }
+                                        },
+                                        {
+                                            "id": "projects-tile",
+                                            "title": "My Projects",
+                                            "subtitle": "S/4HANA implementation projects",
+                                            "icon": "sap-icon://folder",
+                                            "info": "Manage",
+                                            "size": "1x1",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "keywords": ["projects", "s4hana"],
+                                            "target": {
+                                                "semanticObject": "SolutionAdvisor",
+                                                "action": "projects"
+                                            }
+                                        },
+                                        {
+                                            "id": "analytics-tile",
+                                            "title": "Analytics Dashboard",
+                                            "subtitle": "Clean core metrics and trends",
+                                            "icon": "sap-icon://bar-chart",
+                                            "info": "Dashboard",
+                                            "size": "1x2",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "keywords": ["analytics", "dashboard", "metrics"],
+                                            "target": {
+                                                "semanticObject": "SolutionAdvisor",
+                                                "action": "analytics"
+                                            }
+                                        },
+                                        {
+                                            "id": "analyses-tile",
+                                            "title": "All Analyses",
+                                            "subtitle": "RICEFW object analyses",
+                                            "icon": "sap-icon://list",
+                                            "info": "Browse",
+                                            "size": "1x1",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "keywords": ["analyses", "ricefw", "list"],
+                                            "target": {
+                                                "semanticObject": "SolutionAdvisor",
+                                                "action": "analyses"
+                                            }
+                                        },
+                                        {
+                                            "id": "admin-tile",
+                                            "title": "Administration",
+                                            "subtitle": "Master data and configuration",
+                                            "icon": "sap-icon://settings",
+                                            "info": "Configure",
+                                            "size": "1x1",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "keywords": ["admin", "configuration"],
+                                            "target": {
+                                                "semanticObject": "SolutionAdvisor",
+                                                "action": "admin"
+                                            }
+                                        }
+                                    ]
+                                }],
+                                "groups": [{
+                                    "id": "sd_home_group",
+                                    "title": "Clean Core Analysis",
+                                    "isPreset": true,
+                                    "isVisible": true,
+                                    "isDefaultGroup": true,
+                                    "tiles": [
+                                        {
+                                            "id": "wizard-tile",
+                                            "catalogId": "sd_solutionadvisor_catalog"
+                                        },
+                                        {
+                                            "id": "projects-tile",
+                                            "catalogId": "sd_solutionadvisor_catalog"
+                                        },
+                                        {
+                                            "id": "analytics-tile",
+                                            "catalogId": "sd_solutionadvisor_catalog"
+                                        },
+                                        {
+                                            "id": "analyses-tile",
+                                            "catalogId": "sd_solutionadvisor_catalog"
+                                        }
+                                    ]
+                                }, {
+                                    "id": "sd_admin_group",
+                                    "title": "Administration",
+                                    "isPreset": false,
+                                    "isVisible": true,
+                                    "tiles": [
+                                        {
+                                            "id": "admin-tile",
+                                            "catalogId": "sd_solutionadvisor_catalog"
+                                        }
+                                    ]
+                                }]
+                            }
+                        }
+                    },
+                    "NavTargetResolution": {
+                        "config": {
+                            "enableClientSideTargetResolution": true
+                        }
+                    },
+                    "ClientSideTargetResolution": {
+                        "adapter": {
+                            "config": {
+                                "inbounds": {
+                                    "SolutionAdvisor-wizard": {
+                                        "semanticObject": "SolutionAdvisor",
+                                        "action": "wizard",
+                                        "title": "Start New Analysis",
+                                        "signature": {
+                                            "parameters": {
+                                                "projectId": {
+                                                    "defaultValue": {
+                                                        "value": ""
+                                                    }
+                                                }
+                                            },
+                                            "additionalParameters": "allowed"
+                                        },
+                                        "resolutionResult": {
+                                            "applicationType": "SAPUI5",
+                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
+                                            "url": "./solutionadvisor/webapp"
+                                        }
+                                    },
+                                    "SolutionAdvisor-projects": {
+                                        "semanticObject": "SolutionAdvisor",
+                                        "action": "projects",
+                                        "title": "My Projects",
+                                        "signature": {
+                                            "parameters": {},
+                                            "additionalParameters": "allowed"
+                                        },
+                                        "resolutionResult": {
+                                            "applicationType": "SAPUI5",
+                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
+                                            "url": "./solutionadvisor/webapp"
+                                        }
+                                    },
+                                    "SolutionAdvisor-analytics": {
+                                        "semanticObject": "SolutionAdvisor",
+                                        "action": "analytics",
+                                        "title": "Analytics Dashboard",
+                                        "signature": {
+                                            "parameters": {},
+                                            "additionalParameters": "allowed"
+                                        },
+                                        "resolutionResult": {
+                                            "applicationType": "SAPUI5",
+                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
+                                            "url": "./solutionadvisor/webapp"
+                                        }
+                                    },
+                                    "SolutionAdvisor-analyses": {
+                                        "semanticObject": "SolutionAdvisor",
+                                        "action": "analyses",
+                                        "title": "All Analyses",
+                                        "signature": {
+                                            "parameters": {
+                                                "projectId": {
+                                                    "defaultValue": {
+                                                        "value": ""
+                                                    }
+                                                }
+                                            },
+                                            "additionalParameters": "allowed"
+                                        },
+                                        "resolutionResult": {
+                                            "applicationType": "SAPUI5",
+                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
+                                            "url": "./solutionadvisor/webapp"
+                                        }
+                                    },
+                                    "SolutionAdvisor-admin": {
+                                        "semanticObject": "SolutionAdvisor",
+                                        "action": "admin",
+                                        "title": "Administration",
+                                        "signature": {
+                                            "parameters": {},
+                                            "additionalParameters": "allowed"
+                                        },
+                                        "resolutionResult": {
+                                            "applicationType": "SAPUI5",
+                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
+                                            "url": "./solutionadvisor/webapp"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "Notifications": {
+                        "config": {
+                            "enabled": true,
+                            "serviceUrl": "/service/SolutionAdvisorSvcs/Notifications",
+                            "pollingIntervalInSeconds": 60
+                        }
+                    }
+                }
+            };
         </script>
         <link rel="stylesheet" href="assets/launchpad.css">
         <script src="https://ui5.sap.com/1.129.2/test-resources/sap/ushell/bootstrap/sandbox.js"></script>

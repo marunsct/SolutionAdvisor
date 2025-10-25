@@ -1,0 +1,25 @@
+<core:View
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    height="100%">
+    <GenericTile
+        class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout"
+        header="My Projects"
+        subheader="Manage project configurations"
+        press="onPress">
+        <TileContent>
+            <NumericContent
+                value="{tile>/kpis/activeProjects}"
+                scale=""
+                valueColor="Good"
+                indicator="{= ${tile>/trends/projectsChange} > 0 ? 'Up' : ${tile>/trends/projectsChange} &lt; 0 ? 'Down' : 'None' }"
+                withMargin="false">
+            </NumericContent>
+        </TileContent>
+        <TileContent>
+            <NewsContent
+                contentText="Active projects ready for analysis"
+                subheader="Manage Projects" />
+        </TileContent>
+    </GenericTile>
+</core:View>

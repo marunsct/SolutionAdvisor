@@ -1,0 +1,24 @@
+<core:View
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    height="100%">
+    <GenericTile
+        class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout"
+        header="All Analyses"
+        subheader="Browse and manage analyses"
+        press="onPress">
+        <TileContent>
+            <NumericContent
+                value="{tile>/kpis/totalAnalyses}"
+                scale=""
+                valueColor="Neutral"
+                withMargin="false">
+            </NumericContent>
+        </TileContent>
+        <TileContent>
+            <NewsContent
+                contentText="{= 'Level A: ' + ${tile>/kpis/levelACount} + ' | Level B: ' + ${tile>/kpis/levelBCount} }"
+                subheader="Distribution by Level" />
+        </TileContent>
+    </GenericTile>
+</core:View>

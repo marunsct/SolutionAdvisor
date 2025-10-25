@@ -1,0 +1,38 @@
+<core:View
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:micro="sap.suite.ui.microchart"
+    height="100%">
+    <GenericTile
+        class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout analyticsTile"
+        header="Analytics Dashboard"
+        subheader="View trends and metrics"
+        press="onPress"
+        frameType="TwoByOne">
+        <TileContent>
+            <NumericContent
+                value="{tile>/kpis/avgTechnicalDebt}"
+                scale=""
+                valueColor="{= ${tile>/kpis/avgTechnicalDebt} &lt; 40 ? 'Good' : ${tile>/kpis/avgTechnicalDebt} &lt; 70 ? 'Critical' : 'Error' }"
+                indicator="{= ${tile>/trends/debtTrend} === 'down' ? 'Down' : ${tile>/trends/debtTrend} === 'up' ? 'Up' : 'None' }"
+                withMargin="false"
+                truncateValueTo="4">
+                <content>
+                    <Text text="Avg Technical Debt" />
+                </content>
+            </NumericContent>
+        </TileContent>
+        <TileContent>
+            <NumericContent
+                value="{tile>/kpis/avgCloudReadiness}"
+                scale="%"
+                valueColor="{= ${tile>/kpis/avgCloudReadiness} > 70 ? 'Good' : ${tile>/kpis/avgCloudReadiness} > 40 ? 'Critical' : 'Error' }"
+                withMargin="false"
+                truncateValueTo="4">
+                <content>
+                    <Text text="Avg Cloud Readiness" />
+                </content>
+            </NumericContent>
+        </TileContent>
+    </GenericTile>
+</core:View>

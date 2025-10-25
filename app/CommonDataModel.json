@@ -1,0 +1,313 @@
+{
+  "_version": "3.0.0",
+  "identification": {
+    "id": "sd.solutionadvisor.cdm",
+    "title": "SAP Clean Core Solution Advisor",
+    "description": "Common Data Model for SAP Clean Core Solution Advisor Fiori Launchpad",
+    "entityType": "bundle"
+  },
+  "payload": {
+    "catalogs": [
+      {
+        "id": "sd_solutionadvisor_catalog",
+        "title": "Solution Advisor",
+        "description": "SAP Clean Core Solution Advisor Applications",
+        "apps": [
+          {
+            "id": "wizard-app",
+            "title": "Start Analysis",
+            "description": "Create new Clean Core analysis with guided wizard",
+            "icon": "sap-icon://action",
+            "target": {
+              "semanticObject": "SolutionAdvisor",
+              "action": "wizard"
+            }
+          },
+          {
+            "id": "analytics-app",
+            "title": "Analytics Dashboard",
+            "description": "View clean core analytics and trends",
+            "icon": "sap-icon://bar-chart",
+            "target": {
+              "semanticObject": "SolutionAdvisor",
+              "action": "analytics"
+            }
+          },
+          {
+            "id": "projects-app",
+            "title": "Projects",
+            "description": "Manage S/4HANA implementation projects",
+            "icon": "sap-icon://folder",
+            "target": {
+              "semanticObject": "SolutionAdvisor",
+              "action": "projects"
+            }
+          },
+          {
+            "id": "analyses-app",
+            "title": "Analyses",
+            "description": "View and manage all RICEFW analyses",
+            "icon": "sap-icon://list",
+            "target": {
+              "semanticObject": "SolutionAdvisor",
+              "action": "analyses"
+            }
+          },
+          {
+            "id": "admin-app",
+            "title": "Administration",
+            "description": "Configure master data and settings",
+            "icon": "sap-icon://settings",
+            "target": {
+              "semanticObject": "SolutionAdvisor",
+              "action": "admin"
+            }
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "id": "sd_home_group",
+        "title": "Clean Core Analysis",
+        "description": "Main applications for clean core analysis",
+        "isPreset": true,
+        "isDefaultGroup": true,
+        "tiles": [
+          {
+            "id": "wizard-tile",
+            "appId": "wizard-app",
+            "vizId": "wizard-viz",
+            "title": "Start New Analysis",
+            "subtitle": "Guided wizard for RICEFW analysis",
+            "icon": "sap-icon://action",
+            "info": "Quick Start",
+            "keywords": ["wizard", "analysis", "ricefw", "start"],
+            "size": "1x1"
+          },
+          {
+            "id": "projects-tile",
+            "appId": "projects-app",
+            "vizId": "projects-viz",
+            "title": "My Projects",
+            "subtitle": "S/4HANA implementation projects",
+            "icon": "sap-icon://folder",
+            "info": "Manage",
+            "keywords": ["projects", "s4hana", "implementation"],
+            "size": "1x1"
+          },
+          {
+            "id": "analytics-tile",
+            "appId": "analytics-app",
+            "vizId": "analytics-viz",
+            "title": "Analytics",
+            "subtitle": "Clean core metrics and trends",
+            "icon": "sap-icon://bar-chart",
+            "info": "Dashboard",
+            "keywords": ["analytics", "dashboard", "metrics", "kpi"],
+            "size": "1x2"
+          },
+          {
+            "id": "analyses-tile",
+            "appId": "analyses-app",
+            "vizId": "analyses-viz",
+            "title": "All Analyses",
+            "subtitle": "RICEFW object analyses",
+            "icon": "sap-icon://list",
+            "info": "Browse",
+            "keywords": ["analyses", "ricefw", "list"],
+            "size": "1x1"
+          }
+        ]
+      },
+      {
+        "id": "sd_admin_group",
+        "title": "Administration",
+        "description": "Administrative tools and configuration",
+        "isPreset": false,
+        "isDefaultGroup": false,
+        "tiles": [
+          {
+            "id": "admin-tile",
+            "appId": "admin-app",
+            "vizId": "admin-viz",
+            "title": "Admin Console",
+            "subtitle": "Master data and configuration",
+            "icon": "sap-icon://settings",
+            "info": "Configure",
+            "keywords": ["admin", "configuration", "master data"],
+            "size": "1x1"
+          }
+        ]
+      }
+    ],
+    "sites": [
+      {
+        "id": "sd_solutionadvisor_site",
+        "title": "SAP Clean Core Solution Advisor",
+        "description": "Fiori Launchpad for Clean Core Analysis",
+        "defaultGroupId": "sd_home_group",
+        "catalogs": ["sd_solutionadvisor_catalog"]
+      }
+    ],
+    "visualizations": [
+      {
+        "id": "wizard-viz",
+        "vizType": "sap.ushell.DynamicAppLauncher",
+        "vizConfig": {
+          "sap.app": {
+            "id": "sd.solutionadvisor.tiles.wizard",
+            "applicationVersion": {
+              "version": "1.0.0"
+            },
+            "title": "Start New Analysis",
+            "subTitle": "Guided wizard for RICEFW analysis",
+            "info": "Quick Start"
+          },
+          "sap.ui": {
+            "technology": "UI5",
+            "icons": {
+              "icon": "sap-icon://action"
+            }
+          },
+          "sap.flp": {
+            "type": "tile",
+            "tileSize": "1x1"
+          }
+        },
+        "target": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "wizard"
+        },
+        "indicatorDataSource": {
+          "path": "/service/SolutionAdvisorSvcs/CleanCoreAnalysis/$count",
+          "refresh": 300
+        }
+      },
+      {
+        "id": "projects-viz",
+        "vizType": "sap.ushell.DynamicAppLauncher",
+        "vizConfig": {
+          "sap.app": {
+            "id": "sd.solutionadvisor.tiles.projects",
+            "applicationVersion": {
+              "version": "1.0.0"
+            },
+            "title": "My Projects",
+            "subTitle": "Manage project configurations",
+            "info": "Active"
+          },
+          "sap.ui": {
+            "technology": "UI5",
+            "icons": {
+              "icon": "sap-icon://folder"
+            }
+          },
+          "sap.flp": {
+            "type": "tile",
+            "tileSize": "1x1"
+          }
+        },
+        "target": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "projects"
+        },
+        "indicatorDataSource": {
+          "path": "/service/SolutionAdvisorSvcs/ProjectConfiguration/$count",
+          "refresh": 300
+        }
+      },
+      {
+        "id": "analytics-viz",
+        "vizType": "sap.ushell.DynamicAppLauncher",
+        "vizConfig": {
+          "sap.app": {
+            "id": "sd.solutionadvisor.tiles.analytics",
+            "applicationVersion": {
+              "version": "1.0.0"
+            },
+            "title": "Analytics Dashboard",
+            "subTitle": "View trends and metrics",
+            "info": "Dashboard"
+          },
+          "sap.ui": {
+            "technology": "UI5",
+            "icons": {
+              "icon": "sap-icon://bar-chart"
+            }
+          },
+          "sap.flp": {
+            "type": "tile",
+            "tileSize": "1x2"
+          }
+        },
+        "target": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "analytics"
+        }
+      },
+      {
+        "id": "analyses-viz",
+        "vizType": "sap.ushell.DynamicAppLauncher",
+        "vizConfig": {
+          "sap.app": {
+            "id": "sd.solutionadvisor.tiles.analyses",
+            "applicationVersion": {
+              "version": "1.0.0"
+            },
+            "title": "All Analyses",
+            "subTitle": "Browse and manage analyses",
+            "info": "Browse"
+          },
+          "sap.ui": {
+            "technology": "UI5",
+            "icons": {
+              "icon": "sap-icon://list"
+            }
+          },
+          "sap.flp": {
+            "type": "tile",
+            "tileSize": "1x1"
+          }
+        },
+        "target": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "analyses"
+        },
+        "indicatorDataSource": {
+          "path": "/service/SolutionAdvisorSvcs/CleanCoreAnalysis/$count",
+          "refresh": 60
+        }
+      },
+      {
+        "id": "admin-viz",
+        "vizType": "sap.ushell.DynamicAppLauncher",
+        "vizConfig": {
+          "sap.app": {
+            "id": "sd.solutionadvisor.tiles.admin",
+            "applicationVersion": {
+              "version": "1.0.0"
+            },
+            "title": "Administration",
+            "subTitle": "System configuration",
+            "info": "Configure"
+          },
+          "sap.ui": {
+            "technology": "UI5",
+            "icons": {
+              "icon": "sap-icon://settings"
+            }
+          },
+          "sap.flp": {
+            "type": "tile",
+            "tileSize": "1x1"
+          }
+        },
+        "target": {
+          "semanticObject": "SolutionAdvisor",
+          "action": "admin"
+        }
+      }
+    ]
+  }
+}
