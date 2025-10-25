@@ -1,34 +1,76 @@
 <core:FragmentDefinition
     xmlns="sap.m"
-    xmlns:core="sap.ui.core">
+    xmlns:core="sap.ui.core"
+>
     <Popover
         id="detailedHintPopover"
         placement="Right"
         showHeader="true"
         title="Detailed Hint"
-        contentWidth="400px">
+        contentWidth="400px"
+    >
         <content>
-            <VBox id="hintMainVBox" class="sapUiSmallMargin">
-                <VBox id="hintContextVBox" class="sapUiSmallMarginBottom">
-                    <Label id="hintContextLabel" text="Question Context:" design="Bold"/>
-                    <Text id="hintQuestionText" text="{hintModel>/questionText}" class="sapUiTinyMarginTop"/>
+            <VBox
+                id="hintMainVBox"
+                class="sapUiSmallMargin"
+            >
+                <VBox
+                    id="hintContextVBox"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <Label
+                        id="hintContextLabel"
+                        text="Question Context:"
+                        design="Bold"
+                    />
+                    <Text
+                        id="hintQuestionText"
+                        text="{hintModel>/questionText}"
+                        class="sapUiTinyMarginTop"
+                    />
                 </VBox>
-                
-                <VBox id="hintGuidanceVBox" class="sapUiSmallMarginBottom">
-                    <Label id="hintGuidanceLabel" text="Detailed Guidance:" design="Bold"/>
-                    <Text id="hintDetailedText" text="{hintModel>/detailedHint}" class="sapUiTinyMarginTop"/>
+
+                <VBox
+                    id="hintGuidanceVBox"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <Label
+                        id="hintGuidanceLabel"
+                        text="Detailed Guidance:"
+                        design="Bold"
+                    />
+                    <Text
+                        id="hintDetailedText"
+                        text="{hintModel>/detailedHint}"
+                        class="sapUiTinyMarginTop"
+                    />
                 </VBox>
-                
-                <VBox id="hintPerformanceVBox" visible="{= ${hintModel>/performanceContext} !== null &amp;&amp; ${hintModel>/performanceContext} !== '' }">
-                    <Label id="hintPerformanceLabel" text="Performance Considerations:" design="Bold"/>
-                    <Text id="hintPerformanceText" text="{hintModel>/performanceContext}" class="sapUiTinyMarginTop"/>
+
+                <VBox
+                    id="hintPerformanceVBox"
+                    visible="{= ${hintModel>/performanceContext} !== null &amp;&amp; ${hintModel>/performanceContext} !== '' }"
+                >
+                    <Label
+                        id="hintPerformanceLabel"
+                        text="Performance Considerations:"
+                        design="Bold"
+                    />
+                    <Text
+                        id="hintPerformanceText"
+                        text="{hintModel>/performanceContext}"
+                        class="sapUiTinyMarginTop"
+                    />
                 </VBox>
             </VBox>
         </content>
         <footer>
             <Toolbar id="hintFooterToolbar">
-                <ToolbarSpacer id="hintFooterSpacer"/>
-                <Button id="closeDetailedHintButton" text="Close" press=".onCloseDetailedHint"/>
+                <ToolbarSpacer id="hintFooterSpacer" />
+                <Button
+                    id="closeDetailedHintButton"
+                    text="Close"
+                    press=".onCloseDetailedHint"
+                />
             </Toolbar>
         </footer>
     </Popover>

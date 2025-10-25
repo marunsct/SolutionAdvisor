@@ -1,13 +1,8 @@
 namespace sd;
 
 using {
-    Country,
-    Currency,
-    Language,
-    User,
     cuid,
-    managed,
-    temporal
+    managed
 } from '@sap/cds/common';
 
 // ===============================
