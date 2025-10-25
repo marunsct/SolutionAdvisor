@@ -3,6 +3,7 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
+    xmlns:unified="sap.ui.unified"
     displayBlock="true">
     
     <Page
@@ -26,7 +27,7 @@
                 icon="sap-icon://excel-attachment"
                 press="onExport"
                 tooltip="Export all examples to Excel"/>
-            <FileUploader
+            <unified:FileUploader
                 id="exampleFileUploader"
                 name="massUpload"
                 buttonText="Mass Upload"
@@ -44,12 +45,12 @@
         </headerContent>
         
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="adminExampleContentVBox" class="sapUiSmallMargin">
                 
                 <!-- Filter Bar -->
-                <Panel headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
+                <Panel id="exampleFilterPanel" headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
                     <content>
-                        <FlexBox wrap="Wrap" class="sapUiSmallMargin">
+                        <FlexBox id="exampleFilterFlexBox" wrap="Wrap" class="sapUiSmallMargin">
                             <ComboBox
                                 id="objectTypeFilterExample"
                                 placeholder="Filter by Object Type"
@@ -57,13 +58,13 @@
                                 selectionChange="onFilterChange"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
                                 <items>
-                                    <core:Item key="" text="All Types"/>
-                                    <core:Item key="R" text="Reports"/>
-                                    <core:Item key="I" text="Interfaces"/>
-                                    <core:Item key="C" text="Conversions"/>
-                                    <core:Item key="E" text="Enhancements"/>
-                                    <core:Item key="F" text="Forms"/>
-                                    <core:Item key="W" text="Workflows"/>
+                                    <core:Item id="exampleAllTypesItem" key="" text="All Types"/>
+                                    <core:Item id="exampleReportsItem" key="R" text="Reports"/>
+                                    <core:Item id="exampleInterfacesItem" key="I" text="Interfaces"/>
+                                    <core:Item id="exampleConversionsItem" key="C" text="Conversions"/>
+                                    <core:Item id="exampleEnhancementsItem" key="E" text="Enhancements"/>
+                                    <core:Item id="exampleFormsItem" key="F" text="Forms"/>
+                                    <core:Item id="exampleWorkflowsItem" key="W" text="Workflows"/>
                                 </items>
                             </ComboBox>
                             <ComboBox
@@ -73,12 +74,12 @@
                                 selectionChange="onFilterChange"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
                                 <items>
-                                    <core:Item key="" text="All Industries"/>
-                                    <core:Item key="Manufacturing" text="Manufacturing"/>
-                                    <core:Item key="Retail" text="Retail"/>
-                                    <core:Item key="Finance" text="Finance"/>
-                                    <core:Item key="Healthcare" text="Healthcare"/>
-                                    <core:Item key="Pharma" text="Pharma"/>
+                                    <core:Item id="exampleAllIndustriesItem" key="" text="All Industries"/>
+                                    <core:Item id="exampleManufacturingItem" key="Manufacturing" text="Manufacturing"/>
+                                    <core:Item id="exampleRetailItem" key="Retail" text="Retail"/>
+                                    <core:Item id="exampleFinanceItem" key="Finance" text="Finance"/>
+                                    <core:Item id="exampleHealthcareItem" key="Healthcare" text="Healthcare"/>
+                                    <core:Item id="examplePharmaItem" key="Pharma" text="Pharma"/>
                                 </items>
                             </ComboBox>
                             <ComboBox
@@ -88,14 +89,15 @@
                                 selectionChange="onFilterChange"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
                                 <items>
-                                    <core:Item key="" text="All Levels"/>
-                                    <core:Item key="A" text="Level A"/>
-                                    <core:Item key="B" text="Level B"/>
-                                    <core:Item key="C" text="Level C"/>
-                                    <core:Item key="D" text="Level D"/>
+                                    <core:Item id="exampleAllLevelsItem" key="" text="All Levels"/>
+                                    <core:Item id="exampleLevelAItem" key="A" text="Level A"/>
+                                    <core:Item id="exampleLevelBItem" key="B" text="Level B"/>
+                                    <core:Item id="exampleLevelCItem" key="C" text="Level C"/>
+                                    <core:Item id="exampleLevelDItem" key="D" text="Level D"/>
                                 </items>
                             </ComboBox>
                             <Button
+                                id="clearExampleFiltersButton"
                                 text="Clear Filters"
                                 press="onClearFilters"/>
                         </FlexBox>
@@ -103,9 +105,9 @@
                 </Panel>
                 
                 <!-- Record Count -->
-                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
-                    <Title text="Real-World Examples" level="H3"/>
-                    <Text text="{viewModel>/recordCount} records"/>
+                <FlexBox id="exampleHeaderFlexBox" justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title id="exampleTitle" text="Real-World Examples" level="H3"/>
+                    <Text id="exampleRecordCount" text="{viewModel>/recordCount} records"/>
                 </FlexBox>
                 
                 <!-- Example Table -->
@@ -119,51 +121,54 @@
                     noDataText="No examples found. Click Create to add new examples.">
                     
                     <columns>
-                        <Column width="20%">
-                            <Text text="Title"/>
+                        <Column id="exampleTitleColumn" width="20%">
+                            <Text id="exampleTitleHeader" text="Title"/>
                         </Column>
-                        <Column width="12%">
-                            <Text text="Object Type"/>
+                        <Column id="exampleObjectTypeColumn" width="12%">
+                            <Text id="exampleObjectTypeHeader" text="Object Type"/>
                         </Column>
-                        <Column width="12%">
-                            <Text text="Industry"/>
+                        <Column id="exampleIndustryColumn" width="12%">
+                            <Text id="exampleIndustryHeader" text="Industry"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Level"/>
+                        <Column id="exampleLevelColumn" width="8%">
+                            <Text id="exampleLevelHeader" text="Level"/>
                         </Column>
-                        <Column width="25%">
-                            <Text text="Description"/>
+                        <Column id="exampleDescriptionColumn" width="25%">
+                            <Text id="exampleDescriptionHeader" text="Description"/>
                         </Column>
-                        <Column width="10%">
-                            <Text text="Technologies"/>
+                        <Column id="exampleTechnologiesColumn" width="10%">
+                            <Text id="exampleTechnologiesHeader" text="Technologies"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Modified"/>
+                        <Column id="exampleModifiedColumn" width="8%">
+                            <Text id="exampleModifiedHeader" text="Modified"/>
                         </Column>
-                        <Column width="5%" hAlign="End">
-                            <Text text="Actions"/>
+                        <Column id="exampleActionsColumn" width="5%" hAlign="End">
+                            <Text id="exampleActionsHeader" text="Actions"/>
                         </Column>
                     </columns>
                     
                     <items>
-                        <ColumnListItem>
+                        <ColumnListItem id="exampleItem">
                             <cells>
-                                <Text text="{exampleTitle}"/>
-                                <Text text="{objectType}"/>
-                                <Text text="{industry}"/>
+                                <Text id="exampleTitleText" text="{exampleTitle}"/>
+                                <Text id="exampleObjectTypeText" text="{objectType}"/>
+                                <Text id="exampleIndustryText" text="{industry}"/>
                                 <ObjectStatus
+                                    id="exampleLevelStatus"
                                     text="{cleanCoreLevel}"
                                     state="{= ${cleanCoreLevel} === 'A' ? 'Success' : ${cleanCoreLevel} === 'B' ? 'Information' : ${cleanCoreLevel} === 'C' ? 'Warning' : 'Error' }"/>
-                                <Text text="{description}" maxLines="2"/>
-                                <Text text="{technologies}" maxLines="1"/>
-                                <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
-                                <HBox>
+                                <Text id="exampleDescriptionText" text="{description}" maxLines="2"/>
+                                <Text id="exampleTechnologiesText" text="{technologies}" maxLines="1"/>
+                                <Text id="exampleModifiedAtText" text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <HBox id="exampleActionsHBox">
                                     <Button
+                                        id="editExampleButton"
                                         icon="sap-icon://edit"
                                         type="Transparent"
                                         press="onEdit"
                                         tooltip="Edit"/>
                                     <Button
+                                        id="deleteExampleButton"
                                         icon="sap-icon://delete"
                                         type="Transparent"
                                         press="onDelete"

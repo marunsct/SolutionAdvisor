@@ -33,18 +33,19 @@
         </headerContent>
         
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="adminLevelsContentVBox" class="sapUiSmallMargin">
                 
                 <MessageStrip
+                    id="adminLevelsWarningMessage"
                     text="Clean Core Levels define the scoring multipliers and criteria for each level (A/B/C/D). Be careful when modifying these values as they affect all analyses."
                     type="Warning"
                     showIcon="true"
                     class="sapUiSmallMarginBottom"/>
                 
                 <!-- Record Count -->
-                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
-                    <Title text="Clean Core Levels" level="H3"/>
-                    <Text text="{viewModel>/recordCount} records"/>
+                <FlexBox id="adminLevelsHeaderFlexBox" justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title id="adminLevelsTitle" text="Clean Core Levels" level="H3"/>
+                    <Text id="adminLevelsRecordCount" text="{viewModel>/recordCount} records"/>
                 </FlexBox>
                 
                 <!-- Levels Table -->
@@ -56,47 +57,50 @@
                     noDataText="No levels found. Click Create to add new levels.">
                     
                     <columns>
-                        <Column width="10%">
-                            <Text text="Level"/>
+                        <Column id="levelsLevelColumn" width="10%">
+                            <Text id="levelsLevelHeader" text="Level"/>
                         </Column>
-                        <Column width="20%">
-                            <Text text="Level Name"/>
+                        <Column id="levelsLevelNameColumn" width="20%">
+                            <Text id="levelsLevelNameHeader" text="Level Name"/>
                         </Column>
-                        <Column width="25%">
-                            <Text text="Description"/>
+                        <Column id="levelsDescriptionColumn" width="25%">
+                            <Text id="levelsDescriptionHeader" text="Description"/>
                         </Column>
-                        <Column width="12%">
-                            <Text text="Tech Debt Multiplier"/>
+                        <Column id="levelsTechDebtColumn" width="12%">
+                            <Text id="levelsTechDebtHeader" text="Tech Debt Multiplier"/>
                         </Column>
-                        <Column width="12%">
-                            <Text text="Cloud Readiness Multiplier"/>
+                        <Column id="levelsCloudReadinessColumn" width="12%">
+                            <Text id="levelsCloudReadinessHeader" text="Cloud Readiness Multiplier"/>
                         </Column>
-                        <Column width="12%">
-                            <Text text="Upgrade Impact Multiplier"/>
+                        <Column id="levelsUpgradeImpactColumn" width="12%">
+                            <Text id="levelsUpgradeImpactHeader" text="Upgrade Impact Multiplier"/>
                         </Column>
-                        <Column width="9%" hAlign="End">
-                            <Text text="Actions"/>
+                        <Column id="levelsActionsColumn" width="9%" hAlign="End">
+                            <Text id="levelsActionsHeader" text="Actions"/>
                         </Column>
                     </columns>
                     
                     <items>
-                        <ColumnListItem>
+                        <ColumnListItem id="levelItem">
                             <cells>
                                 <ObjectStatus
+                                    id="levelStatus"
                                     text="{level}"
                                     state="{= ${level} === 'A' ? 'Success' : ${level} === 'B' ? 'Information' : ${level} === 'C' ? 'Warning' : 'Error' }"/>
-                                <Text text="{levelName}" class="sapUiMediumText"/>
-                                <Text text="{description}" maxLines="2"/>
-                                <Text text="{technicalDebtMultiplier}"/>
-                                <Text text="{cloudReadinessMultiplier}"/>
-                                <Text text="{upgradeImpactMultiplier}"/>
-                                <HBox>
+                                <Text id="levelNameText" text="{levelName}" class="sapUiMediumText"/>
+                                <Text id="descriptionText" text="{description}" maxLines="2"/>
+                                <Text id="techDebtText" text="{technicalDebtMultiplier}"/>
+                                <Text id="cloudReadinessText" text="{cloudReadinessMultiplier}"/>
+                                <Text id="upgradeImpactText" text="{upgradeImpactMultiplier}"/>
+                                <HBox id="levelActionsHBox">
                                     <Button
+                                        id="editLevelButton"
                                         icon="sap-icon://edit"
                                         type="Transparent"
                                         press="onEdit"
                                         tooltip="Edit"/>
                                     <Button
+                                        id="deleteLevelButton"
                                         icon="sap-icon://delete"
                                         type="Transparent"
                                         press="onDelete"

@@ -5,54 +5,55 @@
    ============================================ */
 
 /* Ensure proper viewport sizing */
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    font-size: 16px; /* Base font size for rem calculations */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-size: 16px; /* Base font size for rem calculations */
 }
 
 /* Shell container should fill viewport */
 .sapMShell {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* App container should be scrollable */
 .sapMApp {
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Page container should fit within app */
 .sapMPage {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .sapMPageBgStandard {
-    background-color: #f5f7fa;
+  background-color: #f5f7fa;
 }
 
 /* Content should not overflow horizontally */
 .sapMPageEnableScrolling {
-    overflow-x: hidden;
-    overflow-y: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Prevent horizontal scrollbars globally */
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 /* Responsive container max-width */
 .sapUiResponsiveMargin {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 /* ============================================
@@ -62,19 +63,19 @@ html, body {
 /* Ensure all buttons have minimum touch target of 44x44px (Apple HIG / Material Design) */
 .sapUiResponsive .sapMBtn,
 .sapUiResponsive .sapMBtnInner {
-    min-height: 2.75rem; /* 44px */
-    min-width: 2.75rem;
+  min-height: 2.75rem; /* 44px */
+  min-width: 2.75rem;
 }
 
 /* Touch-friendly button spacing in toolbars */
 .sapMTB .sapMBtn {
-    margin: 0.25rem;
+  margin: 0.25rem;
 }
 
 /* Larger tap targets for icon-only buttons */
 .sapMBtn.sapMBtnIconOnly {
-    min-width: 3rem;
-    min-height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
 }
 
 /* ============================================
@@ -83,56 +84,56 @@ html, body {
 
 /* Full-width inputs on mobile devices */
 @media (max-width: 600px) {
-    .sapMInput,
-    .sapMComboBox,
-    .sapMTextArea,
-    .sapMSelect,
-    .sapMDatePicker {
-        width: 100% !important;
-    }
-    
-    /* Stack form fields vertically on mobile */
-    .sapUiForm .sapUiFormElement {
-        display: block !important;
-    }
-    
-    /* Adjust label width for mobile */
-    .sapUiFormResGridCont .sapMLabel {
-        width: 100% !important;
-        text-align: left !important;
-        margin-bottom: 0.5rem;
-    }
+  .sapMInput,
+  .sapMComboBox,
+  .sapMTextArea,
+  .sapMSelect,
+  .sapMDatePicker {
+    width: 100% !important;
+  }
+
+  /* Stack form fields vertically on mobile */
+  .sapUiForm .sapUiFormElement {
+    display: block !important;
+  }
+
+  /* Adjust label width for mobile */
+  .sapUiFormResGridCont .sapMLabel {
+    width: 100% !important;
+    text-align: left !important;
+    margin-bottom: 0.5rem;
+  }
 }
 
 /* Touch-friendly input fields with larger touch areas */
 .sapMInputBaseInner {
-    min-height: 2.75rem;
-    font-size: 1rem; /* Prevent zoom on iOS */
-    padding: 0.5rem 0.75rem;
-    line-height: 1.5rem;
+  min-height: 2.75rem;
+  font-size: 1rem; /* Prevent zoom on iOS */
+  padding: 0.5rem 0.75rem;
+  line-height: 1.5rem;
 }
 
 /* Proper placeholder text alignment */
 .sapMInputBaseInner::placeholder {
-    padding: 0;
-    line-height: 1.5rem;
-    vertical-align: middle;
+  padding: 0;
+  line-height: 1.5rem;
+  vertical-align: middle;
 }
 
 .sapMInputBase input::placeholder,
 .sapMInputBase textarea::placeholder {
-    opacity: 0.6;
-    font-style: italic;
+  opacity: 0.6;
+  font-style: italic;
 }
 
 /* ComboBox dropdown optimization for mobile */
 .sapMComboBoxTextField {
-    min-height: 2.75rem;
+  min-height: 2.75rem;
 }
 
 .sapMComboBoxTextFieldInner {
-    padding: 0.5rem 0.75rem;
-    line-height: 1.5rem;
+  padding: 0.5rem 0.75rem;
+  line-height: 1.5rem;
 }
 
 /* ============================================
@@ -141,38 +142,38 @@ html, body {
 
 /* Optimize wizard step navigation for mobile */
 @media (max-width: 600px) {
-    /* Stack wizard progress vertically */
-    .sapMWizard {
-        padding: 0.5rem;
-    }
-    
-    /* Reduce wizard step padding on mobile */
-    .sapMWizardStep {
-        padding: 1rem 0.5rem;
-    }
-    
-    /* Make wizard navigation more prominent on mobile */
-    .sapMWizardProgressNav {
-        font-size: 0.875rem;
-    }
-    
-    /* Optimize answer options for touch */
-    .sapMRb {
-        min-height: 3rem;
-        padding: 0.75rem 0.5rem;
-    }
-    
-    .sapMRbBLabel {
-        font-size: 1rem;
-        line-height: 1.5;
-    }
+  /* Stack wizard progress vertically */
+  .sapMWizard {
+    padding: 0.5rem;
+  }
+
+  /* Reduce wizard step padding on mobile */
+  .sapMWizardStep {
+    padding: 1rem 0.5rem;
+  }
+
+  /* Make wizard navigation more prominent on mobile */
+  .sapMWizardProgressNav {
+    font-size: 0.875rem;
+  }
+
+  /* Optimize answer options for touch */
+  .sapMRb {
+    min-height: 3rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .sapMRbBLabel {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
 }
 
 /* Progress indicator responsive sizing */
 @media (max-width: 600px) {
-    .sapMPI {
-        width: 100% !important;
-    }
+  .sapMPI {
+    width: 100% !important;
+  }
 }
 
 /* ============================================
@@ -181,45 +182,45 @@ html, body {
 
 /* Stack KPI tiles vertically on mobile */
 @media (max-width: 600px) {
-    .sapUiHideOnPhone {
-        display: none !important;
-    }
-    
-    /* Mobile-specific KPI tile layout */
-    .sapMGenericTile {
-        width: 100% !important;
-        margin-bottom: 1rem;
-    }
-    
-    /* Full-width charts on mobile */
-    .sapVizFrame {
-        width: 100% !important;
-        height: 300px !important;
-    }
-    
-    /* Optimize panel spacing for mobile */
-    .sapMPanel {
-        margin: 0.5rem 0;
-    }
-    
-    .sapMPanelContent {
-        padding: 0.5rem;
-    }
+  .sapUiHideOnPhone {
+    display: none !important;
+  }
+
+  /* Mobile-specific KPI tile layout */
+  .sapMGenericTile {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+
+  /* Full-width charts on mobile */
+  .sapVizFrame {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  /* Optimize panel spacing for mobile */
+  .sapMPanel {
+    margin: 0.5rem 0;
+  }
+
+  .sapMPanelContent {
+    padding: 0.5rem;
+  }
 }
 
 /* Tablet optimization (601px - 1024px) */
 @media (min-width: 601px) and (max-width: 1024px) {
-    /* Two-column layout for tablets */
-    .sapMGenericTile {
-        width: 48% !important;
-        display: inline-block;
-        margin-right: 2%;
-        margin-bottom: 1rem;
-    }
-    
-    .sapVizFrame {
-        height: 350px !important;
-    }
+  /* Two-column layout for tablets */
+  .sapMGenericTile {
+    width: 48% !important;
+    display: inline-block;
+    margin-right: 2%;
+    margin-bottom: 1rem;
+  }
+
+  .sapVizFrame {
+    height: 350px !important;
+  }
 }
 
 /* ============================================
@@ -228,27 +229,27 @@ html, body {
 
 /* Responsive table optimization */
 @media (max-width: 600px) {
-    /* Pop-in mode for tables on mobile */
-    .sapMListTbl {
-        table-layout: auto !important;
-    }
-    
-    /* Increase row height for touch */
-    .sapMListTblRow {
-        min-height: 3rem;
-    }
-    
-    /* Optimize list item spacing */
-    .sapMSLI,
-    .sapMCLI {
-        min-height: 3rem;
-        padding: 0.75rem 1rem;
-    }
-    
-    /* Hide less important columns on mobile */
-    .sapUiTableCell {
-        padding: 0.5rem;
-    }
+  /* Pop-in mode for tables on mobile */
+  .sapMListTbl {
+    table-layout: auto !important;
+  }
+
+  /* Increase row height for touch */
+  .sapMListTblRow {
+    min-height: 3rem;
+  }
+
+  /* Optimize list item spacing */
+  .sapMSLI,
+  .sapMCLI {
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Hide less important columns on mobile */
+  .sapUiTableCell {
+    padding: 0.5rem;
+  }
 }
 
 /* ============================================
@@ -257,28 +258,28 @@ html, body {
 
 /* Full-screen dialogs on mobile */
 @media (max-width: 600px) {
-    .sapMDialog {
-        width: 95% !important;
-        max-width: 95% !important;
-        height: 90vh !important;
-        max-height: 90vh !important;
-    }
-    
-    .sapMDialogScroll {
-        max-height: calc(90vh - 6rem);
-    }
-    
-    /* Optimize popover positioning */
-    .sapMPopover {
-        max-width: 90vw !important;
-        max-height: 80vh !important;
-    }
+  .sapMDialog {
+    width: 95% !important;
+    max-width: 95% !important;
+    height: 90vh !important;
+    max-height: 90vh !important;
+  }
+
+  .sapMDialogScroll {
+    max-height: calc(90vh - 6rem);
+  }
+
+  /* Optimize popover positioning */
+  .sapMPopover {
+    max-width: 90vw !important;
+    max-height: 80vh !important;
+  }
 }
 
 /* Touch-friendly dialog buttons */
 .sapMDialogFooter .sapMBtn {
-    min-width: 5rem;
-    min-height: 2.75rem;
+  min-width: 5rem;
+  min-height: 2.75rem;
 }
 
 /* ============================================
@@ -286,21 +287,21 @@ html, body {
    ============================================ */
 
 @media (max-width: 600px) {
-    /* Stack constraints panel items vertically */
-    .sapMListTblRow {
-        display: block !important;
-    }
-    
-    /* Optimize example cards for mobile */
-    .sapFCard {
-        margin-bottom: 1rem;
-    }
-    
-    /* Full-width message strips on mobile */
-    .sapMMessageStrip {
-        width: 100%;
-        margin: 0.5rem 0;
-    }
+  /* Stack constraints panel items vertically */
+  .sapMListTblRow {
+    display: block !important;
+  }
+
+  /* Optimize example cards for mobile */
+  .sapFCard {
+    margin-bottom: 1rem;
+  }
+
+  /* Full-width message strips on mobile */
+  .sapMMessageStrip {
+    width: 100%;
+    margin: 0.5rem 0;
+  }
 }
 
 /* ============================================
@@ -309,23 +310,23 @@ html, body {
 
 /* Mobile-specific scoring display */
 @media (max-width: 600px) {
-    .sapMObjectNumber {
-        font-size: 1.5rem;
-    }
-    
-    .sapMObjectNumberText {
-        font-size: 1rem;
-    }
-    
-    /* Stack progress indicators vertically */
-    .sapMPI {
-        margin-bottom: 1.5rem;
-    }
-    
-    /* Optimize radar chart for mobile */
-    .sapVizFrame[data-viz-type="radar"] {
-        height: 250px !important;
-    }
+  .sapMObjectNumber {
+    font-size: 1.5rem;
+  }
+
+  .sapMObjectNumberText {
+    font-size: 1rem;
+  }
+
+  /* Stack progress indicators vertically */
+  .sapMPI {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Optimize radar chart for mobile */
+  .sapVizFrame[data-viz-type="radar"] {
+    height: 250px !important;
+  }
 }
 
 /* ============================================
@@ -333,33 +334,33 @@ html, body {
    ============================================ */
 
 @media (max-width: 600px) {
-    /* Optimize object header for mobile */
-    .sapMObjectHeader {
-        padding: 1rem 0.5rem;
-    }
-    
-    .sapMObjectHeaderTitle {
-        font-size: 1.25rem;
-        line-height: 1.4;
-    }
-    
-    /* Compact toolbar on mobile */
-    .sapMTB {
-        min-height: 3rem;
-    }
-    
-    .sapMTBSpacer {
-        width: 0.5rem;
-    }
-    
-    /* Hide overflow actions text, show only icons */
-    .sapMTB .sapMBtn .sapMBtnText {
-        display: none;
-    }
-    
-    .sapMTB .sapMBtn .sapMBtnIcon {
-        margin-right: 0;
-    }
+  /* Optimize object header for mobile */
+  .sapMObjectHeader {
+    padding: 1rem 0.5rem;
+  }
+
+  .sapMObjectHeaderTitle {
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  /* Compact toolbar on mobile */
+  .sapMTB {
+    min-height: 3rem;
+  }
+
+  .sapMTBSpacer {
+    width: 0.5rem;
+  }
+
+  /* Hide overflow actions text, show only icons */
+  .sapMTB .sapMBtn .sapMBtnText {
+    display: none;
+  }
+
+  .sapMTB .sapMBtn .sapMBtnIcon {
+    margin-right: 0;
+  }
 }
 
 /* ============================================
@@ -368,28 +369,28 @@ html, body {
 
 /* Prevent text zoom on iOS */
 @media (max-width: 600px) {
-    input[type="text"],
-    input[type="email"],
-    input[type="number"],
-    textarea,
-    select {
-        font-size: 16px !important; /* iOS won't zoom if >= 16px */
-    }
-    
-    /* Readable font sizes on mobile */
-    .sapMText {
-        font-size: 0.875rem;
-        line-height: 1.5;
-    }
-    
-    .sapMTitle {
-        font-size: 1.125rem;
-    }
-    
-    /* Optimize description text */
-    .sapUiTinyText {
-        font-size: 0.75rem;
-    }
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important; /* iOS won't zoom if >= 16px */
+  }
+
+  /* Readable font sizes on mobile */
+  .sapMText {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .sapMTitle {
+    font-size: 1.125rem;
+  }
+
+  /* Optimize description text */
+  .sapUiTinyText {
+    font-size: 0.75rem;
+  }
 }
 
 /* ============================================
@@ -398,39 +399,39 @@ html, body {
 
 /* Proper spacing between labels and inputs */
 .sapMLabel {
-    display: block;
-    margin-bottom: 0.375rem;
-    margin-top: 0.75rem;
+  display: block;
+  margin-bottom: 0.375rem;
+  margin-top: 0.75rem;
 }
 
 /* First label in a form should not have top margin */
 .sapMLabel:first-child {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 /* Ensure inputs align properly with their labels */
 .sapMInputBase,
 .sapMComboBox,
 .sapMTextArea {
-    display: block;
-    width: 100%;
+  display: block;
+  width: 100%;
 }
 
 /* VBox spacing for form fields */
 .sapUiVBox > .sapMLabel,
 .sapMVBox > .sapMLabel {
-    margin-top: 1rem;
+  margin-top: 1rem;
 }
 
 .sapUiVBox > .sapMLabel:first-child,
 .sapMVBox > .sapMLabel:first-child {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 /* Ensure text inputs don't have extra vertical padding that misaligns placeholders */
 .sapMInputBaseInner input {
-    padding: 0;
-    vertical-align: middle;
+  padding: 0;
+  vertical-align: middle;
 }
 
 /* ============================================
@@ -441,15 +442,15 @@ html, body {
 .sapMBtn:focus,
 .sapMInput:focus,
 .sapMComboBox:focus {
-    outline: 2px solid #0854a0;
-    outline-offset: 2px;
+  outline: 2px solid #0854a0;
+  outline-offset: 2px;
 }
 
 /* Larger focus ring for better visibility */
 @media (max-width: 600px) {
-    *:focus {
-        outline-width: 3px;
-    }
+  *:focus {
+    outline-width: 3px;
+  }
 }
 
 /* ============================================
@@ -459,21 +460,21 @@ html, body {
 /* Prevent text selection on buttons during swipe gestures */
 .sapMBtn,
 .sapMBtnInner {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Smooth scrolling on mobile devices */
 html {
-    -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Optimize touch scrolling for panels */
 .sapMPanelContent {
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
 }
 
 /* ============================================
@@ -484,15 +485,15 @@ html {
 .sapMDialog,
 .sapMPopover,
 .sapMMessageToast {
-    transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 /* Reduce animation complexity on mobile */
 @media (max-width: 600px) {
-    * {
-        transition-duration: 0.2s !important;
-    }
+  * {
+    transition-duration: 0.2s !important;
+  }
 }
 
 /* ============================================
@@ -500,21 +501,21 @@ html {
    ============================================ */
 
 @media (max-width: 900px) and (orientation: landscape) {
-    /* Optimize for landscape mobile/tablet */
-    .sapMDialog {
-        height: 95vh !important;
-    }
-    
-    /* Reduce vertical padding in landscape */
-    .sapUiMediumMargin {
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.5rem !important;
-    }
-    
-    /* Compact wizard steps in landscape */
-    .sapMWizardStep {
-        padding: 0.5rem;
-    }
+  /* Optimize for landscape mobile/tablet */
+  .sapMDialog {
+    height: 95vh !important;
+  }
+
+  /* Reduce vertical padding in landscape */
+  .sapUiMediumMargin {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Compact wizard steps in landscape */
+  .sapMWizardStep {
+    padding: 0.5rem;
+  }
 }
 
 /* ============================================
@@ -522,25 +523,25 @@ html {
    ============================================ */
 
 @media print {
-    /* Hide navigation elements when printing */
-    .sapMPage > header,
-    .sapMPage > footer,
-    .sapMBtn,
-    .sapMTB {
-        display: none !important;
-    }
-    
-    /* Optimize content for printing */
-    .sapMPanel {
-        page-break-inside: avoid;
-    }
-    
-    /* Remove shadows and backgrounds for print */
-    * {
-        box-shadow: none !important;
-        background: white !important;
-        color: black !important;
-    }
+  /* Hide navigation elements when printing */
+  .sapMPage > header,
+  .sapMPage > footer,
+  .sapMBtn,
+  .sapMTB {
+    display: none !important;
+  }
+
+  /* Optimize content for printing */
+  .sapMPanel {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and backgrounds for print */
+  * {
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+  }
 }
 
 /* ============================================
@@ -549,37 +550,37 @@ html {
 
 /* Show only on mobile */
 .showOnMobileOnly {
-    display: none;
+  display: none;
 }
 
 @media (max-width: 600px) {
-    .showOnMobileOnly {
-        display: block !important;
-    }
-    
-    .hideOnMobile {
-        display: none !important;
-    }
+  .showOnMobileOnly {
+    display: block !important;
+  }
+
+  .hideOnMobile {
+    display: none !important;
+  }
 }
 
 /* Vertical stack helper for mobile */
 @media (max-width: 600px) {
-    .mobileVerticalStack > * {
-        display: block !important;
-        width: 100% !important;
-        margin-bottom: 1rem;
-    }
+  .mobileVerticalStack > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
 }
 
 /* Touch-friendly spacing */
 .touchFriendlyMargin {
-    margin: 1rem 0.5rem;
+  margin: 1rem 0.5rem;
 }
 
 @media (max-width: 600px) {
-    .responsivePadding {
-        padding: 0.5rem !important;
-    }
+  .responsivePadding {
+    padding: 0.5rem !important;
+  }
 }
 
 /* ============================================
@@ -588,403 +589,409 @@ html {
 
 /* Ensure page content fits within viewport */
 #analysisDetailsPage {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 #analysisDetailsPage .sapMPageHeader {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #analysisDetailsPage .sapMPageScroll {
-    padding: 0;
-    max-width: 100%;
+  padding: 0;
+  max-width: 100%;
 }
 
 /* Enhanced Object Header */
 #analysisHeader {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border-bottom: 3px solid #0854a0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-width: 100%;
-    overflow: hidden;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-bottom: 3px solid #0854a0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  overflow: hidden;
 }
 
 #analysisHeader .sapMOHRContainer {
-    max-width: 100%;
-    overflow: hidden;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 #analysisHeader .sapMObjectHeaderTitle {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: #1a1a1a;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 #analysisHeader .sapMObjectHeaderNumber {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #0854a0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #0854a0;
 }
 
 /* Scoring Panel Styling */
 #scoringPanel {
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e0e0e0;
-    overflow: hidden;
-    max-width: 100%;
-    margin: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  max-width: 100%;
+  margin: 1rem;
 }
 
 #scoringPanel .sapMPanelHdr {
-    background: linear-gradient(to right, #0854a0, #0b6bb5);
-    color: white;
-    border-bottom: none;
-    padding: 1rem;
+  background: linear-gradient(to right, #0854a0, #0b6bb5);
+  color: white;
+  border-bottom: none;
+  padding: 1rem;
 }
 
 #scoringPanel .sapMPanelHdr .sapMTitle {
-    color: white;
-    font-weight: 600;
+  color: white;
+  font-weight: 600;
 }
 
 #scoringPanel .sapMPanelContent {
-    padding: 1.5rem 1rem;
-    overflow-x: hidden;
+  padding: 1.5rem 1rem;
+  overflow-x: hidden;
 }
 
 #scoringContentBox {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Unified Responsive Score Tiles Container */
 #scoringTilesContainer {
-    width: 100%;
-    padding: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    align-items: stretch;
-    gap: 1rem;
-    overflow-x: hidden;
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: stretch;
+  gap: 1rem;
+  overflow-x: hidden;
 }
 
 /* Individual Scoring Tile Styling */
 .scoringTile {
-    flex: 1 1 auto;
-    min-width: 180px;
-    max-width: 250px;
-    min-height: 180px;
-    max-height: 250px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e8e8e8;
-    transition: all 0.3s ease;
-    background: white;
+  flex: 1 1 auto;
+  min-width: 180px;
+  max-width: 250px;
+  min-height: 180px;
+  max-height: 250px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8e8e8;
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .scoringTile:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-    cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  cursor: pointer;
 }
 
 .scoringTile:active {
-    opacity: 0.9;
+  opacity: 0.9;
 }
 
 /* Tile content alignment */
 .scoringTile .sapMTileCnt {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
 .scoringTile .sapMNI {
-    font-size: 2rem;
-    font-weight: 600;
+  font-size: 2rem;
+  font-weight: 600;
 }
 
 /* Responsive behavior for different screen sizes */
 
 /* Mobile (phone) - 4x1 vertical stack */
 @media (max-width: 600px) {
-    #scoringTilesContainer {
-        padding: 0.5rem;
-        gap: 0.75rem;
-    }
-    
-    .scoringTile {
-        flex: 1 1 100%;
-        min-width: 100%;
-        max-width: 100%;
-        min-height: 120px;
-        max-height: 150px;
-    }
+  #scoringTilesContainer {
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .scoringTile {
+    flex: 1 1 100%;
+    min-width: 100%;
+    max-width: 100%;
+    min-height: 120px;
+    max-height: 150px;
+  }
 }
 
 /* Tablet (small) - 2x2 grid */
 @media (min-width: 601px) and (max-width: 800px) {
-    #scoringTilesContainer {
-        gap: 0.75rem;
-    }
-    
-    .scoringTile {
-        flex: 1 1 calc(50% - 0.75rem);
-        min-width: calc(50% - 0.75rem);
-        max-width: calc(50% - 0.75rem);
-    }
+  #scoringTilesContainer {
+    gap: 0.75rem;
+  }
+
+  .scoringTile {
+    flex: 1 1 calc(50% - 0.75rem);
+    min-width: calc(50% - 0.75rem);
+    max-width: calc(50% - 0.75rem);
+  }
 }
 
 /* Tablet (large) / Desktop (small) - 2x2 grid with better spacing */
 @media (min-width: 801px) and (max-width: 1000px) {
-    .scoringTile {
-        flex: 1 1 calc(50% - 1rem);
-        min-width: 180px;
-        max-width: calc(50% - 1rem);
-    }
+  .scoringTile {
+    flex: 1 1 calc(50% - 1rem);
+    min-width: 180px;
+    max-width: calc(50% - 1rem);
+  }
 }
 
 /* Desktop (medium to large) - 1x4 horizontal row */
 @media (min-width: 1001px) {
-    #scoringTilesContainer {
-        flex-wrap: nowrap;
-        justify-content: space-evenly;
-        gap: 1rem;
-    }
-    
-    .scoringTile {
-        flex: 1 1 0;
-        min-width: 150px;
-        max-width: 220px;
-    }
+  #scoringTilesContainer {
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    gap: 1rem;
+  }
+
+  .scoringTile {
+    flex: 1 1 0;
+    min-width: 150px;
+    max-width: 220px;
+  }
 }
 
 /* Large desktop - maintain 1x4 with better spacing */
 @media (min-width: 1441px) {
-    #scoringTilesContainer {
-        max-width: 1200px;
-        margin: 0 auto;
-        gap: 1.5rem;
-    }
-    
-    .scoringTile {
-        max-width: 250px;
-    }
+  #scoringTilesContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 1.5rem;
+  }
+
+  .scoringTile {
+    max-width: 250px;
+  }
 }
 
 /* Icon Tab Bar Styling */
 #analysisIconTabBar {
-    border-top: 2px solid #e0e0e0;
-    margin-top: 1rem;
-    max-width: 100%;
-    overflow: hidden;
+  border-top: 2px solid #e0e0e0;
+  margin-top: 1rem;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 #analysisIconTabBar .sapMITBHead {
-    background: #fafafa;
-    border-bottom: 2px solid #e0e0e0;
-    overflow-x: auto;
-    overflow-y: hidden;
+  background: #fafafa;
+  border-bottom: 2px solid #e0e0e0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 #analysisIconTabBar .sapMITBFilter {
-    transition: all 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 #analysisIconTabBar .sapMITBFilter:hover {
-    background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 #analysisIconTabBar .sapMITBFilterSelected {
-    border-bottom: 3px solid #0854a0;
-    background-color: white;
+  border-bottom: 3px solid #0854a0;
+  background-color: white;
 }
 
 #analysisIconTabBar .sapMITBContent {
-    padding: 1rem;
-    overflow-x: hidden;
+  padding: 1rem;
+  overflow-x: hidden;
 }
 
 /* Simple Form Enhancements */
 #resultsForm .sapUiFormElementLbl,
 #objectForm .sapUiFormElementLbl,
 #riskForm .sapUiFormElementLbl {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
 }
 
 #resultsForm .sapMText,
 #objectForm .sapMText,
 #riskForm .sapMText {
-    font-size: 0.95rem;
-    color: #555;
-    line-height: 1.6;
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
 }
 
 /* Flowchart Container Styling */
 #flowchartBox {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    padding: 1rem;
-    border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
 }
 
 #flowchartSvgContainer {
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background: #fafafa !important;
-    min-height: 500px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: #fafafa !important;
+  min-height: 500px;
 }
 
 /* Message Strip Styling */
 #flowchartInfoStrip {
-    border-radius: 6px;
-    border-left: 4px solid #0854a0;
+  border-radius: 6px;
+  border-left: 4px solid #0854a0;
 }
 
 /* Footer Toolbar Styling */
 #analysisFooter {
-    background: linear-gradient(to top, #f5f5f5, #ffffff);
-    border-top: 2px solid #e0e0e0;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-    padding: 0.5rem 1rem;
+  background: linear-gradient(to top, #f5f5f5, #ffffff);
+  border-top: 2px solid #e0e0e0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem 1rem;
 }
 
 #analysisFooter .sapMBtn {
-    margin: 0 0.25rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+  margin: 0 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 #analysisFooter .sapMBtn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Status Badges Enhancement */
 .sapMObjectStatus {
-    font-weight: 600;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
 }
 
 /* Responsive Enhancements for Analysis Details */
 @media (max-width: 600px) {
-    #analysisHeader .sapMObjectHeaderTitle {
-        font-size: 1.25rem;
-    }
-    
-    #analysisHeader .sapMObjectHeaderNumber {
-        font-size: 1rem;
-    }
-    
-    #scoringPanel {
-        margin: 0.5rem;
-        border-radius: 4px;
-    }
-    
-    #flowchartBox {
-        height: 400px !important;
-    }
-    
-    #analysisFooter .sapMBtn {
-        min-width: auto;
-        margin: 0.125rem;
-        font-size: 0.875rem;
-    }
-    
-    #analysisIconTabBar .sapMITBFilter {
-        font-size: 0.875rem;
-    }
+  #analysisHeader .sapMObjectHeaderTitle {
+    font-size: 1.25rem;
+  }
+
+  #analysisHeader .sapMObjectHeaderNumber {
+    font-size: 1rem;
+  }
+
+  #scoringPanel {
+    margin: 0.5rem;
+    border-radius: 4px;
+  }
+
+  #flowchartBox {
+    height: 400px !important;
+  }
+
+  #analysisFooter .sapMBtn {
+    min-width: auto;
+    margin: 0.125rem;
+    font-size: 0.875rem;
+  }
+
+  #analysisIconTabBar .sapMITBFilter {
+    font-size: 0.875rem;
+  }
 }
 
 @media (min-width: 601px) and (max-width: 1024px) {
-    #scoringPanel {
-        margin: 1rem 0.5rem;
-    }
+  #scoringPanel {
+    margin: 1rem 0.5rem;
+  }
 }
 
 @media (min-width: 1025px) and (max-width: 1440px) {
-    #scoringPanel {
-        margin: 1rem auto;
-        max-width: 1400px;
-    }
+  #scoringPanel {
+    margin: 1rem auto;
+    max-width: 1400px;
+  }
 }
 
 @media (min-width: 1441px) {
-    #scoringPanel {
-        margin: 1rem auto;
-        max-width: 1600px;
-    }
-    
-    #analysisDetailsPage .sapMPageScroll {
-        padding: 0 2rem;
-    }
+  #scoringPanel {
+    margin: 1rem auto;
+    max-width: 1600px;
+  }
+
+  #analysisDetailsPage .sapMPageScroll {
+    padding: 0 2rem;
+  }
 }
 
 /* Print Styles for Analysis Details */
 @media print {
-    #analysisHeader {
-        background: white !important;
-        border-bottom: 2px solid black !important;
-    }
-    
-    #scoringPanel {
-        page-break-before: always;
-    }
-    
-    #flowchartBox {
-        page-break-before: always;
-    }
+  #analysisHeader {
+    background: white !important;
+    border-bottom: 2px solid black !important;
+  }
+
+  #scoringPanel {
+    page-break-before: always;
+  }
+
+  #flowchartBox {
+    page-break-before: always;
+  }
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #scoringPanel,
 #analysisIconTabBar {
-    animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.4s ease-out;
 }
 
 /* Loading State */
 .sapMBusyIndicator {
-    background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.95);
 }
 
 /* Scrollbar Styling for Flowchart */
 #flowchartSvgContainer::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 #flowchartSvgContainer::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+  background: #f1f1f1;
+  border-radius: 4px;
 }
 
 #flowchartSvgContainer::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+  background: #888;
+  border-radius: 4px;
 }
 
 #flowchartSvgContainer::-webkit-scrollbar-thumb:hover {
-    background: #555;
+  background: #555;
 }
 
 /* ============================================
@@ -993,114 +1000,113 @@ html {
 
 /* Notification Badge on Shell Bar */
 .notificationBadge {
-    position: relative;
+  position: relative;
 }
 
 .notificationBadge::after {
-    content: attr(data-count);
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: #e53935;
-    color: white;
-    font-size: 0.7rem;
-    font-weight: bold;
-    padding: 0.125rem 0.375rem;
-    border-radius: 10px;
-    min-width: 18px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  content: attr(data-count);
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #e53935;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 0.125rem 0.375rem;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Notification Popover Styling */
 #notificationPopover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 #notificationPopover .sapMPopoverCont {
-    padding: 0;
+  padding: 0;
 }
 
 /* Notification List Item Unread State */
 .sapUiNotificationListItemUnread {
-    background-color: #f5f9ff;
-    border-left: 4px solid #0854a0;
+  background-color: #f5f9ff;
+  border-left: 4px solid #0854a0;
 }
 
 .sapUiNotificationListItemUnread:hover {
-    background-color: #e8f3ff;
+  background-color: #e8f3ff;
 }
 
 /* Notification Title Bold for Unread */
 .sapUiNotificationTitle {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 /* Notification Icon Color States */
 .notificationIconCritical {
-    color: #e53935;
+  color: #e53935;
 }
 
 .notificationIconWarning {
-    color: #ff9800;
+  color: #ff9800;
 }
 
 .notificationIconSuccess {
-    color: #4caf50;
+  color: #4caf50;
 }
 
 .notificationIconInfo {
-    color: #2196f3;
+  color: #2196f3;
 }
 
 /* Notification Tab Bar */
 #notificationTabs {
-    border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 #notificationTabs .sapMITBFilter {
-    font-size: 0.875rem;
+  font-size: 0.875rem;
 }
 
 /* Notification List Container */
 #notificationsList {
-    max-height: 400px;
-    overflow-y: auto;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 /* Notification Empty State */
 #notificationsList .sapMListNoData {
-    padding: 2rem;
-    text-align: center;
-    color: #757575;
+  padding: 2rem;
+  text-align: center;
+  color: #757575;
 }
 
 /* Notification Action Buttons */
 .notificationActions {
-    display: flex;
-    gap: 0.25rem;
+  display: flex;
+  gap: 0.25rem;
 }
 
 /* Notification Timestamp */
 .notificationTimestamp {
-    font-size: 0.75rem;
-    color: #757575;
+  font-size: 0.75rem;
+  color: #757575;
 }
 
 /* Notification Settings Dialog */
 .notificationSettingsPanel {
-    padding: 1rem;
+  padding: 1rem;
 }
 
 /* Responsive Notification Center */
 @media (max-width: 600px) {
-    #notificationPopover {
-        max-width: 95vw !important;
-        max-height: 85vh !important;
-    }
-    
-    #notificationsList {
-        max-height: 60vh;
-    }
-}
+  #notificationPopover {
+    max-width: 95vw !important;
+    max-height: 85vh !important;
+  }
 
+  #notificationsList {
+    max-height: 60vh;
+  }
+}

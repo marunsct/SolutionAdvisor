@@ -4,15 +4,16 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:layout="sap.ui.layout"
-    displayBlock="true">
-    
+    xmlns:unified="sap.ui.unified"
+    displayBlock="true"
+>
     <Page
         id="adminQuestionFlowPage"
         title="Question Flow Maintenance"
         showNavButton="true"
         navButtonPress="onNavBack"
-        class="sapUiResponsiveContentPadding">
-        
+        class="sapUiResponsiveContentPadding"
+    >
         <headerContent>
             <Button
                 id="createQuestionButton"
@@ -20,20 +21,23 @@
                 icon="sap-icon://create"
                 type="Emphasized"
                 press="onCreate"
-                tooltip="Create new question flow"/>
+                tooltip="Create new question flow"
+            />
             <Button
                 id="downloadTemplateButton"
                 text="Download Template"
                 icon="sap-icon://download"
                 press="onDownloadTemplate"
-                tooltip="Download Excel template for mass upload"/>
+                tooltip="Download Excel template for mass upload"
+            />
             <Button
                 id="exportButton"
                 text="Export"
                 icon="sap-icon://excel-attachment"
                 press="onExport"
-                tooltip="Export all question flows to Excel"/>
-            <FileUploader
+                tooltip="Export all question flows to Excel"
+            />
+            <unified:FileUploader
                 id="fileUploader"
                 name="massUpload"
                 buttonText="Mass Upload"
@@ -42,30 +46,48 @@
                 change="onMassUpload"
                 fileType="xlsx"
                 mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                tooltip="Upload Excel file with question flows"/>
+                tooltip="Upload Excel file with question flows"
+            />
             <SearchField
                 id="adminQuestionFlowSearchField"
                 width="300px"
                 search="onSearch"
-                placeholder="Search questions..."/>
+                placeholder="Search questions..."
+            />
         </headerContent>
-        
+
         <content>
-            <VBox class="sapUiSmallMargin">
-                
+            <VBox
+                id="adminQuestionFlowContentVBox"
+                class="sapUiSmallMargin"
+            >
                 <!-- Info Panel -->
                 <MessageStrip
+                    id="adminQuestionFlowInfoMessage"
                     text="Use Download Template to get the correct format. Upload Excel files with Mass Upload. Click Export to download existing data."
                     type="Information"
                     showIcon="true"
-                    class="sapUiSmallMarginBottom"/>
-                
+                    class="sapUiSmallMarginBottom"
+                />
+
                 <!-- Record Count -->
-                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
-                    <Title text="Question Flows" level="H3"/>
-                    <Text text="{viewModel>/recordCount} records"/>
+                <FlexBox
+                    id="adminQuestionFlowHeaderFlexBox"
+                    justifyContent="SpaceBetween"
+                    alignItems="Center"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <Title
+                        id="adminQuestionFlowTitle"
+                        text="Question Flows"
+                        level="H3"
+                    />
+                    <Text
+                        id="adminQuestionFlowRecordCount"
+                        text="{viewModel>/recordCount} records"
+                    />
                 </FlexBox>
-                
+
                 <!-- Question Flow Table -->
                 <Table
                     id="questionFlowTable"
@@ -74,78 +96,165 @@
                     growing="true"
                     growingThreshold="20"
                     busy="{viewModel>/busy}"
-                    noDataText="No question flows found. Click Create to add new questions.">
-                    
+                    noDataText="No question flows found. Click Create to add new questions."
+                >
                     <columns>
-                        <Column width="12%">
-                            <Text text="Question Key"/>
+                        <Column
+                            id="questionKeyColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="questionKeyHeader"
+                                text="Question Key"
+                            />
                         </Column>
-                        <Column width="8%">
-                            <Text text="Object Type"/>
+                        <Column
+                            id="objectTypeColumn"
+                            width="8%"
+                        >
+                            <Text
+                                id="objectTypeHeader"
+                                text="Object Type"
+                            />
                         </Column>
-                        <Column width="30%">
-                            <Text text="Question Text"/>
+                        <Column
+                            id="questionTextColumn"
+                            width="30%"
+                        >
+                            <Text
+                                id="questionTextHeader"
+                                text="Question Text"
+                            />
                         </Column>
-                        <Column width="12%">
-                            <Text text="Category"/>
+                        <Column
+                            id="categoryColumn"
+                            width="12%"
+                        >
+                            <Text
+                                id="categoryHeader"
+                                text="Category"
+                            />
                         </Column>
-                        <Column width="10%">
-                            <Text text="Answer Type"/>
+                        <Column
+                            id="answerTypeColumn"
+                            width="10%"
+                        >
+                            <Text
+                                id="answerTypeHeader"
+                                text="Answer Type"
+                            />
                         </Column>
-                        <Column width="8%">
-                            <Text text="Active"/>
+                        <Column
+                            id="activeColumn"
+                            width="8%"
+                        >
+                            <Text
+                                id="activeHeader"
+                                text="Active"
+                            />
                         </Column>
-                        <Column width="10%">
-                            <Text text="Modified"/>
+                        <Column
+                            id="modifiedColumn"
+                            width="10%"
+                        >
+                            <Text
+                                id="modifiedHeader"
+                                text="Modified"
+                            />
                         </Column>
-                        <Column width="10%" hAlign="End">
-                            <Text text="Actions"/>
+                        <Column
+                            id="actionsColumn"
+                            width="10%"
+                            hAlign="End"
+                        >
+                            <Text
+                                id="actionsHeader"
+                                text="Actions"
+                            />
                         </Column>
                     </columns>
-                    
+
                     <items>
-                        <ColumnListItem type="Navigation">
+                        <ColumnListItem
+                            id="questionFlowItem"
+                            type="Navigation"
+                        >
                             <cells>
                                 <ObjectIdentifier
+                                    id="questionKeyIdentifier"
                                     title="{questionKey}"
-                                    text="{objectType_objectType}"/>
-                                <Text text="{objectType_objectType}"/>
-                                <VBox>
-                                    <Text text="{questionText}" class="sapUiTinyMarginBottom"/>
-                                    <Text text="{detailedHint}" class="sapUiSmallText"/>
+                                    text="{objectType_objectType}"
+                                />
+                                <Text
+                                    id="objectTypeText"
+                                    text="{objectType_objectType}"
+                                />
+                                <VBox id="questionTextVBox">
+                                    <Text
+                                        id="questionTextValue"
+                                        text="{questionText}"
+                                        class="sapUiTinyMarginBottom"
+                                    />
+                                    <Text
+                                        id="detailedHintText"
+                                        text="{detailedHint}"
+                                        class="sapUiSmallText"
+                                    />
                                 </VBox>
-                                <Text text="{questionCategory}"/>
-                                <Text text="{answerType}"/>
+                                <Text
+                                    id="categoryText"
+                                    text="{questionCategory}"
+                                />
+                                <Text
+                                    id="answerTypeText"
+                                    text="{answerType}"
+                                />
                                 <Switch
+                                    id="questionActiveSwitch"
                                     state="{isActive}"
                                     enabled="false"
                                     customTextOn="Yes"
-                                    customTextOff="No"/>
-                                <Text text="{modifiedAt}"/>
-                                <HBox justifyContent="End">
+                                    customTextOff="No"
+                                />
+                                <Text
+                                    id="modifiedAtText"
+                                    text="{modifiedAt}"
+                                />
+                                <HBox
+                                    id="actionsHBox"
+                                    justifyContent="End"
+                                >
                                     <Button
+                                        id="editQuestionButton"
                                         icon="sap-icon://edit"
                                         type="Transparent"
                                         press="onEdit"
-                                        tooltip="Edit question flow"/>
+                                        tooltip="Edit question flow"
+                                    />
                                     <Button
+                                        id="deleteQuestionButton"
                                         icon="sap-icon://delete"
                                         type="Transparent"
                                         press="onDelete"
-                                        tooltip="Delete question flow"/>
+                                        tooltip="Delete question flow"
+                                    />
                                 </HBox>
                             </cells>
                         </ColumnListItem>
                     </items>
                 </Table>
-                
             </VBox>
         </content>
-        
+
         <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer/>
-                <Button text="Refresh" icon="sap-icon://refresh" press="_loadData"/>
+            <OverflowToolbar id="adminQuestionFlowFooterToolbar">
+                <ToolbarSpacer id="adminQuestionFlowFooterSpacer" />
+                <Button
+                    id="refreshQuestionFlowButton"
+                    text="Refresh"
+                    icon="sap-icon://refresh"
+                    press="_loadData"
+                />
             </OverflowToolbar>
         </footer>
     </Page>

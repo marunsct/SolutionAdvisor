@@ -33,18 +33,19 @@
         </headerContent>
         
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="adminObjectTypesContentVBox" class="sapUiSmallMargin">
                 
                 <MessageStrip
+                    id="adminObjectTypesInfoMessage"
                     text="Object Types define the RICEFW categories (Reports, Interfaces, Conversions, Enhancements, Forms, Workflows). These are system-critical master data."
                     type="Information"
                     showIcon="true"
                     class="sapUiSmallMarginBottom"/>
                 
                 <!-- Record Count -->
-                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
-                    <Title text="Object Types (RICEFW)" level="H3"/>
-                    <Text text="{viewModel>/recordCount} records"/>
+                <FlexBox id="adminObjectTypesHeaderFlexBox" justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title id="adminObjectTypesTitle" text="Object Types (RICEFW)" level="H3"/>
+                    <Text id="adminObjectTypesRecordCount" text="{viewModel>/recordCount} records"/>
                 </FlexBox>
                 
                 <!-- Object Types Table -->
@@ -56,52 +57,57 @@
                     noDataText="No object types found.">
                     
                     <columns>
-                        <Column width="10%">
-                            <Text text="Code"/>
+                        <Column id="typeCodeColumn" width="10%">
+                            <Text id="typeCodeHeader" text="Code"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Icon"/>
+                        <Column id="typeIconColumn" width="8%">
+                            <Text id="typeIconHeader" text="Icon"/>
                         </Column>
-                        <Column width="20%">
-                            <Text text="Type Name"/>
+                        <Column id="typeNameColumn" width="20%">
+                            <Text id="typeNameHeader" text="Type Name"/>
                         </Column>
-                        <Column width="35%">
-                            <Text text="Description"/>
+                        <Column id="typeDescriptionColumn" width="35%">
+                            <Text id="typeDescriptionHeader" text="Description"/>
                         </Column>
-                        <Column width="12%">
-                            <Text text="Display Order"/>
+                        <Column id="displayOrderColumn" width="12%">
+                            <Text id="displayOrderHeader" text="Display Order"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Active"/>
+                        <Column id="typeActiveColumn" width="8%">
+                            <Text id="typeActiveHeader" text="Active"/>
                         </Column>
-                        <Column width="7%" hAlign="End">
-                            <Text text="Actions"/>
+                        <Column id="typeActionsColumn" width="7%" hAlign="End">
+                            <Text id="typeActionsHeader" text="Actions"/>
                         </Column>
                     </columns>
                     
                     <items>
-                        <ColumnListItem>
+                        <ColumnListItem id="adminObjectTypeItem">
                             <cells>
                                 <ObjectIdentifier
+                                    id="adminTypeCodeIdentifier"
                                     title="{typeCode}"
                                     titleActive="false"/>
                                 <core:Icon
+                                    id="typeIcon"
                                     src="{icon}"
                                     size="1.5rem"
                                     xmlns:core="sap.ui.core"/>
-                                <Text text="{typeName}" class="sapUiMediumText"/>
-                                <Text text="{description}" maxLines="2"/>
-                                <Text text="{displayOrder}"/>
+                                <Text id="typeNameText" text="{typeName}" class="sapUiMediumText"/>
+                                <Text id="typeDescriptionText" text="{description}" maxLines="2"/>
+                                <Text id="displayOrderText" text="{displayOrder}"/>
                                 <Switch
+                                    id="typeActiveSwitch"
                                     state="{isActive}"
                                     enabled="false"/>
-                                <HBox>
+                                <HBox id="typeActionsHBox">
                                     <Button
+                                        id="editTypeButton"
                                         icon="sap-icon://edit"
                                         type="Transparent"
                                         press="onEdit"
                                         tooltip="Edit"/>
                                     <Button
+                                        id="deleteTypeButton"
                                         icon="sap-icon://delete"
                                         type="Transparent"
                                         press="onDelete"

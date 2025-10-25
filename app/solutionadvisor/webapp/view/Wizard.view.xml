@@ -3,7 +3,8 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:f="sap.f"
-    xmlns:core="sap.ui.core">
+    xmlns:core="sap.ui.core"
+>
     <Page
         id="wizardPage"
         title="New Clean Core Analysis"
@@ -11,30 +12,40 @@
         showNavButton="true"
         navButtonPress="onNavBack"
         enableScrolling="true"
-        backgroundDesign="List">
+        backgroundDesign="List"
+    >
         <content>
             <Wizard
                 id="cleanCoreWizard"
                 complete="onWizardComplete"
                 class="sapUiResponsiveMargin"
                 enableBranching="false"
-                backgroundDesign="Transparent">
-                
+                backgroundDesign="Transparent"
+            >
                 <!-- Step 1: Project Selection -->
                 <WizardStep
                     id="projectStep"
                     title="Select Project"
                     validated="false"
-                    activate="onProjectStepActivate">
-                    <VBox id="projectStepVBox" class="sapUiSmallMargin">
+                    activate="onProjectStepActivate"
+                >
+                    <VBox
+                        id="projectStepVBox"
+                        class="sapUiSmallMargin"
+                    >
                         <MessageStrip
                             id="projectAutoSelectedInfo"
                             visible="{wizardModel>/autoSelectedProject}"
                             text="Project automatically selected from previous screen"
                             type="Success"
                             showIcon="true"
-                            class="sapUiSmallMarginBottom"/>
-                        <Label id="projectLabel" text="Select Project" required="true"/>
+                            class="sapUiSmallMarginBottom"
+                        />
+                        <Label
+                            id="projectLabel"
+                            text="Select Project"
+                            required="true"
+                        />
                         <ComboBox
                             id="projectComboBox"
                             width="100%"
@@ -45,33 +56,50 @@
                             items="{
                                 path: '/Projects',
                                 sorter: { path: 'projectName' }
-                            }">
-                            <core:Item id="projectItem"
+                            }"
+                        >
+                            <core:Item
+                                id="projectItem"
                                 key="{ID}"
-                                text="{projectName} - {clientName}"/>
+                                text="{projectName} - {clientName}"
+                            />
                         </ComboBox>
                         <Text
                             id="projectInfo"
                             class="sapUiTinyMarginTop"
-                            text=""/>
+                            text=""
+                        />
                     </VBox>
                 </WizardStep>
-                
+
                 <!-- Step 2: Object Information -->
                 <WizardStep
                     id="objectStep"
                     title="Object Information"
                     validated="false"
-                    activate="onObjectStepActivate">
-                    <VBox id="objectStepVBox" class="sapUiSmallMargin">
-                        <HBox alignItems="Center" justifyContent="SpaceBetween">
-                            <Label id="ricefwIdLabel" text="RICEFW ID" required="true"/>
+                    activate="onObjectStepActivate"
+                >
+                    <VBox
+                        id="objectStepVBox"
+                        class="sapUiSmallMargin"
+                    >
+                        <HBox
+                            id="ricefwIdHintHBox"
+                            alignItems="Center"
+                            justifyContent="SpaceBetween"
+                        >
+                            <Label
+                                id="ricefwIdLabel"
+                                text="RICEFW ID"
+                                required="true"
+                            />
                             <Button
                                 id="hintButtonObject"
                                 icon="sap-icon://hint"
                                 tooltip="Show detailed hint"
                                 press="onShowDetailedHint"
-                                type="Transparent"/>
+                                type="Transparent"
+                            />
                         </HBox>
                         <Input
                             id="ricefwIdInput"
@@ -79,9 +107,15 @@
                             placeholder="e.g., I-0042-IMP"
                             liveChange="onRicefwIdChange"
                             description="Format: [RICEFYW]-[0-9]&#123;4&#125;-[A-Z]&#123;3&#125;"
-                            class="sapUiResponsiveContentPadding"/>
-                        
-                        <Label id="objectTypeLabel" text="Object Type" required="true" class="sapUiTinyMarginTop"/>
+                            class="sapUiResponsiveContentPadding"
+                        />
+
+                        <Label
+                            id="objectTypeLabel"
+                            text="Object Type"
+                            required="true"
+                            class="sapUiTinyMarginTop"
+                        />
                         <ComboBox
                             id="objectTypeComboBox"
                             width="100%"
@@ -90,63 +124,126 @@
                             items="{
                                 path: '/ObjectTypes',
                                 sorter: { path: 'displayName' }
-                            }">
-                            <core:Item id="objectTypeItem"
+                            }"
+                        >
+                            <core:Item
+                                id="objectTypeItem"
                                 key="{objectType}"
-                                text="{displayName} ({objectCode})"/>
+                                text="{displayName} ({objectCode})"
+                            />
                         </ComboBox>
-                        
-                        <Label id="objectNameLabel" text="Object Name" required="true" class="sapUiTinyMarginTop"/>
+
+                        <Label
+                            id="objectNameLabel"
+                            text="Object Name"
+                            required="true"
+                            class="sapUiTinyMarginTop"
+                        />
                         <Input
                             id="objectNameInput"
                             width="100%"
                             placeholder="Enter object name..."
-                            liveChange="onObjectNameChange"/>
-                        
-                        <Label id="objectDescriptionLabel" text="Object Description" class="sapUiTinyMarginTop"/>
+                            liveChange="onObjectNameChange"
+                        />
+
+                        <Label
+                            id="objectDescriptionLabel"
+                            text="Object Description"
+                            class="sapUiTinyMarginTop"
+                        />
                         <TextArea
                             id="objectDescriptionInput"
                             width="100%"
                             rows="3"
-                            placeholder="Optional: Describe the object..."/>
+                            placeholder="Optional: Describe the object..."
+                        />
                     </VBox>
                 </WizardStep>
-                
+
                 <!-- Step 3: Ready to Start -->
                 <WizardStep
                     id="readyStep"
                     title="Ready to Start"
-                    validated="true">
-                    <VBox id="readyStepVBox" class="sapUiSmallMargin">
-                        <MessageStrip id="readyMessageStrip"
+                    validated="true"
+                >
+                    <VBox
+                        id="readyStepVBox"
+                        class="sapUiSmallMargin"
+                    >
+                        <MessageStrip
+                            id="readyMessageStrip"
                             text="You will now be guided through a series of questions to determine the optimal Clean Core level for your object. Click 'Start Analysis' to begin."
                             type="Information"
-                            showIcon="true"/>
-                        
-                        <VBox id="summaryContainerVBox" class="sapUiMediumMarginTop">
-                            <Title id="summaryTitle" text="Summary" level="H3"/>
-                            <VBox id="summaryFieldsVBox" class="sapUiTinyMarginTop">
-                                <Label id="summaryProjectLabel" text="Project:"/>
-                                <Text id="summaryProject" text="{wizardModel>/projectName}"/>
-                                
-                                <Label id="summaryRicefwIdLabel" text="RICEFW ID:" class="sapUiTinyMarginTop"/>
-                                <Text id="summaryRicefwId" text="{wizardModel>/ricefwId}"/>
-                                
-                                <Label id="summaryObjectTypeLabel" text="Object Type:" class="sapUiTinyMarginTop"/>
-                                <Text id="summaryObjectType" text="{wizardModel>/objectType}"/>
-                                
-                                <Label id="summaryObjectNameLabel" text="Object Name:" class="sapUiTinyMarginTop"/>
-                                <Text id="summaryObjectName" text="{wizardModel>/objectName}"/>
+                            showIcon="true"
+                        />
+
+                        <VBox
+                            id="summaryContainerVBox"
+                            class="sapUiMediumMarginTop"
+                        >
+                            <Title
+                                id="summaryTitle"
+                                text="Summary"
+                                level="H3"
+                            />
+                            <VBox
+                                id="summaryFieldsVBox"
+                                class="sapUiTinyMarginTop"
+                            >
+                                <Label
+                                    id="summaryProjectLabel"
+                                    text="Project:"
+                                />
+                                <Text
+                                    id="summaryProject"
+                                    text="{wizardModel>/projectName}"
+                                />
+
+                                <Label
+                                    id="summaryRicefwIdLabel"
+                                    text="RICEFW ID:"
+                                    class="sapUiTinyMarginTop"
+                                />
+                                <Text
+                                    id="summaryRicefwId"
+                                    text="{wizardModel>/ricefwId}"
+                                />
+
+                                <Label
+                                    id="summaryObjectTypeLabel"
+                                    text="Object Type:"
+                                    class="sapUiTinyMarginTop"
+                                />
+                                <Text
+                                    id="summaryObjectType"
+                                    text="{wizardModel>/objectType}"
+                                />
+
+                                <Label
+                                    id="summaryObjectNameLabel"
+                                    text="Object Name:"
+                                    class="sapUiTinyMarginTop"
+                                />
+                                <Text
+                                    id="summaryObjectName"
+                                    text="{wizardModel>/objectName}"
+                                />
                             </VBox>
                         </VBox>
-                        
+
                         <!-- Add Constraints and Examples Panels -->
-                        <VBox class="sapUiMediumMarginTop">
-                            <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel" type="XML"/>
+                        <VBox id="constraintsPanelContainer" class="sapUiMediumMarginTop">
+                            <core:Fragment
+                                fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel"
+                                type="XML"
+                            />
                         </VBox>
-                        
-                        <VBox class="sapUiMediumMarginTop">
-                            <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.ExamplesPanel" type="XML"/>
+
+                        <VBox id="examplesPanelContainer" class="sapUiMediumMarginTop">
+                            <core:Fragment
+                                fragmentName="sd.solutionadvisor.view.fragments.ExamplesPanel"
+                                type="XML"
+                            />
                         </VBox>
                     </VBox>
                 </WizardStep>
@@ -156,237 +253,449 @@
                     id="questionStep"
                     title="Analysis Questions"
                     validated="false"
-                    visible="{= !!${wizardModel>/currentQuestion}}">
-                    
+                    visible="{= !!${wizardModel>/currentQuestion}}"
+                >
                     <!-- Question Panel -->
-                    <Panel id="questionPanel" 
-                        visible="{= !!${wizardModel>/currentQuestion} &amp;&amp; !${wizardModel>/finalRecommendation}}">
-                        <VBox id="questionVBox" class="sapUiMediumMargin">
+                    <Panel
+                        id="questionPanel"
+                        visible="{= !!${wizardModel>/currentQuestion} &amp;&amp; !${wizardModel>/finalRecommendation}}"
+                    >
+                        <VBox
+                            id="questionVBox"
+                            class="sapUiMediumMargin"
+                        >
                             <!-- Progress Indicator -->
-                            <HBox id="progressHBox" alignItems="Center" justifyContent="SpaceBetween" class="sapUiSmallMarginBottom">
-                                <Title id="stepTitle" text="Step {wizardModel>/currentStep} of {wizardModel>/totalSteps}" level="H4"/>
+                            <HBox
+                                id="progressHBox"
+                                alignItems="Center"
+                                justifyContent="SpaceBetween"
+                                class="sapUiSmallMarginBottom"
+                            >
+                                <Title
+                                    id="stepTitle"
+                                    text="Step {wizardModel>/currentStep} of {wizardModel>/totalSteps}"
+                                    level="H4"
+                                />
                                 <ProgressIndicator
                                     id="wizardProgressIndicator"
                                     width="200px"
                                     percentValue="{= ${wizardModel>/totalSteps} > 0 ? Math.round((${wizardModel>/currentStep} / ${wizardModel>/totalSteps}) * 100) : 0}"
                                     displayValue="{= ${wizardModel>/totalSteps} > 0 ? Math.round((${wizardModel>/currentStep} / ${wizardModel>/totalSteps}) * 100) + '%' : '0%'}"
-                                    state="{= ${wizardModel>/currentStep} === ${wizardModel>/totalSteps} ? 'Success' : 'None'}"/>
+                                    state="{= ${wizardModel>/currentStep} === ${wizardModel>/totalSteps} ? 'Success' : 'None'}"
+                                />
                             </HBox>
-                            
+
                             <!-- Question Title -->
-                            <Title id="questionTitle" text="{wizardModel>/currentQuestion/questionText}" level="H2" class="sapUiMediumMarginBottom"/>
-                            
+                            <Title
+                                id="questionTitle"
+                                text="{wizardModel>/currentQuestion/questionText}"
+                                level="H2"
+                                class="sapUiMediumMarginBottom"
+                            />
+
                             <!-- Question Hint -->
-                            <Text id="questionHint" text="{wizardModel>/currentQuestion/hint}" class="sapUiSmallMarginBottom"/>
-                            
+                            <Text
+                                id="questionHint"
+                                text="{wizardModel>/currentQuestion/hint}"
+                                class="sapUiSmallMarginBottom"
+                            />
+
                             <!-- Answer Options -->
-                            <VBox id="answerOptionsBox" class="sapUiMediumMarginTop sapUiMediumMarginBottom">
-                                <RadioButtonGroup 
+                            <VBox
+                                id="answerOptionsBox"
+                                class="sapUiMediumMarginTop sapUiMediumMarginBottom"
+                            >
+                                <RadioButtonGroup
                                     id="answerOptionsGroup"
                                     selectedIndex="{wizardModel>/selectedAnswerIndex}"
                                     columns="1"
                                     select="onAnswerSelect"
                                     enabled="{= !${wizardModel>/questionCompleted}}"
-                                    buttons="{wizardModel>/currentQuestion/answerOptions}">
-                                    <RadioButton 
+                                    buttons="{wizardModel>/currentQuestion/answerOptions}"
+                                >
+                                    <RadioButton
                                         id="answerOptionTemplate"
-                                        text="{wizardModel>label}" 
+                                        text="{wizardModel>label}"
                                         tooltip="{wizardModel>description}"
-                                        class="sapUiSmallMarginBottom"/>
+                                        class="sapUiSmallMarginBottom"
+                                    />
                                 </RadioButtonGroup>
                             </VBox>
-                            
+
                             <!-- Action Buttons - Touch-friendly -->
-                            <HBox id="actionButtonsHBox" alignItems="Center" class="sapUiSmallMarginTop" wrap="Wrap">
-                                <Button id="detailedHintButton"
-                                    text="Show Detailed Hint" 
-                                    icon="sap-icon://hint" 
-                                    press="onShowDetailedHint" 
+                            <HBox
+                                id="actionButtonsHBox"
+                                alignItems="Center"
+                                class="sapUiSmallMarginTop"
+                                wrap="Wrap"
+                            >
+                                <Button
+                                    id="detailedHintButton"
+                                    text="Show Detailed Hint"
+                                    icon="sap-icon://hint"
+                                    press="onShowDetailedHint"
                                     class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
                                     width="auto"
-                                    visible="{= !!${wizardModel>/currentQuestion/detailedHint}}"/>
-                                <Button id="nextQuestionButton"
-                                    text="Next Question" 
-                                    type="Emphasized" 
+                                    visible="{= !!${wizardModel>/currentQuestion/detailedHint}}"
+                                />
+                                <Button
+                                    id="nextQuestionButton"
+                                    text="Next Question"
+                                    type="Emphasized"
                                     enabled="{= ${wizardModel>/selectedAnswerIndex} >= 0 &amp;&amp; !${wizardModel>/questionCompleted}}"
-                                    press="onSubmitAnswer" 
+                                    press="onSubmitAnswer"
                                     class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
-                                    width="auto"/>
+                                    width="auto"
+                                />
                             </HBox>
                         </VBox>
                     </Panel>
 
                     <!-- Final Recommendation Panel -->
-                    <Panel id="recommendationPanel" 
-                        visible="{= !!${wizardModel>/finalRecommendation}}">
-                        <VBox id="recommendationVBox" class="sapUiMediumMargin">
+                    <Panel
+                        id="recommendationPanel"
+                        visible="{= !!${wizardModel>/finalRecommendation}}"
+                    >
+                        <VBox
+                            id="recommendationVBox"
+                            class="sapUiMediumMargin"
+                        >
                             <MessageStrip
                                 id="completionMessage"
                                 text="Analysis Complete!"
                                 type="Success"
                                 showIcon="true"
-                                class="sapUiMediumMarginBottom"/>
-                            
-                            <Title id="recommendationLevelTitle" text="Recommended Clean Core Level" level="H2" class="sapUiSmallMarginBottom"/>
-                            <Title id="recommendationLevel" text="{wizardModel>/finalRecommendation}" level="H3" 
-                                class="sapUiSmallMarginBottom sapUiSuccessText"/>
-                            <Text id="recommendationReasoning" text="{wizardModel>/finalReasoning}" class="sapUiMediumMarginBottom"/>
-                            
-            <!-- Scoring Dashboard - Responsive Layout -->
-            <Title id="scoringTitle" text="Scoring Metrics" level="H4" class="sapUiSmallMarginBottom"/>
-            
-            <!-- Desktop/Tablet Layout -->
-            <HBox id="scoresHBoxDesktop" class="sapUiMediumMarginBottom sapUiHideOnPhone" wrap="Wrap">
-                <VBox id="technicalDebtBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                    <Label id="technicalDebtLabel" text="Technical Debt Score" class="sapUiTinyMarginBottom"/>
-                    <ProgressIndicator 
-                        id="technicalDebtIndicator"
-                        percentValue="{wizardModel>/scores/technicalDebt}" 
-                        displayValue="{wizardModel>/scores/technicalDebt}%" 
-                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : 
-                                ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"/>
-                    <Text id="technicalDebtHelp" text="Lower is better" class="sapUiTinyText"/>
-                </VBox>
-                
-                <VBox id="cloudReadinessBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                    <Label id="cloudReadinessLabel" text="Cloud Readiness Score" class="sapUiTinyMarginBottom"/>
-                    <ProgressIndicator 
-                        id="cloudReadinessIndicator"
-                        percentValue="{wizardModel>/scores/cloudReadiness}" 
-                        displayValue="{wizardModel>/scores/cloudReadiness}%" 
-                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : 
-                                ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"/>
-                    <Text id="cloudReadinessHelp" text="Higher is better" class="sapUiTinyText"/>
-                </VBox>
-                
-                <VBox id="upgradeImpactBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                    <Label id="upgradeImpactLabel" text="Upgrade Impact Score" class="sapUiTinyMarginBottom"/>
-                    <ProgressIndicator 
-                        id="upgradeImpactIndicator"
-                        percentValue="{wizardModel>/scores/upgradeImpact}" 
-                        displayValue="{wizardModel>/scores/upgradeImpact}%" 
-                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : 
-                                ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"/>
-                    <Text id="upgradeImpactHelp" text="Lower is better" class="sapUiTinyText"/>
-                </VBox>
-                
-                <VBox id="compositeHealthBox" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="250px">
-                    <Label id="compositeHealthLabel" text="Composite Health Score" class="sapUiTinyMarginBottom"/>
-                    <ProgressIndicator 
-                        id="compositeHealthIndicator"
-                        percentValue="{wizardModel>/scores/compositeHealth}" 
-                        displayValue="{wizardModel>/scores/compositeHealth}%" 
-                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : 
-                                ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"/>
-                    <Text id="compositeHealthHelp" text="Higher is better" class="sapUiTinyText"/>
-                </VBox>
-            </HBox>
-            
-            <!-- Mobile Accordion Layout -->
-            <Panel id="mobileScoresPanel" class="sapUiShowOnPhone sapUiMediumMarginBottom" expandable="true" expanded="true" headerText="Scoring Summary">
-                <VBox class="sapUiSmallMargin">
-                    <List id="mobileScoresList" noDataText="No scoring data available">
-                        <CustomListItem>
-                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
-                                <VBox width="60%">
-                                    <Text text="Technical Debt" class="sapUiMediumText"/>
-                                    <Text text="Lower is better" class="sapUiTinyText"/>
+                                class="sapUiMediumMarginBottom"
+                            />
+
+                            <Title
+                                id="recommendationLevelTitle"
+                                text="Recommended Clean Core Level"
+                                level="H2"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <Title
+                                id="recommendationLevel"
+                                text="{wizardModel>/finalRecommendation}"
+                                level="H3"
+                                class="sapUiSmallMarginBottom sapUiSuccessText"
+                            />
+                            <Text
+                                id="recommendationReasoning"
+                                text="{wizardModel>/finalReasoning}"
+                                class="sapUiMediumMarginBottom"
+                            />
+
+                            <!-- Scoring Dashboard - Responsive Layout -->
+                            <Title
+                                id="scoringTitle"
+                                text="Scoring Metrics"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+
+                            <!-- Desktop/Tablet Layout -->
+                            <HBox
+                                id="scoresHBoxDesktop"
+                                class="sapUiMediumMarginBottom sapUiHideOnPhone"
+                                wrap="Wrap"
+                            >
+                                <VBox
+                                    id="technicalDebtBox"
+                                    class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                                    width="250px"
+                                >
+                                    <Label
+                                        id="technicalDebtLabel"
+                                        text="Technical Debt Score"
+                                        class="sapUiTinyMarginBottom"
+                                    />
+                                    <ProgressIndicator
+                                        id="technicalDebtIndicator"
+                                        percentValue="{wizardModel>/scores/technicalDebt}"
+                                        displayValue="{wizardModel>/scores/technicalDebt}%"
+                                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : 
+                                ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"
+                                    />
+                                    <Text
+                                        id="technicalDebtHelp"
+                                        text="Lower is better"
+                                        class="sapUiTinyText"
+                                    />
                                 </VBox>
-                                <VBox width="35%" alignItems="End">
-                                    <ObjectNumber 
-                                        number="{wizardModel>/scores/technicalDebt}" 
-                                        unit="%" 
-                                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"
-                                        emphasized="true"/>
+
+                                <VBox
+                                    id="cloudReadinessBox"
+                                    class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                                    width="250px"
+                                >
+                                    <Label
+                                        id="cloudReadinessLabel"
+                                        text="Cloud Readiness Score"
+                                        class="sapUiTinyMarginBottom"
+                                    />
+                                    <ProgressIndicator
+                                        id="cloudReadinessIndicator"
+                                        percentValue="{wizardModel>/scores/cloudReadiness}"
+                                        displayValue="{wizardModel>/scores/cloudReadiness}%"
+                                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : 
+                                ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"
+                                    />
+                                    <Text
+                                        id="cloudReadinessHelp"
+                                        text="Higher is better"
+                                        class="sapUiTinyText"
+                                    />
+                                </VBox>
+
+                                <VBox
+                                    id="upgradeImpactBox"
+                                    class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                                    width="250px"
+                                >
+                                    <Label
+                                        id="upgradeImpactLabel"
+                                        text="Upgrade Impact Score"
+                                        class="sapUiTinyMarginBottom"
+                                    />
+                                    <ProgressIndicator
+                                        id="upgradeImpactIndicator"
+                                        percentValue="{wizardModel>/scores/upgradeImpact}"
+                                        displayValue="{wizardModel>/scores/upgradeImpact}%"
+                                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : 
+                                ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"
+                                    />
+                                    <Text
+                                        id="upgradeImpactHelp"
+                                        text="Lower is better"
+                                        class="sapUiTinyText"
+                                    />
+                                </VBox>
+
+                                <VBox
+                                    id="compositeHealthBox"
+                                    class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+                                    width="250px"
+                                >
+                                    <Label
+                                        id="compositeHealthLabel"
+                                        text="Composite Health Score"
+                                        class="sapUiTinyMarginBottom"
+                                    />
+                                    <ProgressIndicator
+                                        id="compositeHealthIndicator"
+                                        percentValue="{wizardModel>/scores/compositeHealth}"
+                                        displayValue="{wizardModel>/scores/compositeHealth}%"
+                                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : 
+                                ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"
+                                    />
+                                    <Text
+                                        id="compositeHealthHelp"
+                                        text="Higher is better"
+                                        class="sapUiTinyText"
+                                    />
                                 </VBox>
                             </HBox>
-                        </CustomListItem>
-                        <CustomListItem>
-                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
-                                <VBox width="60%">
-                                    <Text text="Cloud Readiness" class="sapUiMediumText"/>
-                                    <Text text="Higher is better" class="sapUiTinyText"/>
+
+                            <!-- Mobile Accordion Layout -->
+                            <Panel
+                                id="mobileScoresPanel"
+                                class="sapUiShowOnPhone sapUiMediumMarginBottom"
+                                expandable="true"
+                                expanded="true"
+                                headerText="Scoring Summary"
+                            >
+                                <VBox id="mobileScoresVBox" class="sapUiSmallMargin">
+                                    <List
+                                        id="mobileScoresList"
+                                        noDataText="No scoring data available"
+                                    >
+                                        <CustomListItem id="mobileTechDebtItem">
+                                            <HBox
+                                                id="mobileTechDebtHBox"
+                                                alignItems="Center"
+                                                justifyContent="SpaceBetween"
+                                                width="100%"
+                                            >
+                                                <VBox id="mobileTechDebtLabelVBox" width="60%">
+                                                    <Text
+                                                        id="mobileTechDebtText"
+                                                        text="Technical Debt"
+                                                        class="sapUiMediumText"
+                                                    />
+                                                    <Text
+                                                        id="mobileTechDebtHelpText"
+                                                        text="Lower is better"
+                                                        class="sapUiTinyText"
+                                                    />
+                                                </VBox>
+                                                <VBox
+                                                    id="mobileTechDebtValueVBox"
+                                                    width="35%"
+                                                    alignItems="End"
+                                                >
+                                                    <ObjectNumber
+                                                        id="mobileTechDebtNumber"
+                                                        number="{wizardModel>/scores/technicalDebt}"
+                                                        unit="%"
+                                                        state="{= ${wizardModel>/scores/technicalDebt} &lt; 30 ? 'Success' : ${wizardModel>/scores/technicalDebt} &lt; 70 ? 'Warning' : 'Error' }"
+                                                        emphasized="true"
+                                                    />
+                                                </VBox>
+                                            </HBox>
+                                        </CustomListItem>
+                                        <CustomListItem id="mobileCloudReadinessItem">
+                                            <HBox
+                                                id="mobileCloudReadinessHBox"
+                                                alignItems="Center"
+                                                justifyContent="SpaceBetween"
+                                                width="100%"
+                                            >
+                                                <VBox id="mobileCloudReadinessLabelVBox" width="60%">
+                                                    <Text
+                                                        id="mobileCloudReadinessText"
+                                                        text="Cloud Readiness"
+                                                        class="sapUiMediumText"
+                                                    />
+                                                    <Text
+                                                        id="mobileCloudReadinessHelpText"
+                                                        text="Higher is better"
+                                                        class="sapUiTinyText"
+                                                    />
+                                                </VBox>
+                                                <VBox
+                                                    id="mobileCloudReadinessValueVBox"
+                                                    width="35%"
+                                                    alignItems="End"
+                                                >
+                                                    <ObjectNumber
+                                                        id="mobileCloudReadinessNumber"
+                                                        number="{wizardModel>/scores/cloudReadiness}"
+                                                        unit="%"
+                                                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"
+                                                        emphasized="true"
+                                                    />
+                                                </VBox>
+                                            </HBox>
+                                        </CustomListItem>
+                                        <CustomListItem id="mobileUpgradeImpactItem">
+                                            <HBox
+                                                id="mobileUpgradeImpactHBox"
+                                                alignItems="Center"
+                                                justifyContent="SpaceBetween"
+                                                width="100%"
+                                            >
+                                                <VBox id="mobileUpgradeImpactLabelVBox" width="60%">
+                                                    <Text
+                                                        id="mobileUpgradeImpactText"
+                                                        text="Upgrade Impact"
+                                                        class="sapUiMediumText"
+                                                    />
+                                                    <Text
+                                                        id="mobileUpgradeImpactHelpText"
+                                                        text="Lower is better"
+                                                        class="sapUiTinyText"
+                                                    />
+                                                </VBox>
+                                                <VBox
+                                                    id="mobileUpgradeImpactValueVBox"
+                                                    width="35%"
+                                                    alignItems="End"
+                                                >
+                                                    <ObjectNumber
+                                                        id="mobileUpgradeImpactNumber"
+                                                        number="{wizardModel>/scores/upgradeImpact}"
+                                                        unit="%"
+                                                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"
+                                                        emphasized="true"
+                                                    />
+                                                </VBox>
+                                            </HBox>
+                                        </CustomListItem>
+                                        <CustomListItem id="mobileCompositeHealthItem">
+                                            <HBox
+                                                id="mobileCompositeHealthHBox"
+                                                alignItems="Center"
+                                                justifyContent="SpaceBetween"
+                                                width="100%"
+                                            >
+                                                <VBox id="mobileCompositeHealthLabelVBox" width="60%">
+                                                    <Text
+                                                        id="mobileCompositeHealthText"
+                                                        text="Composite Health"
+                                                        class="sapUiMediumText"
+                                                    />
+                                                    <Text
+                                                        id="mobileCompositeHealthHelpText"
+                                                        text="Overall health"
+                                                        class="sapUiTinyText"
+                                                    />
+                                                </VBox>
+                                                <VBox
+                                                    id="mobileCompositeHealthValueVBox"
+                                                    width="35%"
+                                                    alignItems="End"
+                                                >
+                                                    <ObjectNumber
+                                                        id="mobileCompositeHealthNumber"
+                                                        number="{wizardModel>/scores/compositeHealth}"
+                                                        unit="%"
+                                                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"
+                                                        emphasized="true"
+                                                    />
+                                                </VBox>
+                                            </HBox>
+                                        </CustomListItem>
+                                    </List>
                                 </VBox>
-                                <VBox width="35%" alignItems="End">
-                                    <ObjectNumber 
-                                        number="{wizardModel>/scores/cloudReadiness}" 
-                                        unit="%" 
-                                        state="{= ${wizardModel>/scores/cloudReadiness} > 70 ? 'Success' : ${wizardModel>/scores/cloudReadiness} > 40 ? 'Warning' : 'Error' }"
-                                        emphasized="true"/>
-                                </VBox>
-                            </HBox>
-                        </CustomListItem>
-                        <CustomListItem>
-                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
-                                <VBox width="60%">
-                                    <Text text="Upgrade Impact" class="sapUiMediumText"/>
-                                    <Text text="Lower is better" class="sapUiTinyText"/>
-                                </VBox>
-                                <VBox width="35%" alignItems="End">
-                                    <ObjectNumber 
-                                        number="{wizardModel>/scores/upgradeImpact}" 
-                                        unit="%" 
-                                        state="{= ${wizardModel>/scores/upgradeImpact} &lt; 30 ? 'Success' : ${wizardModel>/scores/upgradeImpact} &lt; 70 ? 'Warning' : 'Error' }"
-                                        emphasized="true"/>
-                                </VBox>
-                            </HBox>
-                        </CustomListItem>
-                        <CustomListItem>
-                            <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
-                                <VBox width="60%">
-                                    <Text text="Composite Health" class="sapUiMediumText"/>
-                                    <Text text="Overall health" class="sapUiTinyText"/>
-                                </VBox>
-                                <VBox width="35%" alignItems="End">
-                                    <ObjectNumber 
-                                        number="{wizardModel>/scores/compositeHealth}" 
-                                        unit="%" 
-                                        state="{= ${wizardModel>/scores/compositeHealth} > 70 ? 'Success' : ${wizardModel>/scores/compositeHealth} > 40 ? 'Warning' : 'Error' }"
-                                        emphasized="true"/>
-                                </VBox>
-                            </HBox>
-                        </CustomListItem>
-                    </List>
-                </VBox>
-            </Panel>                            <Button id="viewDetailsButton"
-                                text="View Analysis Details" 
-                                type="Emphasized" 
+                            </Panel>
+                            <Button
+                                id="viewDetailsButton"
+                                text="View Analysis Details"
+                                type="Emphasized"
                                 press="onViewAnalysisDetails"
-                                class="sapUiMediumMarginTop"/>
+                                class="sapUiMediumMarginTop"
+                            />
                         </VBox>
                     </Panel>
                 </WizardStep>
             </Wizard>
         </content>
         <footer>
-            <OverflowToolbar id="wizardFooter" >
+            <OverflowToolbar id="wizardFooter">
                 <Button
                     id="ricefwHistoryButton"
                     text="View History"
                     icon="sap-icon://history"
                     press="onShowRicefwHistory"
-                    visible="{= ${wizardModel>/ricefwId} !== '' }"/>
+                    visible="{= ${wizardModel>/ricefwId} !== '' }"
+                />
                 <Button
                     id="saveDraftButton"
                     text="Save Draft"
                     icon="sap-icon://save"
                     press="onSaveDraft"
-                    visible="{= ${wizardModel>/projectID} !== '' }"/>
-                <ToolbarSpacer id="wizardFooterSpacer"/>
-                <Button id="wizardCancelButton"
+                    visible="{= ${wizardModel>/projectID} !== '' }"
+                />
+                <ToolbarSpacer id="wizardFooterSpacer" />
+                <Button
+                    id="wizardCancelButton"
                     text="Cancel"
-                    press="onCancel"/>
+                    press="onCancel"
+                />
                 <Button
                     id="wizardNextButton"
                     text="Next"
                     type="Emphasized"
-                    press="onNextStep"/>
+                    press="onNextStep"
+                />
                 <Button
                     id="wizardStartButton"
                     text="Start Analysis"
                     type="Emphasized"
                     visible="false"
-                    press="onStartAnalysis"/>
+                    press="onStartAnalysis"
+                />
             </OverflowToolbar>
         </footer>
     </Page>

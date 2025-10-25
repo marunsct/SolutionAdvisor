@@ -3,6 +3,7 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
+    xmlns:unified="sap.ui.unified"
     displayBlock="true">
     
     <Page
@@ -26,7 +27,7 @@
                 icon="sap-icon://excel-attachment"
                 press="onExport"
                 tooltip="Export all thresholds to Excel"/>
-            <FileUploader
+            <unified:FileUploader
                 id="thresholdFileUploader"
                 name="massUpload"
                 buttonText="Mass Upload"
@@ -44,12 +45,12 @@
         </headerContent>
         
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="adminThresholdContentVBox" class="sapUiSmallMargin">
                 
                 <!-- Filter Bar -->
-                <Panel headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
+                <Panel id="thresholdFilterPanel" headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
                     <content>
-                        <FlexBox wrap="Wrap" class="sapUiSmallMargin">
+                        <FlexBox id="thresholdFilterFlexBox" wrap="Wrap" class="sapUiSmallMargin">
                             <ComboBox
                                 id="objectTypeFilterThreshold"
                                 placeholder="Filter by Object Type"
@@ -57,13 +58,13 @@
                                 selectionChange="onFilterChange"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
                                 <items>
-                                    <core:Item key="" text="All Types"/>
-                                    <core:Item key="R" text="Reports"/>
-                                    <core:Item key="I" text="Interfaces"/>
-                                    <core:Item key="C" text="Conversions"/>
-                                    <core:Item key="E" text="Enhancements"/>
-                                    <core:Item key="F" text="Forms"/>
-                                    <core:Item key="W" text="Workflows"/>
+                                    <core:Item id="thresholdAllTypesItem" key="" text="All Types"/>
+                                    <core:Item id="thresholdReportsItem" key="R" text="Reports"/>
+                                    <core:Item id="thresholdInterfacesItem" key="I" text="Interfaces"/>
+                                    <core:Item id="thresholdConversionsItem" key="C" text="Conversions"/>
+                                    <core:Item id="thresholdEnhancementsItem" key="E" text="Enhancements"/>
+                                    <core:Item id="thresholdFormsItem" key="F" text="Forms"/>
+                                    <core:Item id="thresholdWorkflowsItem" key="W" text="Workflows"/>
                                 </items>
                             </ComboBox>
                             <ComboBox
@@ -73,12 +74,12 @@
                                 selectionChange="onFilterChange"
                                 class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
                                 <items>
-                                    <core:Item key="" text="All Categories"/>
-                                    <core:Item key="Performance" text="Performance"/>
-                                    <core:Item key="Security" text="Security"/>
-                                    <core:Item key="Compliance" text="Compliance"/>
-                                    <core:Item key="Cloud" text="Cloud"/>
-                                    <core:Item key="Integration" text="Integration"/>
+                                    <core:Item id="thresholdAllCategoriesItem" key="" text="All Categories"/>
+                                    <core:Item id="thresholdPerformanceItem" key="Performance" text="Performance"/>
+                                    <core:Item id="thresholdSecurityItem" key="Security" text="Security"/>
+                                    <core:Item id="thresholdComplianceItem" key="Compliance" text="Compliance"/>
+                                    <core:Item id="thresholdCloudItem" key="Cloud" text="Cloud"/>
+                                    <core:Item id="thresholdIntegrationItem" key="Integration" text="Integration"/>
                                 </items>
                             </ComboBox>
                             <Switch
@@ -89,6 +90,7 @@
                                 change="onFilterChange"
                                 class="sapUiTinyMarginEnd"/>
                             <Button
+                                id="clearThresholdFiltersButton"
                                 text="Clear Filters"
                                 press="onClearFilters"/>
                         </FlexBox>
@@ -96,9 +98,9 @@
                 </Panel>
                 
                 <!-- Record Count -->
-                <FlexBox justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
-                    <Title text="Performance Thresholds" level="H3"/>
-                    <Text text="{viewModel>/recordCount} records"/>
+                <FlexBox id="thresholdHeaderFlexBox" justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
+                    <Title id="thresholdTitle" text="Performance Thresholds" level="H3"/>
+                    <Text id="thresholdRecordCount" text="{viewModel>/recordCount} records"/>
                 </FlexBox>
                 
                 <!-- Threshold Table -->
@@ -112,57 +114,61 @@
                     noDataText="No thresholds found. Click Create to add new thresholds.">
                     
                     <columns>
-                        <Column width="20%">
-                            <Text text="Threshold Name"/>
+                        <Column id="thresholdNameColumn" width="20%">
+                            <Text id="thresholdNameHeader" text="Threshold Name"/>
                         </Column>
-                        <Column width="15%">
-                            <Text text="Category"/>
+                        <Column id="thresholdCategoryColumn" width="15%">
+                            <Text id="thresholdCategoryHeader" text="Category"/>
                         </Column>
-                        <Column width="10%">
-                            <Text text="Value"/>
+                        <Column id="thresholdValueColumn" width="10%">
+                            <Text id="thresholdValueHeader" text="Value"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Unit"/>
+                        <Column id="thresholdUnitColumn" width="8%">
+                            <Text id="thresholdUnitHeader" text="Unit"/>
                         </Column>
-                        <Column width="15%">
-                            <Text text="Object Types"/>
+                        <Column id="thresholdObjectTypesColumn" width="15%">
+                            <Text id="thresholdObjectTypesHeader" text="Object Types"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Severity"/>
+                        <Column id="thresholdSeverityColumn" width="8%">
+                            <Text id="thresholdSeverityHeader" text="Severity"/>
                         </Column>
-                        <Column width="8%">
-                            <Text text="Active"/>
+                        <Column id="thresholdActiveColumn" width="8%">
+                            <Text id="thresholdActiveHeader" text="Active"/>
                         </Column>
-                        <Column width="10%">
-                            <Text text="Modified"/>
+                        <Column id="thresholdModifiedColumn" width="10%">
+                            <Text id="thresholdModifiedHeader" text="Modified"/>
                         </Column>
-                        <Column width="6%" hAlign="End">
-                            <Text text="Actions"/>
+                        <Column id="thresholdActionsColumn" width="6%" hAlign="End">
+                            <Text id="thresholdActionsHeader" text="Actions"/>
                         </Column>
                     </columns>
                     
                     <items>
-                        <ColumnListItem>
+                        <ColumnListItem id="thresholdItem">
                             <cells>
-                                <Text text="{name}"/>
-                                <Text text="{category}"/>
-                                <Text text="{value}"/>
-                                <Text text="{unit}"/>
-                                <Text text="{applicableObjectTypes}"/>
+                                <Text id="thresholdNameText" text="{name}"/>
+                                <Text id="thresholdCategoryText" text="{category}"/>
+                                <Text id="thresholdValueText" text="{value}"/>
+                                <Text id="thresholdUnitText" text="{unit}"/>
+                                <Text id="thresholdObjectTypesText" text="{applicableObjectTypes}"/>
                                 <ObjectStatus
+                                    id="thresholdSeverityStatus"
                                     text="{severity}"
                                     state="{= ${severity} === 'Critical' ? 'Error' : ${severity} === 'Warning' ? 'Warning' : 'Success' }"/>
                                 <Switch
+                                    id="thresholdActiveSwitch"
                                     state="{isActive}"
                                     enabled="false"/>
-                                <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
-                                <HBox>
+                                <Text id="thresholdModifiedAtText" text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <HBox id="thresholdActionsHBox">
                                     <Button
+                                        id="editThresholdButton"
                                         icon="sap-icon://edit"
                                         type="Transparent"
                                         press="onEdit"
                                         tooltip="Edit"/>
                                     <Button
+                                        id="deleteThresholdButton"
                                         icon="sap-icon://delete"
                                         type="Transparent"
                                         press="onDelete"

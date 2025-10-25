@@ -9,7 +9,7 @@
         alignItems="Center"
         class="sapUiSmallMargin">
         
-        <Title text="Scoring Radar Chart" level="H4" class="sapUiSmallMarginBottom"/>
+        <Title id="scoringRadarChartTitle" text="Scoring Radar Chart" level="H4" class="sapUiSmallMarginBottom"/>
         
         <!-- SVG Container for D3.js Radar Chart -->
         <core:HTML
@@ -17,26 +17,27 @@
             content="&lt;div id='radarChart' style='width: 400px; height: 400px;'&gt;&lt;/div&gt;"/>
         
         <!-- Legend -->
-        <HBox class="sapUiSmallMarginTop">
-            <HBox class="sapUiTinyMarginEnd">
-                <core:Icon src="sap-icon://circle-task-2" color="#5899DA" class="sapUiTinyMarginEnd"/>
-                <Text text="Technical Debt"/>
+        <HBox id="scoringRadarLegendHBox" class="sapUiSmallMarginTop">
+            <HBox id="techDebtLegendHBox" class="sapUiTinyMarginEnd">
+                <core:Icon id="techDebtLegendIcon" src="sap-icon://circle-task-2" color="#5899DA" class="sapUiTinyMarginEnd"/>
+                <Text id="techDebtLegendText" text="Technical Debt"/>
             </HBox>
-            <HBox class="sapUiTinyMarginEnd">
-                <core:Icon src="sap-icon://circle-task-2" color="#E8743B" class="sapUiTinyMarginEnd"/>
-                <Text text="Cloud Readiness"/>
+            <HBox id="cloudReadinessLegendHBox" class="sapUiTinyMarginEnd">
+                <core:Icon id="cloudReadinessLegendIcon" src="sap-icon://circle-task-2" color="#E8743B" class="sapUiTinyMarginEnd"/>
+                <Text id="cloudReadinessLegendText" text="Cloud Readiness"/>
             </HBox>
-            <HBox class="sapUiTinyMarginEnd">
-                <core:Icon src="sap-icon://circle-task-2" color="#19A979" class="sapUiTinyMarginEnd"/>
-                <Text text="Upgrade Impact"/>
+            <HBox id="upgradeImpactLegendHBox" class="sapUiTinyMarginEnd">
+                <core:Icon id="upgradeImpactLegendIcon" src="sap-icon://circle-task-2" color="#19A979" class="sapUiTinyMarginEnd"/>
+                <Text id="upgradeImpactLegendText" text="Upgrade Impact"/>
             </HBox>
-            <HBox>
-                <core:Icon src="sap-icon://circle-task-2" color="#ED4A7B" class="sapUiTinyMarginEnd"/>
-                <Text text="Composite Health"/>
+            <HBox id="compositeHealthLegendHBox">
+                <core:Icon id="compositeHealthLegendIcon" src="sap-icon://circle-task-2" color="#ED4A7B" class="sapUiTinyMarginEnd"/>
+                <Text id="compositeHealthLegendText" text="Composite Health"/>
             </HBox>
         </HBox>
         
         <Text 
+            id="scoringRadarNote"
             text="Note: Larger area = Better (for CRS &amp; CHS), Smaller area = Better (for TDS &amp; UIS)" 
             class="sapUiTinyMarginTop sapUiSmallText"/>
     </VBox>

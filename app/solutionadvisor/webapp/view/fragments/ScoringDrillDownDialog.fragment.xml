@@ -12,31 +12,31 @@
         draggable="true">
         
         <content>
-            <ScrollContainer height="100%" class="sapUiSmallMargin">
-                <VBox class="sapUiSmallMargin">
+            <ScrollContainer id="scoringDrillDownScrollContainer" height="100%" class="sapUiSmallMargin">
+                <VBox id="scoringDrillDownMainVBox" class="sapUiSmallMargin">
                     
                     <!-- Analysis Summary Header -->
-                    <Panel headerText="Analysis Summary" class="sapUiSmallMarginBottom">
-                        <layout:Grid defaultSpan="XL6 L6 M12 S12" class="sapUiSmallMargin">
-                            <VBox class="sapUiTinyMargin">
-                                <Label text="RICEFW ID" class="sapUiTinyMarginBottom"/>
-                                <Text text="{scoring>/ricefwId}" class="sapUiMediumText"/>
+                    <Panel id="analysisSummaryPanel" headerText="Analysis Summary" class="sapUiSmallMarginBottom">
+                        <layout:Grid id="analysisSummaryGrid" defaultSpan="XL6 L6 M12 S12" class="sapUiSmallMargin">
+                            <VBox id="scoringRicefwIdVBox" class="sapUiTinyMargin">
+                                <Label id="scoringRicefwIdLabel" text="RICEFW ID" class="sapUiTinyMarginBottom"/>
+                                <Text id="scoringRicefwIdText" text="{scoring>/ricefwId}" class="sapUiMediumText"/>
                             </VBox>
-                            <VBox class="sapUiTinyMargin">
-                                <Label text="Object Type" class="sapUiTinyMarginBottom"/>
-                                <Text text="{scoring>/objectType}" class="sapUiMediumText"/>
+                            <VBox id="scoringObjectTypeVBox" class="sapUiTinyMargin">
+                                <Label id="scoringObjectTypeLabel" text="Object Type" class="sapUiTinyMarginBottom"/>
+                                <Text id="scoringObjectTypeText" text="{scoring>/objectType}" class="sapUiMediumText"/>
                             </VBox>
-                            <VBox class="sapUiTinyMargin">
-                                <Label text="Recommended Level" class="sapUiTinyMarginBottom"/>
-                                <ObjectStatus text="{scoring>/recommendedLevel}"
+                            <VBox id="scoringRecommendedLevelVBox" class="sapUiTinyMargin">
+                                <Label id="scoringRecommendedLevelLabel" text="Recommended Level" class="sapUiTinyMarginBottom"/>
+                                <ObjectStatus id="scoringRecommendedLevelStatus" text="{scoring>/recommendedLevel}"
                                     state="{
                                         path: 'scoring>/recommendedLevel',
                                         formatter: '.formatLevelState'
                                     }"/>
                             </VBox>
-                            <VBox class="sapUiTinyMargin">
-                                <Label text="Analysis Date" class="sapUiTinyMarginBottom"/>
-                                <Text text="{
+                            <VBox id="scoringAnalysisDateVBox" class="sapUiTinyMargin">
+                                <Label id="scoringAnalysisDateLabel" text="Analysis Date" class="sapUiTinyMarginBottom"/>
+                                <Text id="scoringAnalysisDateText" text="{
                                     path: 'scoring>/analysisDate',
                                     type: 'sap.ui.model.odata.type.DateTimeOffset'
                                 }" class="sapUiMediumText"/>
@@ -45,59 +45,59 @@
                     </Panel>
 
                     <!-- Technical Debt Breakdown -->
-                    <Panel headerText="Technical Debt Score Breakdown" 
+                    <Panel id="techDebtPanel" headerText="Technical Debt Score Breakdown" 
                         expandable="true" 
                         expanded="true"
                         class="sapUiSmallMarginBottom">
                         <content>
-                            <VBox class="sapUiSmallMargin">
+                            <VBox id="techDebtMainVBox" class="sapUiSmallMargin">
                                 <!-- Formula Explanation -->
-                                <VBox class="sapUiSmallMarginBottom">
-                                    <Label text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
-                                    <FormattedText 
+                                <VBox id="techDebtFormulaVBox" class="sapUiSmallMarginBottom">
+                                    <Label id="techDebtFormulaLabel" text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
+                                    <FormattedText id="techDebtFormula"
                                         htmlText="&lt;strong&gt;Technical Debt = Σ(Level Weight × Complexity Factor) ÷ Total Steps × 100&lt;/strong&gt;"
                                         class="sapUiMediumText"/>
-                                    <Text text="Level Weights: A = 0.00, B = 1.00, C = 3.00, D = 5.00" class="sapUiTinyText sapUiTinyMarginTop"/>
+                                    <Text id="techDebtWeightsText" text="Level Weights: A = 0.00, B = 1.00, C = 3.00, D = 5.00" class="sapUiTinyText sapUiTinyMarginTop"/>
                                 </VBox>
 
                                 <!-- Breakdown Table -->
-                                <Table items="{scoring>/technicalDebtBreakdown}" 
+                                <Table id="techDebtTable" items="{scoring>/technicalDebtBreakdown}" 
                                     mode="None"
                                     growing="true"
                                     growingThreshold="20">
                                     <columns>
-                                        <Column width="8rem">
-                                            <Text text="Step #"/>
+                                        <Column id="techDebtStepColumn" width="8rem">
+                                            <Text id="techDebtStepHeader" text="Step #"/>
                                         </Column>
-                                        <Column>
-                                            <Text text="Decision Point"/>
+                                        <Column id="techDebtDecisionColumn">
+                                            <Text id="techDebtDecisionHeader" text="Decision Point"/>
                                         </Column>
-                                        <Column width="6rem">
-                                            <Text text="Level"/>
+                                        <Column id="techDebtLevelColumn" width="6rem">
+                                            <Text id="techDebtLevelHeader" text="Level"/>
                                         </Column>
-                                        <Column width="6rem" hAlign="Center">
-                                            <Text text="Weight"/>
+                                        <Column id="techDebtWeightColumn" width="6rem" hAlign="Center">
+                                            <Text id="techDebtWeightHeader" text="Weight"/>
                                         </Column>
-                                        <Column width="6rem" hAlign="Center">
-                                            <Text text="Factor"/>
+                                        <Column id="techDebtFactorColumn" width="6rem" hAlign="Center">
+                                            <Text id="techDebtFactorHeader" text="Factor"/>
                                         </Column>
-                                        <Column width="8rem" hAlign="End">
-                                            <Text text="Contribution"/>
+                                        <Column id="techDebtContributionColumn" width="8rem" hAlign="End">
+                                            <Text id="techDebtContributionHeader" text="Contribution"/>
                                         </Column>
                                     </columns>
                                     <items>
-                                        <ColumnListItem>
+                                        <ColumnListItem id="techDebtItem">
                                             <cells>
-                                                <Text text="{scoring>stepOrder}"/>
-                                                <Text text="{scoring>stepDescription}" maxLines="2"/>
-                                                <ObjectStatus text="{scoring>level}"
+                                                <Text id="techDebtStepOrderText" text="{scoring>stepOrder}"/>
+                                                <Text id="techDebtDescriptionText" text="{scoring>stepDescription}" maxLines="2"/>
+                                                <ObjectStatus id="techDebtLevelStatus" text="{scoring>level}"
                                                     state="{
                                                         path: 'scoring>level',
                                                         formatter: '.formatLevelState'
                                                     }"/>
-                                                <Text text="{scoring>weight}" class="sapUiMediumText"/>
-                                                <Text text="{scoring>factor}" class="sapUiMediumText"/>
-                                                <ObjectNumber number="{scoring>contribution}" 
+                                                <Text id="techDebtWeightText" text="{scoring>weight}" class="sapUiMediumText"/>
+                                                <Text id="techDebtFactorText" text="{scoring>factor}" class="sapUiMediumText"/>
+                                                <ObjectNumber id="techDebtContributionNumber" number="{scoring>contribution}" 
                                                     unit="pts" 
                                                     state="{= ${scoring>contribution} > 3 ? 'Error' : ${scoring>contribution} > 1 ? 'Warning' : 'Success'}"/>
                                             </cells>
@@ -106,9 +106,9 @@
                                 </Table>
 
                                 <!-- Summary Row -->
-                                <HBox justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
-                                    <Label text="Total Technical Debt Score:" class="sapUiMediumMarginEnd"/>
-                                    <ObjectNumber 
+                                <HBox id="techDebtSummaryHBox" justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
+                                    <Label id="techDebtSummaryLabel" text="Total Technical Debt Score:" class="sapUiMediumMarginEnd"/>
+                                    <ObjectNumber id="techDebtSummaryNumber"
                                         number="{scoring>/finalTechnicalDebtScore}" 
                                         unit="%"
                                         state="{
@@ -122,41 +122,41 @@
                     </Panel>
 
                     <!-- Cloud Readiness Breakdown -->
-                    <Panel headerText="Cloud Readiness Score Breakdown" 
+                    <Panel id="cloudReadinessPanel" headerText="Cloud Readiness Score Breakdown" 
                         expandable="true" 
                         expanded="false"
                         class="sapUiSmallMarginBottom">
                         <content>
-                            <VBox class="sapUiSmallMargin">
+                            <VBox id="cloudReadinessMainVBox" class="sapUiSmallMargin">
                                 <!-- Formula Explanation -->
-                                <VBox class="sapUiSmallMarginBottom">
-                                    <Label text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
-                                    <FormattedText 
+                                <VBox id="cloudReadinessFormulaVBox" class="sapUiSmallMarginBottom">
+                                    <Label id="cloudReadinessFormulaLabel" text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
+                                    <FormattedText id="cloudReadinessFormula"
                                         htmlText="&lt;strong&gt;Cloud Readiness = (Count Level A + 0.5 × Count Level B) ÷ Total × 100&lt;/strong&gt;"
                                         class="sapUiMediumText"/>
-                                    <Text text="Level A solutions are fully cloud-ready, Level B are partially ready" class="sapUiTinyText sapUiTinyMarginTop"/>
+                                    <Text id="cloudReadinessHintText" text="Level A solutions are fully cloud-ready, Level B are partially ready" class="sapUiTinyText sapUiTinyMarginTop"/>
                                 </VBox>
 
                                 <!-- Cloud Readiness Factors -->
-                                <layout:Grid defaultSpan="XL4 L4 M6 S12" class="sapUiSmallMargin">
-                                    <VBox class="sapUiTinyMargin">
-                                        <Label text="Level A Count" class="sapUiTinyMarginBottom"/>
-                                        <ObjectNumber number="{scoring>/cloudReadiness/levelACount}" emphasized="true"/>
+                                <layout:Grid id="cloudReadinessGrid" defaultSpan="XL4 L4 M6 S12" class="sapUiSmallMargin">
+                                    <VBox id="cloudLevelAVBox" class="sapUiTinyMargin">
+                                        <Label id="cloudLevelALabel" text="Level A Count" class="sapUiTinyMarginBottom"/>
+                                        <ObjectNumber id="cloudLevelANumber" number="{scoring>/cloudReadiness/levelACount}" emphasized="true"/>
                                     </VBox>
-                                    <VBox class="sapUiTinyMargin">
-                                        <Label text="Level B Count" class="sapUiTinyMarginBottom"/>
-                                        <ObjectNumber number="{scoring>/cloudReadiness/levelBCount}" emphasized="true"/>
+                                    <VBox id="cloudLevelBVBox" class="sapUiTinyMargin">
+                                        <Label id="cloudLevelBLabel" text="Level B Count" class="sapUiTinyMarginBottom"/>
+                                        <ObjectNumber id="cloudLevelBNumber" number="{scoring>/cloudReadiness/levelBCount}" emphasized="true"/>
                                     </VBox>
-                                    <VBox class="sapUiTinyMargin">
-                                        <Label text="Level C+D Count" class="sapUiTinyMarginBottom"/>
-                                        <ObjectNumber number="{scoring>/cloudReadiness/levelCDCount}" state="Error" emphasized="true"/>
+                                    <VBox id="cloudLevelCDVBox" class="sapUiTinyMargin">
+                                        <Label id="cloudLevelCDLabel" text="Level C+D Count" class="sapUiTinyMarginBottom"/>
+                                        <ObjectNumber id="cloudLevelCDNumber" number="{scoring>/cloudReadiness/levelCDCount}" state="Error" emphasized="true"/>
                                     </VBox>
                                 </layout:Grid>
 
                                 <!-- Summary Row -->
-                                <HBox justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
-                                    <Label text="Final Cloud Readiness Score:" class="sapUiMediumMarginEnd"/>
-                                    <ObjectNumber 
+                                <HBox id="cloudReadinessSummaryHBox" justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
+                                    <Label id="cloudReadinessSummaryLabel" text="Final Cloud Readiness Score:" class="sapUiMediumMarginEnd"/>
+                                    <ObjectNumber id="cloudReadinessSummaryNumber"
                                         number="{scoring>/finalCloudReadinessScore}" 
                                         unit="%"
                                         state="{
@@ -170,41 +170,41 @@
                     </Panel>
 
                     <!-- Upgrade Impact Breakdown -->
-                    <Panel headerText="Upgrade Impact Score Breakdown" 
+                    <Panel id="upgradeImpactPanel" headerText="Upgrade Impact Score Breakdown" 
                         expandable="true" 
                         expanded="false"
                         class="sapUiSmallMarginBottom">
                         <content>
-                            <VBox class="sapUiSmallMargin">
+                            <VBox id="upgradeImpactMainVBox" class="sapUiSmallMargin">
                                 <!-- Formula Explanation -->
-                                <VBox class="sapUiSmallMarginBottom">
-                                    <Label text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
-                                    <FormattedText 
+                                <VBox id="upgradeImpactFormulaVBox" class="sapUiSmallMarginBottom">
+                                    <Label id="upgradeImpactFormulaLabel" text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
+                                    <FormattedText id="upgradeImpactFormula"
                                         htmlText="&lt;strong&gt;Upgrade Impact = Σ(Level Weight × Custom Code Lines) ÷ Total Estimated Lines × 100&lt;/strong&gt;"
                                         class="sapUiMediumText"/>
-                                    <Text text="Higher scores indicate more custom code that may need modification during upgrades" class="sapUiTinyText sapUiTinyMarginTop"/>
+                                    <Text id="upgradeImpactHintText" text="Higher scores indicate more custom code that may need modification during upgrades" class="sapUiTinyText sapUiTinyMarginTop"/>
                                 </VBox>
 
                                 <!-- Impact Factors -->
-                                <layout:Grid defaultSpan="XL3 L3 M6 S12" class="sapUiSmallMargin">
-                                    <VBox class="sapUiTinyMargin">
-                                        <Label text="Estimated Custom Code Lines" class="sapUiTinyMarginBottom"/>
-                                        <ObjectNumber number="{scoring>/upgradeImpact/customCodeLines}" unit="LOC" emphasized="true"/>
+                                <layout:Grid id="upgradeImpactGrid" defaultSpan="XL3 L3 M6 S12" class="sapUiSmallMargin">
+                                    <VBox id="customCodeVBox" class="sapUiTinyMargin">
+                                        <Label id="customCodeLabel" text="Estimated Custom Code Lines" class="sapUiTinyMarginBottom"/>
+                                        <ObjectNumber id="customCodeNumber" number="{scoring>/upgradeImpact/customCodeLines}" unit="LOC" emphasized="true"/>
                                     </VBox>
-                                    <VBox class="sapUiTinyMargin">
-                                        <Label text="Standard Functionality %" class="sapUiTinyMarginBottom"/>
-                                        <ObjectNumber number="{scoring>/upgradeImpact/standardFunctionality}" unit="%" state="Success" emphasized="true"/>
+                                    <VBox id="standardFuncVBox" class="sapUiTinyMargin">
+                                        <Label id="standardFuncLabel" text="Standard Functionality %" class="sapUiTinyMarginBottom"/>
+                                        <ObjectNumber id="standardFuncNumber" number="{scoring>/upgradeImpact/standardFunctionality}" unit="%" state="Success" emphasized="true"/>
                                     </VBox>
-                                    <VBox class="sapUiTinyMargin">
-                                        <Label text="Complexity Multiplier" class="sapUiTinyMarginBottom"/>
-                                        <ObjectNumber number="{scoring>/upgradeImpact/complexityMultiplier}" emphasized="true"/>
+                                    <VBox id="complexityMultiplierVBox" class="sapUiTinyMargin">
+                                        <Label id="complexityMultiplierLabel" text="Complexity Multiplier" class="sapUiTinyMarginBottom"/>
+                                        <ObjectNumber id="complexityMultiplierNumber" number="{scoring>/upgradeImpact/complexityMultiplier}" emphasized="true"/>
                                     </VBox>
                                 </layout:Grid>
 
                                 <!-- Summary Row -->
-                                <HBox justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
-                                    <Label text="Final Upgrade Impact Score:" class="sapUiMediumMarginEnd"/>
-                                    <ObjectNumber 
+                                <HBox id="upgradeImpactSummaryHBox" justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
+                                    <Label id="upgradeImpactSummaryLabel" text="Final Upgrade Impact Score:" class="sapUiMediumMarginEnd"/>
+                                    <ObjectNumber id="upgradeImpactSummaryNumber"
                                         number="{scoring>/finalUpgradeImpactScore}" 
                                         unit="%"
                                         state="{
@@ -218,34 +218,34 @@
                     </Panel>
 
                     <!-- Composite Health Score -->
-                    <Panel headerText="Composite Health Score Calculation" 
+                    <Panel id="compositeHealthPanel" headerText="Composite Health Score Calculation" 
                         expandable="true" 
                         expanded="false"
                         class="sapUiSmallMarginBottom">
                         <content>
-                            <VBox class="sapUiSmallMargin">
+                            <VBox id="compositeHealthMainVBox" class="sapUiSmallMargin">
                                 <!-- Formula Explanation -->
-                                <VBox class="sapUiSmallMarginBottom">
-                                    <Label text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
-                                    <FormattedText 
+                                <VBox id="compositeHealthFormulaVBox" class="sapUiSmallMarginBottom">
+                                    <Label id="compositeHealthFormulaLabel" text="Calculation Formula:" class="sapUiTinyMarginBottom"/>
+                                    <FormattedText id="compositeHealthFormula"
                                         htmlText="&lt;strong&gt;Composite Health = (Cloud Readiness × 0.4) + ((100 - Technical Debt) × 0.3) + ((100 - Upgrade Impact) × 0.3)&lt;/strong&gt;"
                                         class="sapUiMediumText"/>
-                                    <Text text="Weighted average emphasizing cloud readiness with debt and impact as negative factors" class="sapUiTinyText sapUiTinyMarginTop"/>
+                                    <Text id="compositeHealthHintText" text="Weighted average emphasizing cloud readiness with debt and impact as negative factors" class="sapUiTinyText sapUiTinyMarginTop"/>
                                 </VBox>
 
                                 <!-- Health Interpretation -->
-                                <VBox class="sapUiSmallMarginTop">
-                                    <Text text="Health Score Interpretation:" class="sapUiMediumText sapUiTinyMarginBottom"/>
-                                    <Text text="• 80-100%: Excellent - Ready for cloud migration with minimal risks" class="sapUiTinyText"/>
-                                    <Text text="• 60-79%: Good - Some optimization needed before migration" class="sapUiTinyText"/>
-                                    <Text text="• 40-59%: Fair - Significant improvements required" class="sapUiTinyText"/>
-                                    <Text text="• 0-39%: Poor - Major refactoring needed before cloud adoption" class="sapUiTinyText"/>
+                                <VBox id="healthInterpretationVBox" class="sapUiSmallMarginTop">
+                                    <Text id="healthInterpretationTitle" text="Health Score Interpretation:" class="sapUiMediumText sapUiTinyMarginBottom"/>
+                                    <Text id="healthExcellentText" text="• 80-100%: Excellent - Ready for cloud migration with minimal risks" class="sapUiTinyText"/>
+                                    <Text id="healthGoodText" text="• 60-79%: Good - Some optimization needed before migration" class="sapUiTinyText"/>
+                                    <Text id="healthFairText" text="• 40-59%: Fair - Significant improvements required" class="sapUiTinyText"/>
+                                    <Text id="healthPoorText" text="• 0-39%: Poor - Major refactoring needed before cloud adoption" class="sapUiTinyText"/>
                                 </VBox>
 
                                 <!-- Summary Row -->
-                                <HBox justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
-                                    <Label text="Final Composite Health Score:" class="sapUiMediumMarginEnd"/>
-                                    <ObjectNumber 
+                                <HBox id="compositeHealthSummaryHBox" justifyContent="End" alignItems="Center" class="sapUiSmallMarginTop">
+                                    <Label id="compositeHealthSummaryLabel" text="Final Composite Health Score:" class="sapUiMediumMarginEnd"/>
+                                    <ObjectNumber id="compositeHealthSummaryNumber"
                                         number="{scoring>/finalCompositeHealthScore}" 
                                         unit="%"
                                         state="{
@@ -259,12 +259,12 @@
                     </Panel>
 
                     <!-- Recommendations -->
-                    <Panel headerText="Optimization Recommendations" 
+                    <Panel id="recommendationsPanel" headerText="Optimization Recommendations" 
                         class="sapUiSmallMarginBottom">
                         <content>
-                            <VBox class="sapUiSmallMargin">
-                                <List items="{scoring>/recommendations}" mode="None">
-                                    <StandardListItem 
+                            <VBox id="recommendationsMainVBox" class="sapUiSmallMargin">
+                                <List id="recommendationsList" items="{scoring>/recommendations}" mode="None">
+                                    <StandardListItem id="recommendationItem"
                                         title="{scoring>title}" 
                                         description="{scoring>description}"
                                         info="{scoring>priority}"
@@ -279,9 +279,9 @@
         </content>
         
         <buttons>
-            <Button text="Export Breakdown" press="onExportBreakdown" icon="sap-icon://download"/>
-            <Button text="Save Analysis" press="onSaveAnalysis" type="Emphasized" icon="sap-icon://save"/>
-            <Button text="Close" press="onCloseDrillDown"/>
+            <Button id="exportBreakdownButton" text="Export Breakdown" press="onExportBreakdown" icon="sap-icon://download"/>
+            <Button id="saveAnalysisButton" text="Save Analysis" press="onSaveAnalysis" type="Emphasized" icon="sap-icon://save"/>
+            <Button id="closeDrillDownButton" text="Close" press="onCloseDrillDown"/>
         </buttons>
   </Dialog>
 </core:FragmentDefinition>

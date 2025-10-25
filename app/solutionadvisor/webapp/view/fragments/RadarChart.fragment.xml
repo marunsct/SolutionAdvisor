@@ -4,13 +4,13 @@
     xmlns:viz="sap.viz.ui5.controls"
     xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
 
-    <VBox class="sapUiSmallMargin">
-        <HBox alignItems="Center" justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
-            <Title text="Scoring Radar Chart" level="H4"/>
-            <HBox>
-                <Button icon="sap-icon://full-screen" press="onFullScreenChart"
+    <VBox id="radarChartMainVBox" class="sapUiSmallMargin">
+        <HBox id="radarChartHeaderHBox" alignItems="Center" justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
+            <Title id="radarChartTitle" text="Scoring Radar Chart" level="H4"/>
+            <HBox id="radarChartActionsHBox">
+                <Button id="fullScreenChartButton" icon="sap-icon://full-screen" press="onFullScreenChart"
                     tooltip="Full Screen View" type="Transparent" class="sapUiTinyMarginEnd"/>
-                <Button icon="sap-icon://detail-view" press="onScoringDrillDown"
+                <Button id="scoringDrillDownButton" icon="sap-icon://detail-view" press="onScoringDrillDown"
                     tooltip="View Detailed Breakdown" type="Transparent"/>
             </HBox>
         </HBox>
@@ -71,8 +71,8 @@
         </viz:VizFrame>
         
         <!-- Score Summary Below Chart -->
-        <HBox justifyContent="SpaceAround" class="sapUiMediumMarginTop">
-            <VBox alignItems="Center" class="sapUiTinyMargin">
+        <HBox id="scoreSummaryHBox" justifyContent="SpaceAround" class="sapUiMediumMarginTop">
+            <VBox id="techDebtSummaryVBox" alignItems="Center" class="sapUiTinyMargin">
                 <ObjectNumber 
                     id="technicalDebtNumber"
                     number="{analysis>/technicalDebtScore}" 
@@ -82,10 +82,10 @@
                         formatter: '.formatScoreState'
                     }"
                     emphasized="true"/>
-                <Text text="Technical Debt" class="sapUiTinyMarginTop"/>
+                <Text id="radarTechDebtLabel" text="Technical Debt" class="sapUiTinyMarginTop"/>
             </VBox>
             
-            <VBox alignItems="Center" class="sapUiTinyMargin">
+            <VBox id="cloudReadinessSummaryVBox" alignItems="Center" class="sapUiTinyMargin">
                 <ObjectNumber 
                     id="cloudReadinessNumber"
                     number="{analysis>/cloudReadinessScore}" 
@@ -95,10 +95,10 @@
                         formatter: '.formatScoreState'
                     }"
                     emphasized="true"/>
-                <Text text="Cloud Readiness" class="sapUiTinyMarginTop"/>
+                <Text id="radarCloudReadinessLabel" text="Cloud Readiness" class="sapUiTinyMarginTop"/>
             </VBox>
             
-            <VBox alignItems="Center" class="sapUiTinyMargin">
+            <VBox id="upgradeImpactSummaryVBox" alignItems="Center" class="sapUiTinyMargin">
                 <ObjectNumber 
                     id="upgradeImpactNumber"
                     number="{analysis>/upgradeImpactScore}" 
@@ -108,15 +108,15 @@
                         formatter: '.formatScoreState'
                     }"
                     emphasized="true"/>
-                <Text text="Upgrade Impact" class="sapUiTinyMarginTop"/>
+                <Text id="radarUpgradeImpactLabel" text="Upgrade Impact" class="sapUiTinyMarginTop"/>
             </VBox>
         </HBox>
         
         <!-- Composite Health Score -->
-        <HBox justifyContent="Center" class="sapUiSmallMarginTop">
-            <VBox alignItems="Center" class="sapUiSmallPadding" 
+        <HBox id="compositeHealthHBox" justifyContent="Center" class="sapUiSmallMarginTop">
+            <VBox id="compositeHealthVBox" alignItems="Center" class="sapUiSmallPadding" 
                 visible="{= ${analysis>/compositeHealthScore} !== undefined}">
-                <Label text="Overall Health Score" class="sapUiTinyMarginBottom"/>
+                <Label id="healthScoreLabel" text="Overall Health Score" class="sapUiTinyMarginBottom"/>
                 <ObjectNumber 
                     id="compositeHealthNumber"
                     number="{analysis>/compositeHealthScore}" 
@@ -131,32 +131,32 @@
         </HBox>
         
         <!-- Legend and Explanation -->
-        <Panel headerText="Score Interpretation" expandable="true" expanded="false" 
+        <Panel id="scoreInterpretationPanel" headerText="Score Interpretation" expandable="true" expanded="false" 
             class="sapUiSmallMarginTop">
-            <VBox class="sapUiSmallMargin">
-                <HBox wrap="Wrap">
-                    <VBox class="sapUiTinyMargin sapUiMediumMarginEnd">
-                        <Label text="Technical Debt Score:" class="sapUiTinyMarginBottom"/>
-                        <Text text="• 0-25%: Low debt, minimal custom code" class="sapUiTinyText"/>
-                        <Text text="• 26-50%: Moderate debt, manageable" class="sapUiTinyText"/>
-                        <Text text="• 51-75%: High debt, refactoring needed" class="sapUiTinyText"/>
-                        <Text text="• 76-100%: Critical, immediate attention" class="sapUiTinyText"/>
+            <VBox id="scoreInterpretationVBox" class="sapUiSmallMargin">
+                <HBox id="scoreInterpretationHBox" wrap="Wrap">
+                    <VBox id="techDebtInterpretationVBox" class="sapUiTinyMargin sapUiMediumMarginEnd">
+                        <Label id="techDebtInterpretationLabel" text="Technical Debt Score:" class="sapUiTinyMarginBottom"/>
+                        <Text id="techDebtLow" text="• 0-25%: Low debt, minimal custom code" class="sapUiTinyText"/>
+                        <Text id="techDebtModerate" text="• 26-50%: Moderate debt, manageable" class="sapUiTinyText"/>
+                        <Text id="techDebtHigh" text="• 51-75%: High debt, refactoring needed" class="sapUiTinyText"/>
+                        <Text id="techDebtCritical" text="• 76-100%: Critical, immediate attention" class="sapUiTinyText"/>
                     </VBox>
                     
-                    <VBox class="sapUiTinyMargin sapUiMediumMarginEnd">
-                        <Label text="Cloud Readiness Score:" class="sapUiTinyMarginBottom"/>
-                        <Text text="• 0-25%: Not cloud-ready, major changes" class="sapUiTinyText"/>
-                        <Text text="• 26-50%: Partially ready, some modifications" class="sapUiTinyText"/>
-                        <Text text="• 51-75%: Mostly ready, minor adjustments" class="sapUiTinyText"/>
-                        <Text text="• 76-100%: Fully cloud-ready" class="sapUiTinyText"/>
+                    <VBox id="cloudReadyInterpretationVBox" class="sapUiTinyMargin sapUiMediumMarginEnd">
+                        <Label id="cloudReadyInterpretationLabel" text="Cloud Readiness Score:" class="sapUiTinyMarginBottom"/>
+                        <Text id="cloudReadyNotReady" text="• 0-25%: Not cloud-ready, major changes" class="sapUiTinyText"/>
+                        <Text id="cloudReadyPartial" text="• 26-50%: Partially ready, some modifications" class="sapUiTinyText"/>
+                        <Text id="cloudReadyMostly" text="• 51-75%: Mostly ready, minor adjustments" class="sapUiTinyText"/>
+                        <Text id="cloudReadyFull" text="• 76-100%: Fully cloud-ready" class="sapUiTinyText"/>
                     </VBox>
                     
-                    <VBox class="sapUiTinyMargin">
-                        <Label text="Upgrade Impact Score:" class="sapUiTinyMarginBottom"/>
-                        <Text text="• 0-25%: Minimal upgrade effort" class="sapUiTinyText"/>
-                        <Text text="• 26-50%: Moderate upgrade complexity" class="sapUiTinyText"/>
-                        <Text text="• 51-75%: High upgrade impact" class="sapUiTinyText"/>
-                        <Text text="• 76-100%: Critical upgrade challenges" class="sapUiTinyText"/>
+                    <VBox id="upgradeInterpretationVBox" class="sapUiTinyMargin">
+                        <Label id="upgradeInterpretationLabel" text="Upgrade Impact Score:" class="sapUiTinyMarginBottom"/>
+                        <Text id="upgradeMinimal" text="• 0-25%: Minimal upgrade effort" class="sapUiTinyText"/>
+                        <Text id="upgradeModerate" text="• 26-50%: Moderate upgrade complexity" class="sapUiTinyText"/>
+                        <Text id="upgradeHigh" text="• 51-75%: High upgrade impact" class="sapUiTinyText"/>
+                        <Text id="upgradeCritical" text="• 76-100%: Critical upgrade challenges" class="sapUiTinyText"/>
                     </VBox>
                 </HBox>
             </VBox>

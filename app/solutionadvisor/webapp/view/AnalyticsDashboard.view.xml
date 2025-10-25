@@ -1,329 +1,602 @@
 <mvc:View
-  controllerName="sd.solutionadvisor.controller.AnalyticsDashboard"
-  xmlns:mvc="sap.ui.core.mvc"
-  xmlns="sap.m"
-  xmlns:layout="sap.ui.layout"
-  xmlns:viz="sap.viz.ui5.controls"
-  xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
-  xmlns:core="sap.ui.core"
-  displayBlock="true">
-
-  <Page id="analyticsDashboardPage" 
-        title="Analytics Dashboard" 
-        showNavButton="true" 
+    controllerName="sd.solutionadvisor.controller.AnalyticsDashboard"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:layout="sap.ui.layout"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+>
+    <Page
+        id="analyticsDashboardPage"
+        title="Analytics Dashboard"
+        showNavButton="true"
         navButtonPress="onNavBack"
-        class="sapUiResponsiveContentPadding">
-    <content>
-      <VBox id="mainContentBox" class="sapUiSmallMargin">
-        
-        <!-- Page Header -->
-        <FlexBox id="pageHeaderBox" justifyContent="SpaceBetween" alignItems="Center" class="sapUiSmallMarginBottom">
-          <Title id="pageTitle" text="Clean Core Analytics Overview" level="H2"/>
-          <HBox id="headerButtonsBox">
-            <Button 
-              id="refreshAnalyticsButton"
-              icon="sap-icon://refresh" 
-              press="onRefresh" 
-              tooltip="Refresh analytics data"
-              class="sapUiTinyMarginEnd"/>
-            <Button 
-              id="exportPDFButton"
-              text="Export PDF" 
-              press="onExportPDF" 
-              type="Emphasized"
-              icon="sap-icon://pdf-attachment"
-              tooltip="Export analytics dashboard as PDF document"
-              ariaLabelledBy="exportPDFButton"
-              class="sapUiTinyMarginEnd"/>
-            <Button 
-              id="exportExcelButton"
-              text="Export Excel" 
-              press="onExportExcel"
-              icon="sap-icon://excel-attachment"
-              tooltip="Export analytics data as Excel spreadsheet"
-              ariaLabelledBy="exportExcelButton"/>
-          </HBox>
-        </FlexBox>
-        
-        <!-- Filter Panel -->
-        <Panel id="filtersPanel" headerText="Filters" expandable="true" expanded="false" class="sapUiSmallMarginBottom">
-          <content>
-            <layout:Grid id="filtersGrid" defaultSpan="XL3 L4 M6 S12" class="sapUiSmallMargin">
-              <VBox id="dateRangeBox">
-                <Label id="dateRangeLabel" text="Date Range"/>
-                <DateRangeSelection 
-                  id="dateRangeFilter"
-                  width="100%"
-                  dateValue="{filterModel>/dateFrom}"
-                  secondDateValue="{filterModel>/dateTo}"
-                  change="onFilterChange"
-                  placeholder="Select date range"/>
-              </VBox>
-              
-              <VBox id="ricefwTypeBox">
-                <Label id="ricefwTypeLabel" text="RICEFW Type"/>
-                <MultiComboBox 
-                  id="ricefwTypeFilter"
-                  width="100%"
-                  selectedKeys="{filterModel>/selectedRicefwTypes}"
-                  items="{filterModel>/ricefwTypes}"
-                  selectionChange="onFilterChange"
-                  placeholder="All Types">
-                  <core:Item id="ricefwTypeItemTemplate" key="{filterModel>code}" text="{filterModel>name}"/>
-                </MultiComboBox>
-              </VBox>
-              
-              <VBox id="cleanCoreLevelBox">
-                <Label id="cleanCoreLevelLabel" text="Clean Core Level"/>
-                <MultiComboBox 
-                  id="cleanCoreLevelFilter"
-                  width="100%"
-                  selectedKeys="{filterModel>/selectedCleanCoreLevels}"
-                  items="{filterModel>/cleanCoreLevels}"
-                  selectionChange="onFilterChange"
-                  placeholder="All Levels">
-                  <core:Item id="cleanCoreLevelItemTemplate" key="{filterModel>level}" text="{filterModel>level}"/>
-                </MultiComboBox>
-              </VBox>
-              
-              <VBox id="analyticsProjectBox">
-                <Label id="analyticsProjectLabel" text="Project"/>
-                <ComboBox 
-                  id="projectFilter"
-                  width="100%"
-                  selectedKey="{filterModel>/selectedProject}"
-                  items="{filterModel>/projects}"
-                  selectionChange="onFilterChange"
-                  placeholder="All Projects">
-                  <core:Item id="projectItemTemplate" key="{filterModel>ID}" text="{filterModel>projectName}"/>
-                </ComboBox>
-              </VBox>
-            </layout:Grid>
-            
-            <HBox id="filterButtonsBox" class="sapUiSmallMargin">
-              <Button 
-                id="applyFiltersButton"
-                text="Apply Filters" 
-                type="Emphasized" 
-                press="onApplyFilters"
-                class="sapUiTinyMarginEnd"/>
-              <Button 
-                id="clearFiltersButton"
-                text="Clear Filters" 
-                press="onClearFilters"/>
-            </HBox>
-          </content>
-        </Panel>
+        class="sapUiResponsiveContentPadding"
+    >
+        <content>
+            <VBox
+                id="mainContentBox"
+                class="sapUiSmallMargin"
+            >
+                <!-- Page Header -->
+                <FlexBox
+                    id="pageHeaderBox"
+                    justifyContent="SpaceBetween"
+                    alignItems="Center"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <Title
+                        id="pageTitle"
+                        text="Clean Core Analytics Overview"
+                        level="H2"
+                    />
+                    <HBox id="headerButtonsBox">
+                        <Button
+                            id="refreshAnalyticsButton"
+                            icon="sap-icon://refresh"
+                            press="onRefresh"
+                            tooltip="Refresh analytics data"
+                            class="sapUiTinyMarginEnd"
+                        />
+                        <Button
+                            id="exportPDFButton"
+                            text="Export PDF"
+                            press="onExportPDF"
+                            type="Emphasized"
+                            icon="sap-icon://pdf-attachment"
+                            tooltip="Export analytics dashboard as PDF document"
+                            ariaLabelledBy="exportPDFButton"
+                            class="sapUiTinyMarginEnd"
+                        />
+                        <Button
+                            id="exportExcelButton"
+                            text="Export Excel"
+                            press="onExportExcel"
+                            icon="sap-icon://excel-attachment"
+                            tooltip="Export analytics data as Excel spreadsheet"
+                            ariaLabelledBy="exportExcelButton"
+                        />
+                    </HBox>
+                </FlexBox>
 
-        <!-- KPI Tiles Section -->
-        <Panel id="kpiPanel" headerText="Key Performance Indicators" class="sapUiSmallMarginBottom">
-          <layout:Grid 
-            id="kpiGrid"
-            defaultSpan="XL3 L3 M6 S12" 
-            hSpacing="1" 
-            vSpacing="1"
-            class="sapUiSmallMargin">
-            
-            <!-- Technical Debt Tile -->
-            <GenericTile
-              id="technicalDebtTile"
-              class="sapUiTinyMargin"
-              header="Technical Debt Score"
-              subheader="{analytics>/technicalDebtScore}%"
-              press="onKPIDrillDown"
-              frameType="TwoByOne">
-              <tileContent>
-                <TileContent id="technicalDebtTileContent" footer="Average Across All Analyses">
-                  <content>
-                    <NumericContent 
-                      id="technicalDebtNumeric"
-                      value="{analytics>/technicalDebtScore}" 
-                      scale="%"
-                      valueColor="{= ${analytics>/technicalDebtScore} > 50 ? 'Error' : ${analytics>/technicalDebtScore} > 25 ? 'Critical' : 'Good'}"
-                      icon="sap-icon://alert"/>
-                  </content>
-                </TileContent>
-              </tileContent>
-            </GenericTile>
+                <!-- Filter Panel -->
+                <Panel
+                    id="filtersPanel"
+                    headerText="Filters"
+                    expandable="true"
+                    expanded="false"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <content>
+                        <layout:Grid
+                            id="filtersGrid"
+                            defaultSpan="XL3 L4 M6 S12"
+                            class="sapUiSmallMargin"
+                        >
+                            <VBox id="dateRangeBox">
+                                <Label
+                                    id="dateRangeLabel"
+                                    text="Date Range"
+                                />
+                                <DateRangeSelection
+                                    id="dateRangeFilter"
+                                    width="100%"
+                                    dateValue="{filterModel>/dateFrom}"
+                                    secondDateValue="{filterModel>/dateTo}"
+                                    change="onFilterChange"
+                                    placeholder="Select date range"
+                                />
+                            </VBox>
 
-            <!-- Cloud Readiness Tile -->
-            <GenericTile
-              id="cloudReadinessTile"
-              class="sapUiTinyMargin"
-              header="Cloud Readiness Score"
-              subheader="{analytics>/cloudReadinessScore}%"
-              press="onKPIDrillDown"
-              frameType="TwoByOne">
-              <tileContent>
-                <TileContent id="cloudReadinessTileContent" footer="Average Cloud Compatibility">
-                  <content>
-                    <NumericContent 
-                      id="cloudReadinessNumeric"
-                      value="{analytics>/cloudReadinessScore}" 
-                      scale="%"
-                      valueColor="{= ${analytics>/cloudReadinessScore} > 75 ? 'Good' : ${analytics>/cloudReadinessScore} > 50 ? 'Critical' : 'Error'}"
-                      icon="sap-icon://cloud"/>
-                  </content>
-                </TileContent>
-              </tileContent>
-            </GenericTile>
+                            <VBox id="ricefwTypeBox">
+                                <Label
+                                    id="ricefwTypeLabel"
+                                    text="RICEFW Type"
+                                />
+                                <MultiComboBox
+                                    id="ricefwTypeFilter"
+                                    width="100%"
+                                    selectedKeys="{filterModel>/selectedRicefwTypes}"
+                                    items="{filterModel>/ricefwTypes}"
+                                    selectionChange="onFilterChange"
+                                    placeholder="All Types"
+                                >
+                                    <core:Item
+                                        id="ricefwTypeItemTemplate"
+                                        key="{filterModel>code}"
+                                        text="{filterModel>name}"
+                                    />
+                                </MultiComboBox>
+                            </VBox>
 
-            <!-- Upgrade Impact Tile -->
-            <GenericTile
-              id="upgradeImpactTile"
-              class="sapUiTinyMargin"
-              header="Upgrade Impact Score"
-              subheader="{analytics>/upgradeImpactScore}%"
-              press="onKPIDrillDown"
-              frameType="TwoByOne">
-              <tileContent>
-                <TileContent id="upgradeImpactTileContent" footer="Average Upgrade Complexity">
-                  <content>
-                    <NumericContent 
-                      id="upgradeImpactNumeric"
-                      value="{analytics>/upgradeImpactScore}" 
-                      scale="%"
-                      valueColor="{= ${analytics>/upgradeImpactScore} > 50 ? 'Error' : ${analytics>/upgradeImpactScore} > 25 ? 'Critical' : 'Good'}"
-                      icon="sap-icon://process"/>
-                  </content>
-                </TileContent>
-              </tileContent>
-            </GenericTile>
+                            <VBox id="cleanCoreLevelBox">
+                                <Label
+                                    id="cleanCoreLevelLabel"
+                                    text="Clean Core Level"
+                                />
+                                <MultiComboBox
+                                    id="cleanCoreLevelFilter"
+                                    width="100%"
+                                    selectedKeys="{filterModel>/selectedCleanCoreLevels}"
+                                    items="{filterModel>/cleanCoreLevels}"
+                                    selectionChange="onFilterChange"
+                                    placeholder="All Levels"
+                                >
+                                    <core:Item
+                                        id="cleanCoreLevelItemTemplate"
+                                        key="{filterModel>level}"
+                                        text="{filterModel>level}"
+                                    />
+                                </MultiComboBox>
+                            </VBox>
 
-            <!-- Composite Health Tile -->
-            <GenericTile
-              id="compositeHealthTile"
-              class="sapUiTinyMargin"
-              header="Composite Health Score"
-              subheader="{analytics>/compositeHealthScore}%"
-              press="onKPIDrillDown"
-              frameType="TwoByOne">
-              <tileContent>
-                <TileContent id="compositeHealthTileContent" footer="Overall System Health">
-                  <content>
-                    <NumericContent 
-                      id="compositeHealthNumeric"
-                      value="{analytics>/compositeHealthScore}" 
-                      scale="%"
-                      valueColor="{= ${analytics>/compositeHealthScore} > 75 ? 'Good' : ${analytics>/compositeHealthScore} > 50 ? 'Critical' : 'Error'}"
-                      icon="sap-icon://status-positive"/>
-                  </content>
-                </TileContent>
-              </tileContent>
-            </GenericTile>
-          </layout:Grid>
-        </Panel>
+                            <VBox id="analyticsProjectBox">
+                                <Label
+                                    id="analyticsProjectLabel"
+                                    text="Project"
+                                />
+                                <ComboBox
+                                    id="projectFilter"
+                                    width="100%"
+                                    selectedKey="{filterModel>/selectedProject}"
+                                    items="{filterModel>/projects}"
+                                    selectionChange="onFilterChange"
+                                    placeholder="All Projects"
+                                >
+                                    <core:Item
+                                        id="projectItemTemplate"
+                                        key="{filterModel>ID}"
+                                        text="{filterModel>projectName}"
+                                    />
+                                </ComboBox>
+                            </VBox>
+                        </layout:Grid>
 
-        <!-- Charts Section -->
-        <Panel id="chartsPanel" headerText="Analytics Visualizations" class="sapUiSmallMarginBottom">
-          <layout:Grid id="chartsGrid" defaultSpan="XL6 L6 M12 S12" hSpacing="1" vSpacing="1">
-            
-            <!-- Level Distribution Chart -->
-            <VBox id="levelDistributionBox" class="sapUiSmallMargin">
-              <Title id="levelDistributionTitle" text="Clean Core Level Distribution" level="H4" class="sapUiSmallMarginBottom"/>
-              <viz:VizFrame 
-                id="levelDistributionChart" 
-                vizType="donut"
-                width="100%" 
-                height="300px">
-              </viz:VizFrame>
+                        <HBox
+                            id="filterButtonsBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Button
+                                id="applyFiltersButton"
+                                text="Apply Filters"
+                                type="Emphasized"
+                                press="onApplyFilters"
+                                class="sapUiTinyMarginEnd"
+                            />
+                            <Button
+                                id="clearFiltersButton"
+                                text="Clear Filters"
+                                press="onClearFilters"
+                            />
+                        </HBox>
+                    </content>
+                </Panel>
+
+                <!-- KPI Tiles Section -->
+                <Panel
+                    id="kpiPanel"
+                    headerText="Key Performance Indicators"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <layout:Grid
+                        id="kpiGrid"
+                        defaultSpan="XL3 L3 M6 S12"
+                        hSpacing="1"
+                        vSpacing="1"
+                        class="sapUiSmallMargin"
+                    >
+                        <!-- Technical Debt Tile -->
+                        <GenericTile
+                            id="technicalDebtTile"
+                            class="sapUiTinyMargin"
+                            header="Technical Debt Score"
+                            subheader="{analytics>/technicalDebtScore}%"
+                            press="onKPIDrillDown"
+                            frameType="TwoByOne"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="technicalDebtTileContent"
+                                    footer="Average Across All Analyses"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="technicalDebtNumeric"
+                                            value="{analytics>/technicalDebtScore}"
+                                            scale="%"
+                                            valueColor="{= ${analytics>/technicalDebtScore} > 50 ? 'Error' : ${analytics>/technicalDebtScore} > 25 ? 'Critical' : 'Good'}"
+                                            icon="sap-icon://alert"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+
+                        <!-- Cloud Readiness Tile -->
+                        <GenericTile
+                            id="cloudReadinessTile"
+                            class="sapUiTinyMargin"
+                            header="Cloud Readiness Score"
+                            subheader="{analytics>/cloudReadinessScore}%"
+                            press="onKPIDrillDown"
+                            frameType="TwoByOne"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="cloudReadinessTileContent"
+                                    footer="Average Cloud Compatibility"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="cloudReadinessNumeric"
+                                            value="{analytics>/cloudReadinessScore}"
+                                            scale="%"
+                                            valueColor="{= ${analytics>/cloudReadinessScore} > 75 ? 'Good' : ${analytics>/cloudReadinessScore} > 50 ? 'Critical' : 'Error'}"
+                                            icon="sap-icon://cloud"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+
+                        <!-- Upgrade Impact Tile -->
+                        <GenericTile
+                            id="upgradeImpactTile"
+                            class="sapUiTinyMargin"
+                            header="Upgrade Impact Score"
+                            subheader="{analytics>/upgradeImpactScore}%"
+                            press="onKPIDrillDown"
+                            frameType="TwoByOne"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="upgradeImpactTileContent"
+                                    footer="Average Upgrade Complexity"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="upgradeImpactNumeric"
+                                            value="{analytics>/upgradeImpactScore}"
+                                            scale="%"
+                                            valueColor="{= ${analytics>/upgradeImpactScore} > 50 ? 'Error' : ${analytics>/upgradeImpactScore} > 25 ? 'Critical' : 'Good'}"
+                                            icon="sap-icon://process"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+
+                        <!-- Composite Health Tile -->
+                        <GenericTile
+                            id="compositeHealthTile"
+                            class="sapUiTinyMargin"
+                            header="Composite Health Score"
+                            subheader="{analytics>/compositeHealthScore}%"
+                            press="onKPIDrillDown"
+                            frameType="TwoByOne"
+                        >
+                            <tileContent>
+                                <TileContent
+                                    id="compositeHealthTileContent"
+                                    footer="Overall System Health"
+                                >
+                                    <content>
+                                        <NumericContent
+                                            id="compositeHealthNumeric"
+                                            value="{analytics>/compositeHealthScore}"
+                                            scale="%"
+                                            valueColor="{= ${analytics>/compositeHealthScore} > 75 ? 'Good' : ${analytics>/compositeHealthScore} > 50 ? 'Critical' : 'Error'}"
+                                            icon="sap-icon://status-positive"
+                                        />
+                                    </content>
+                                </TileContent>
+                            </tileContent>
+                        </GenericTile>
+                    </layout:Grid>
+                </Panel>
+
+                <!-- Charts Section -->
+                <Panel
+                    id="chartsPanel"
+                    headerText="Analytics Visualizations"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <layout:Grid
+                        id="chartsGrid"
+                        defaultSpan="XL6 L6 M12 S12"
+                        hSpacing="1"
+                        vSpacing="1"
+                    >
+                        <!-- Level Distribution Chart -->
+                        <VBox
+                            id="levelDistributionBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="levelDistributionTitle"
+                                text="Clean Core Level Distribution"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="levelDistributionChart"
+                                vizType="donut"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- RICEFW Type Distribution Chart -->
+                        <VBox
+                            id="ricefwTypeDistributionBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="ricefwTypeDistributionTitle"
+                                text="RICEFW Object Type Distribution"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="ricefwTypeDistributionChart"
+                                vizType="bar"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Trend Analysis Chart -->
+                        <VBox
+                            id="trendAnalysisBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="trendAnalysisTitle"
+                                text="Score Trends Over Time"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="trendAnalysisChart"
+                                vizType="line"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Risk Matrix Chart -->
+                        <VBox
+                            id="riskMatrixBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="riskMatrixTitle"
+                                text="Risk Matrix (Technical Debt vs Cloud Readiness)"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="riskMatrixChart"
+                                vizType="scatter"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Year-over-Year Comparison Chart -->
+                        <VBox
+                            id="yearOverYearBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="yearOverYearTitle"
+                                text="Year-over-Year Comparison"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="idYearOverYearChart"
+                                vizType="column"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Project Comparison Chart -->
+                        <VBox
+                            id="projectComparisonBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="projectComparisonTitle"
+                                text="Project Comparison"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="idProjectComparisonChart"
+                                vizType="bar"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Monthly Trend Chart -->
+                        <VBox
+                            id="monthlyTrendBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="monthlyTrendTitle"
+                                text="Monthly Trend Analysis"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="idMonthlyTrendChart"
+                                vizType="line"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Overall Trend Chart -->
+                        <VBox
+                            id="overallTrendBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="overallTrendTitle"
+                                text="Overall Trend"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <viz:VizFrame
+                                id="idTrendChart"
+                                vizType="line"
+                                width="100%"
+                                height="300px"
+                            />
+                        </VBox>
+
+                        <!-- Top Objects Table -->
+                        <VBox
+                            id="topObjectsBox"
+                            class="sapUiSmallMargin"
+                        >
+                            <Title
+                                id="topObjectsTitle"
+                                text="Top 10 Complex Objects"
+                                level="H4"
+                                class="sapUiSmallMarginBottom"
+                            />
+                            <Table
+                                id="topObjectsTable"
+                                items="{analytics>/topObjects}"
+                                mode="SingleSelectMaster"
+                            >
+                                <columns>
+                                    <Column
+                                        id="topObjRicefwIdCol"
+                                        width="35%"
+                                    >
+                                        <Text
+                                            id="topObjRicefwIdColHeader"
+                                            text="RICEFW ID"
+                                        />
+                                    </Column>
+                                    <Column
+                                        id="topObjTypeCol"
+                                        width="25%"
+                                    >
+                                        <Text
+                                            id="topObjTypeColHeader"
+                                            text="Object Type"
+                                        />
+                                    </Column>
+                                    <Column
+                                        id="topObjComplexityCol"
+                                        width="20%"
+                                        hAlign="End"
+                                    >
+                                        <Text
+                                            id="topObjComplexityColHeader"
+                                            text="Complexity"
+                                        />
+                                    </Column>
+                                    <Column
+                                        id="topObjLevelCol"
+                                        width="20%"
+                                    >
+                                        <Text
+                                            id="topObjLevelColHeader"
+                                            text="Level"
+                                        />
+                                    </Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem
+                                        id="topObjItemTemplate"
+                                        type="Active"
+                                        press="onObjectDrillDown"
+                                    >
+                                        <cells>
+                                            <Text
+                                                id="topObjRicefwIdCell"
+                                                text="{analytics>ricefwId}"
+                                            />
+                                            <Text
+                                                id="topObjTypeCell"
+                                                text="{analytics>objectType}"
+                                            />
+                                            <ObjectNumber
+                                                id="topObjComplexityCell"
+                                                number="{analytics>complexityScore}"
+                                                unit="%"
+                                                state="{= ${analytics>complexityScore} > 50 ? 'Error' : ${analytics>complexityScore} > 25 ? 'Warning' : 'Success'}"
+                                            />
+                                            <ObjectStatus
+                                                id="topObjLevelCell"
+                                                text="{analytics>level}"
+                                                state="{= ${analytics>level} === 'A' ? 'Success' : ${analytics>level} === 'B' ? 'Warning' : 'Error'}"
+                                            />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </VBox>
+                    </layout:Grid>
+                </Panel>
+
+                <!-- Summary Statistics -->
+                <Panel
+                    id="summaryPanel"
+                    headerText="Summary"
+                    class="sapUiSmallMarginBottom"
+                >
+                    <HBox
+                        id="summaryHBox"
+                        justifyContent="SpaceBetween"
+                        class="sapUiSmallMargin"
+                    >
+                        <VBox id="totalAnalysesBox">
+                            <Label
+                                id="totalAnalysesLabel"
+                                text="Total Analyses"
+                            />
+                            <Title
+                                id="totalAnalysesValue"
+                                text="{analytics>/totalAnalyses}"
+                                level="H3"
+                            />
+                        </VBox>
+                        <VBox id="avgTechDebtBox">
+                            <Label
+                                id="avgTechDebtLabel"
+                                text="Average Technical Debt"
+                            />
+                            <Title
+                                id="avgTechDebtValue"
+                                text="{analytics>/technicalDebtScore}%"
+                                level="H3"
+                            />
+                        </VBox>
+                        <VBox id="avgCloudReadinessBox">
+                            <Label
+                                id="avgCloudReadinessLabel"
+                                text="Average Cloud Readiness"
+                            />
+                            <Title
+                                id="avgCloudReadinessValue"
+                                text="{analytics>/cloudReadinessScore}%"
+                                level="H3"
+                            />
+                        </VBox>
+                    </HBox>
+                </Panel>
             </VBox>
-
-            <!-- RICEFW Type Distribution Chart -->
-            <VBox id="ricefwTypeDistributionBox" class="sapUiSmallMargin">
-              <Title id="ricefwTypeDistributionTitle" text="RICEFW Object Type Distribution" level="H4" class="sapUiSmallMarginBottom"/>
-              <viz:VizFrame 
-                id="ricefwTypeDistributionChart" 
-                vizType="bar"
-                width="100%" 
-                height="300px">
-              </viz:VizFrame>
-            </VBox>
-
-            <!-- Trend Analysis Chart -->
-            <VBox id="trendAnalysisBox" class="sapUiSmallMargin">
-              <Title id="trendAnalysisTitle" text="Score Trends Over Time" level="H4" class="sapUiSmallMarginBottom"/>
-              <viz:VizFrame 
-                id="trendAnalysisChart" 
-                vizType="line"
-                width="100%" 
-                height="300px">
-              </viz:VizFrame>
-            </VBox>
-
-            <!-- Risk Matrix Chart -->
-            <VBox id="riskMatrixBox" class="sapUiSmallMargin">
-              <Title id="riskMatrixTitle" text="Risk Matrix (Technical Debt vs Cloud Readiness)" level="H4" class="sapUiSmallMarginBottom"/>
-              <viz:VizFrame 
-                id="riskMatrixChart" 
-                vizType="scatter"
-                width="100%" 
-                height="300px">
-              </viz:VizFrame>
-            </VBox>
-
-            <!-- Top Objects Table -->
-            <VBox id="topObjectsBox" class="sapUiSmallMargin">
-              <Title id="topObjectsTitle" text="Top 10 Complex Objects" level="H4" class="sapUiSmallMarginBottom"/>
-              <Table 
-                id="topObjectsTable" 
-                items="{analytics>/topObjects}"
-                mode="SingleSelectMaster">
-                <columns>
-                  <Column id="topObjRicefwIdCol" width="35%">
-                    <Text id="topObjRicefwIdColHeader" text="RICEFW ID"/>
-                  </Column>
-                  <Column id="topObjTypeCol" width="25%">
-                    <Text id="topObjTypeColHeader" text="Object Type"/>
-                  </Column>
-                  <Column id="topObjComplexityCol" width="20%" hAlign="End">
-                    <Text id="topObjComplexityColHeader" text="Complexity"/>
-                  </Column>
-                  <Column id="topObjLevelCol" width="20%">
-                    <Text id="topObjLevelColHeader" text="Level"/>
-                  </Column>
-                </columns>
-                <items>
-                  <ColumnListItem id="topObjItemTemplate" type="Active" press="onObjectDrillDown">
-                    <cells>
-                      <Text id="topObjRicefwIdCell" text="{analytics>ricefwId}"/>
-                      <Text id="topObjTypeCell" text="{analytics>objectType}"/>
-                      <ObjectNumber 
-                        id="topObjComplexityCell"
-                        number="{analytics>complexityScore}" 
-                        unit="%"
-                        state="{= ${analytics>complexityScore} > 50 ? 'Error' : ${analytics>complexityScore} > 25 ? 'Warning' : 'Success'}"/>
-                      <ObjectStatus 
-                        id="topObjLevelCell"
-                        text="{analytics>level}"
-                        state="{= ${analytics>level} === 'A' ? 'Success' : ${analytics>level} === 'B' ? 'Warning' : 'Error'}"/>
-                    </cells>
-                  </ColumnListItem>
-                </items>
-              </Table>
-            </VBox>
-          </layout:Grid>
-        </Panel>
-
-        <!-- Summary Statistics -->
-        <Panel id="summaryPanel" headerText="Summary" class="sapUiSmallMarginBottom">
-          <HBox id="summaryHBox" justifyContent="SpaceBetween" class="sapUiSmallMargin">
-            <VBox id="totalAnalysesBox">
-              <Label id="totalAnalysesLabel" text="Total Analyses"/>
-              <Title id="totalAnalysesValue" text="{analytics>/totalAnalyses}" level="H3"/>
-            </VBox>
-            <VBox id="avgTechDebtBox">
-              <Label id="avgTechDebtLabel" text="Average Technical Debt"/>
-              <Title id="avgTechDebtValue" text="{analytics>/technicalDebtScore}%" level="H3"/>
-            </VBox>
-            <VBox id="avgCloudReadinessBox">
-              <Label id="avgCloudReadinessLabel" text="Average Cloud Readiness"/>
-              <Title id="avgCloudReadinessValue" text="{analytics>/cloudReadinessScore}%" level="H3"/>
-            </VBox>
-          </HBox>
-        </Panel>
-
-      </VBox>
-    </content>
-  </Page>
+        </content>
+    </Page>
 </mvc:View>

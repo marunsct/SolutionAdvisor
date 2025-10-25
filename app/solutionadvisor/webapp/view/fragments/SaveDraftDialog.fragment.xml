@@ -6,40 +6,43 @@
         title="Save Analysis Draft"
         contentWidth="500px">
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="saveDraftMainVBox" class="sapUiSmallMargin">
                 <MessageStrip
+                    id="saveDraftInfoMessage"
                     text="Save your current progress and resume this analysis later. The session will remain active for 24 hours."
                     type="Information"
                     showIcon="true"
                     class="sapUiSmallMarginBottom"/>
                 
-                <Label text="Draft Name (Optional):" class="sapUiTinyMarginTop"/>
+                <Label id="draftNameLabel" text="Draft Name (Optional):" class="sapUiTinyMarginTop"/>
                 <Input
                     id="draftNameInput"
                     placeholder="Enter a name to identify this draft..."
                     width="100%"/>
                 
-                <VBox class="sapUiSmallMarginTop">
-                    <Label text="Current Progress:" design="Bold"/>
-                    <HBox class="sapUiTinyMarginTop">
-                        <Label text="Questions Answered:"/>
-                        <Text text="{draftModel>/currentStep} / {draftModel>/totalSteps}" class="sapUiTinyMarginBegin"/>
+                <VBox id="saveDraftProgressVBox" class="sapUiSmallMarginTop">
+                    <Label id="saveDraftProgressLabel" text="Current Progress:" design="Bold"/>
+                    <HBox id="saveDraftQuestionsHBox" class="sapUiTinyMarginTop">
+                        <Label id="saveDraftQuestionsLabel" text="Questions Answered:"/>
+                        <Text id="saveDraftQuestionsText" text="{draftModel>/currentStep} / {draftModel>/totalSteps}" class="sapUiTinyMarginBegin"/>
                     </HBox>
-                    <HBox class="sapUiTinyMarginTop">
-                        <Label text="Time Spent:"/>
-                        <Text text="{draftModel>/timeSpent} minutes" class="sapUiTinyMarginBegin"/>
+                    <HBox id="saveDraftTimeHBox" class="sapUiTinyMarginTop">
+                        <Label id="saveDraftTimeLabel" text="Time Spent:"/>
+                        <Text id="saveDraftTimeText" text="{draftModel>/timeSpent} minutes" class="sapUiTinyMarginBegin"/>
                     </HBox>
                 </VBox>
             </VBox>
         </content>
         <beginButton>
             <Button
+                id="confirmSaveDraftButton"
                 text="Save Draft"
                 type="Emphasized"
                 press=".onConfirmSaveDraft"/>
         </beginButton>
         <endButton>
             <Button
+                id="cancelSaveDraftButton"
                 text="Cancel"
                 press=".onCancelSaveDraft"/>
         </endButton>

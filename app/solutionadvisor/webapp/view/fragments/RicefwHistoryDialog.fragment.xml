@@ -3,7 +3,9 @@
     xmlns:core="sap.ui.core"
     xmlns:l="sap.ui.layout"
     xmlns:f="sap.ui.layout.form"
-    xmlns:viz="sap.viz.ui5.controls">
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:vizData="sap.viz.ui5.data"
+    xmlns:vizFeeds="sap.viz.ui5.controls.common.feeds">
     
     <Dialog
         id="ricefwHistoryDialog"
@@ -14,11 +16,11 @@
         draggable="true">
         
         <content>
-            <l:VerticalLayout width="100%">
+            <l:VerticalLayout id="historyMainLayout" width="100%">
                 
                 <!-- Summary Header -->
                 <f:SimpleForm
-                    id="historyS ummaryForm"
+                    id="historySummaryForm"
                     editable="false"
                     layout="ResponsiveGridLayout"
                     labelSpanXL="4"
@@ -33,26 +35,26 @@
                     columnsL="2"
                     columnsM="1">
                     <f:content>
-                        <Label text="RICEFW ID"/>
-                        <Text text="{historyModel>/ricefwId}"/>
+                        <Label id="historyRicefwIdLabel" text="RICEFW ID"/>
+                        <Text id="historyRicefwIdText" text="{historyModel>/ricefwId}"/>
                         
-                        <Label text="Object Type"/>
-                        <Text text="{historyModel>/objectType}"/>
+                        <Label id="historyObjectTypeLabel" text="Object Type"/>
+                        <Text id="historyObjectTypeText" text="{historyModel>/objectType}"/>
                         
-                        <Label text="Total Analyses"/>
-                        <Text text="{historyModel>/totalAnalyses}"/>
+                        <Label id="historyTotalAnalysesLabel" text="Total Analyses"/>
+                        <Text id="historyTotalAnalysesText" text="{historyModel>/totalAnalyses}"/>
                         
-                        <Label text="Latest Decision"/>
-                        <Text text="{historyModel>/latestDecision}"/>
+                        <Label id="historyLatestDecisionLabel" text="Latest Decision"/>
+                        <Text id="historyLatestDecisionText" text="{historyModel>/latestDecision}"/>
                         
-                        <Label text="First Analysis"/>
-                        <Text text="{
+                        <Label id="historyFirstAnalysisLabel" text="First Analysis"/>
+                        <Text id="historyFirstAnalysisText" text="{
                             path: 'historyModel>/firstAnalysisDate',
                             formatter: '.formatter.formatDate'
                         }"/>
                         
-                        <Label text="Last Analysis"/>
-                        <Text text="{
+                        <Label id="historyLastAnalysisLabel" text="Last Analysis"/>
+                        <Text id="historyLastAnalysisText" text="{
                             path: 'historyModel>/lastAnalysisDate',
                             formatter: '.formatter.formatDate'
                         }"/>
@@ -98,20 +100,20 @@
                                     }
                                 }">
                                 <viz:dataset>
-                                    <viz:FlattenedDataset data="{historyModel>/trendData}">
-                                        <viz:dimensions>
-                                            <viz:DimensionDefinition name="Analysis Date" value="{historyModel>analysisDate}"/>
-                                        </viz:dimensions>
-                                        <viz:measures>
-                                            <viz:MeasureDefinition name="Level Score" value="{historyModel>levelScore}"/>
-                                            <viz:MeasureDefinition name="Technical Debt" value="{historyModel>technicalDebtScore}"/>
-                                            <viz:MeasureDefinition name="Cloud Readiness" value="{historyModel>cloudReadinessScore}"/>
-                                        </viz:measures>
-                                    </viz:FlattenedDataset>
+                                    <vizData:FlattenedDataset id="historyDataset" data="{historyModel>/trendData}">
+                                        <vizData:dimensions>
+                                            <vizData:DimensionDefinition id="historyDateDimension" name="Analysis Date" value="{historyModel>analysisDate}"/>
+                                        </vizData:dimensions>
+                                        <vizData:measures>
+                                            <vizData:MeasureDefinition id="historyLevelMeasure" name="Level Score" value="{historyModel>levelScore}"/>
+                                            <vizData:MeasureDefinition id="historyTechDebtMeasure" name="Technical Debt" value="{historyModel>technicalDebtScore}"/>
+                                            <vizData:MeasureDefinition id="historyCloudReadyMeasure" name="Cloud Readiness" value="{historyModel>cloudReadinessScore}"/>
+                                        </vizData:measures>
+                                    </vizData:FlattenedDataset>
                                 </viz:dataset>
                                 <viz:feeds>
-                                    <viz:FeedItem uid="valueAxis" type="Measure" values="Level Score,Technical Debt,Cloud Readiness"/>
-                                    <viz:FeedItem uid="categoryAxis" type="Dimension" values="Analysis Date"/>
+                                    <vizFeeds:FeedItem id="historyValueFeed" uid="valueAxis" type="Measure" values="Level Score,Technical Debt,Cloud Readiness"/>
+                                    <vizFeeds:FeedItem id="historyCategoryFeed" uid="categoryAxis" type="Dimension" values="Analysis Date"/>
                                 </viz:feeds>
                             </viz:VizFrame>
                         </VBox>
@@ -140,86 +142,93 @@
                             selectionChange=".onHistoryItemSelect">
                             
                             <columns>
-                                <Column width="12em">
-                                    <Text text="Analysis Date"/>
+                                <Column id="historyDateColumn" width="12em">
+                                    <Text id="historyDateHeader" text="Analysis Date"/>
                                 </Column>
-                                <Column width="8em">
-                                    <Text text="Level"/>
+                                <Column id="historyLevelColumn" width="8em">
+                                    <Text id="historyLevelHeader" text="Level"/>
                                 </Column>
-                                <Column width="10em">
-                                    <Text text="Tech Debt"/>
+                                <Column id="historyTechDebtColumn" width="10em">
+                                    <Text id="historyTechDebtHeader" text="Tech Debt"/>
                                 </Column>
-                                <Column width="10em">
-                                    <Text text="Cloud Ready"/>
+                                <Column id="historyCloudReadyColumn" width="10em">
+                                    <Text id="historyCloudReadyHeader" text="Cloud Ready"/>
                                 </Column>
-                                <Column width="10em">
-                                    <Text text="Upgrade Impact"/>
+                                <Column id="historyUpgradeColumn" width="10em">
+                                    <Text id="historyUpgradeHeader" text="Upgrade Impact"/>
                                 </Column>
-                                <Column width="12em">
-                                    <Text text="Analyst"/>
+                                <Column id="historyAnalystColumn" width="12em">
+                                    <Text id="historyAnalystHeader" text="Analyst"/>
                                 </Column>
-                                <Column width="8em">
-                                    <Text text="Actions"/>
+                                <Column id="historyActionsColumn" width="8em">
+                                    <Text id="historyActionsHeader" text="Actions"/>
                                 </Column>
                             </columns>
                             
                             <items>
-                                <ColumnListItem type="Active">
+                                <ColumnListItem id="historyListItem" type="Active">
                                     <cells>
-                                        <VBox>
-                                            <Text text="{
+                                        <VBox id="historyDateCell">
+                                            <Text id="historyDateText" text="{
                                                 path: 'historyModel>analysisDate',
                                                 formatter: '.formatter.formatDate'
                                             }"/>
                                             <ObjectStatus
+                                                id="historyLatestStatus"
                                                 text="{= ${historyModel>isLatest} ? 'Latest' : '' }"
                                                 state="Success"
                                                 visible="{historyModel>isLatest}"/>
                                         </VBox>
                                         <ObjectStatus
+                                            id="historyLevelStatus"
                                             text="{historyModel>recommendedLevel}"
                                             state="{= ${historyModel>recommendedLevel} === 'Level A' ? 'Success' :
                                                      ${historyModel>recommendedLevel} === 'Level B' ? 'Information' :
                                                      ${historyModel>recommendedLevel} === 'Level C' ? 'Warning' :
                                                      'Error' }"/>
-                                        <VBox>
-                                            <Text text="{historyModel>technicalDebtScore}"/>
+                                        <VBox id="historyTechDebtCell">
+                                            <Text id="historyTechDebtText" text="{historyModel>technicalDebtScore}"/>
                                             <ProgressIndicator
+                                                id="historyTechDebtProgress"
                                                 percentValue="{historyModel>technicalDebtScore}"
                                                 displayValue="{historyModel>technicalDebtScore}%"
                                                 state="{= ${historyModel>technicalDebtScore} > 70 ? 'Error' :
                                                          ${historyModel>technicalDebtScore} > 40 ? 'Warning' :
                                                          'Success' }"/>
                                         </VBox>
-                                        <VBox>
-                                            <Text text="{historyModel>cloudReadinessScore}"/>
+                                        <VBox id="historyCloudReadyCell">
+                                            <Text id="historyCloudReadyText" text="{historyModel>cloudReadinessScore}"/>
                                             <ProgressIndicator
+                                                id="historyCloudReadyProgress"
                                                 percentValue="{historyModel>cloudReadinessScore}"
                                                 displayValue="{historyModel>cloudReadinessScore}%"
                                                 state="{= ${historyModel>cloudReadinessScore} > 70 ? 'Success' :
                                                          ${historyModel>cloudReadinessScore} > 40 ? 'Warning' :
                                                          'Error' }"/>
                                         </VBox>
-                                        <VBox>
-                                            <Text text="{historyModel>upgradeImpactScore}"/>
+                                        <VBox id="historyUpgradeCell">
+                                            <Text id="historyUpgradeText" text="{historyModel>upgradeImpactScore}"/>
                                             <ProgressIndicator
+                                                id="historyUpgradeProgress"
                                                 percentValue="{historyModel>upgradeImpactScore}"
                                                 displayValue="{historyModel>upgradeImpactScore}%"
                                                 state="{= ${historyModel>upgradeImpactScore} > 70 ? 'Error' :
                                                          ${historyModel>upgradeImpactScore} > 40 ? 'Warning' :
                                                          'Success' }"/>
                                         </VBox>
-                                        <VBox>
-                                            <Text text="{historyModel>createdBy}"/>
-                                            <Text text="{historyModel>projectName}" class="sapUiSmallMarginTop"/>
+                                        <VBox id="historyAnalystCell">
+                                            <Text id="historyAnalystText" text="{historyModel>createdBy}"/>
+                                            <Text id="historyProjectText" text="{historyModel>projectName}" class="sapUiSmallMarginTop"/>
                                         </VBox>
-                                        <HBox>
+                                        <HBox id="historyActionsCell">
                                             <Button
+                                                id="viewHistoryDetailsButton"
                                                 icon="sap-icon://detail-view"
                                                 type="Transparent"
                                                 tooltip="View Details"
                                                 press=".onViewHistoryDetails"/>
                                             <Button
+                                                id="copyAnalysisButton"
                                                 icon="sap-icon://copy"
                                                 type="Transparent"
                                                 tooltip="Copy Analysis"

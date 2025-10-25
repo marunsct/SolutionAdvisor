@@ -5,6 +5,7 @@
     xmlns:form="sap.ui.layout.form">
     
     <Dialog
+        id="createQuestionFlowDialog"
         title="Create Question Flow"
         contentWidth="600px"
         contentHeight="500px"
@@ -34,7 +35,7 @@
                 <form:content>
                     
                     <!-- Question Key -->
-                    <Label text="Question Key" required="true"/>
+                    <Label id="questionKeyLabel" text="Question Key" required="true"/>
                     <Input
                         id="questionKeyInput"
                         value="{createModel>/questionKey}"
@@ -43,23 +44,23 @@
                         valueStateText="Format: Q-XXX-NNN"/>
                     
                     <!-- Object Type -->
-                    <Label text="Object Type" required="true"/>
+                    <Label id="questionObjectTypeLabel" text="Object Type" required="true"/>
                     <Select
                         id="objectTypeSelect"
                         selectedKey="{createModel>/objectType}"
                         required="true">
                         <items>
-                            <core:Item key="R" text="Reports"/>
-                            <core:Item key="I" text="Interfaces"/>
-                            <core:Item key="C" text="Conversions"/>
-                            <core:Item key="E" text="Enhancements"/>
-                            <core:Item key="F" text="Forms"/>
-                            <core:Item key="W" text="Workflows"/>
+                            <core:Item id="reportsItem" key="R" text="Reports"/>
+                            <core:Item id="interfacesItem" key="I" text="Interfaces"/>
+                            <core:Item id="conversionsItem" key="C" text="Conversions"/>
+                            <core:Item id="enhancementsItem" key="E" text="Enhancements"/>
+                            <core:Item id="formsItem" key="F" text="Forms"/>
+                            <core:Item id="workflowsItem" key="W" text="Workflows"/>
                         </items>
                     </Select>
                     
                     <!-- Question Text -->
-                    <Label text="Question Text" required="true"/>
+                    <Label id="questionTextLabel" text="Question Text" required="true"/>
                     <TextArea
                         id="questionTextArea"
                         value="{createModel>/questionText}"
@@ -68,29 +69,29 @@
                         required="true"/>
                     
                     <!-- Question Category -->
-                    <Label text="Category"/>
+                    <Label id="categoryLabel" text="Category"/>
                     <Input
                         id="categoryInput"
                         value="{createModel>/questionCategory}"
                         placeholder="e.g., Volume, Complexity, Integration"/>
                     
                     <!-- Answer Type -->
-                    <Label text="Answer Type" required="true"/>
+                    <Label id="answerTypeLabel" text="Answer Type" required="true"/>
                     <Select
                         id="answerTypeSelect"
                         selectedKey="{createModel>/answerType}"
                         required="true">
                         <items>
-                            <core:Item key="SingleChoice" text="Single Choice"/>
-                            <core:Item key="MultiChoice" text="Multiple Choice"/>
-                            <core:Item key="Text" text="Text Input"/>
-                            <core:Item key="Number" text="Number Input"/>
-                            <core:Item key="YesNo" text="Yes/No"/>
+                            <core:Item id="singleChoiceItem" key="SingleChoice" text="Single Choice"/>
+                            <core:Item id="multiChoiceItem" key="MultiChoice" text="Multiple Choice"/>
+                            <core:Item id="textInputItem" key="Text" text="Text Input"/>
+                            <core:Item id="numberInputItem" key="Number" text="Number Input"/>
+                            <core:Item id="yesNoItem" key="YesNo" text="Yes/No"/>
                         </items>
                     </Select>
                     
                     <!-- Answers (JSON) -->
-                    <Label text="Answers (JSON)"/>
+                    <Label id="answersLabel" text="Answers (JSON)"/>
                     <TextArea
                         id="answersTextArea"
                         value="{createModel>/answers}"
@@ -98,7 +99,7 @@
                         placeholder='[{"key": "LOW", "text": "Low volume"}, {"key": "HIGH", "text": "High volume"}]'/>
                     
                     <!-- Navigation Logic (JSON) -->
-                    <Label text="Navigation Logic (JSON)"/>
+                    <Label id="navigationLogicLabel" text="Navigation Logic (JSON)"/>
                     <TextArea
                         id="navigationLogicTextArea"
                         value="{createModel>/navigationLogic}"
@@ -106,7 +107,7 @@
                         placeholder='{"LOW": {"nextQuestion": "Q-INT-002", "finalAnswer": null}}'/>
                     
                     <!-- Detailed Hint -->
-                    <Label text="Detailed Hint"/>
+                    <Label id="questionHintLabel" text="Detailed Hint"/>
                     <TextArea
                         id="hintTextArea"
                         value="{createModel>/detailedHint}"
@@ -114,7 +115,7 @@
                         placeholder="Provide additional context or guidance..."/>
                     
                     <!-- Active -->
-                    <Label text="Active"/>
+                    <Label id="activeLabel" text="Active"/>
                     <Switch
                         id="activeSwitch"
                         state="{createModel>/isActive}"
@@ -126,6 +127,7 @@
             
             <!-- Help Text -->
             <MessageStrip
+                id="createQuestionHelpMessage"
                 text="Tip: Use Download Template to see correct JSON format for Answers and Navigation Logic."
                 type="Information"
                 showIcon="true"
@@ -134,6 +136,7 @@
         
         <beginButton>
             <Button
+                id="createQuestionConfirmButton"
                 text="Create"
                 type="Emphasized"
                 press="onCreateConfirm"/>
@@ -141,6 +144,7 @@
         
         <endButton>
             <Button
+                id="createQuestionCancelButton"
                 text="Cancel"
                 press="onCreateCancel"/>
         </endButton>

@@ -12,20 +12,23 @@
         draggable="true"
         resizable="true">
         <customHeader>
-            <Bar>
+            <Bar id="flowchartHeaderBar">
                 <contentLeft>
-                    <Title text="Decision Path Flowchart - {flowchartModel>/analysisName}" level="H4"/>
+                    <Title id="flowchartHeaderTitle" text="Decision Path Flowchart - {flowchartModel>/analysisName}" level="H4"/>
                 </contentLeft>
                 <contentRight>
                     <Button
+                        id="exportFlowchartPNGButton"
                         icon="sap-icon://download"
                         tooltip="Export as PNG"
                         press=".onExportFlowchartPNG"/>
                     <Button
+                        id="exportFlowchartPDFButton"
                         icon="sap-icon://pdf-attachment"
                         tooltip="Export as PDF"
                         press=".onExportFlowchartPDF"/>
                     <Button
+                        id="closeFlowchartButton"
                         icon="sap-icon://decline"
                         tooltip="Close"
                         press=".onCloseFlowchartDialog"/>
@@ -33,23 +36,26 @@
             </Bar>
         </customHeader>
         <content>
-            <VBox height="100%" width="100%">
+            <VBox id="flowchartMainVBox" height="100%" width="100%">
                 <!-- Toolbar for flowchart controls -->
-                <Toolbar>
-                    <ToolbarSpacer/>
+                <Toolbar id="flowchartControlsToolbar">
+                    <ToolbarSpacer id="flowchartToolbarSpacer1"/>
                     <Button
+                        id="zoomInButton"
                         icon="sap-icon://zoom-in"
                         tooltip="Zoom In"
                         press=".onZoomIn"/>
                     <Button
+                        id="zoomOutButton"
                         icon="sap-icon://zoom-out"
                         tooltip="Zoom Out"
                         press=".onZoomOut"/>
                     <Button
+                        id="resetZoomButton"
                         icon="sap-icon://refresh"
                         tooltip="Reset Zoom"
                         press=".onResetZoom"/>
-                    <ToolbarSpacer/>
+                    <ToolbarSpacer id="flowchartToolbarSpacer2"/>
                 </Toolbar>
                 
                 <!-- SVG Container for Flowchart -->
@@ -71,41 +77,41 @@
                     expandable="true"
                     expanded="false"
                     width="100%">
-                    <HBox class="sapUiSmallMargin" wrap="Wrap">
-                        <VBox class="sapUiTinyMarginEnd">
-                            <HBox alignItems="Center">
+                    <HBox id="legendHBox" class="sapUiSmallMargin" wrap="Wrap">
+                        <VBox id="legendLevelAVBox" class="sapUiTinyMarginEnd">
+                            <HBox id="legendLevelAHBox" alignItems="Center">
                                 <html:div style="width: 20px; height: 20px; background-color: #e8f5e9; border: 2px solid #4caf50; margin-right: 8px;"></html:div>
-                                <Text text="Level A - Fully Clean Core"/>
+                                <Text id="legendLevelAText" text="Level A - Fully Clean Core"/>
                             </HBox>
                         </VBox>
-                        <VBox class="sapUiTinyMarginEnd">
-                            <HBox alignItems="Center">
+                        <VBox id="legendLevelBVBox" class="sapUiTinyMarginEnd">
+                            <HBox id="legendLevelBHBox" alignItems="Center">
                                 <html:div style="width: 20px; height: 20px; background-color: #e3f2fd; border: 2px solid #2196f3; margin-right: 8px;"></html:div>
-                                <Text text="Level B - Enhanced Clean Core"/>
+                                <Text id="legendLevelBText" text="Level B - Enhanced Clean Core"/>
                             </HBox>
                         </VBox>
-                        <VBox class="sapUiTinyMarginEnd">
-                            <HBox alignItems="Center">
+                        <VBox id="legendLevelCVBox" class="sapUiTinyMarginEnd">
+                            <HBox id="legendLevelCHBox" alignItems="Center">
                                 <html:div style="width: 20px; height: 20px; background-color: #fff3e0; border: 2px solid #ff9800; margin-right: 8px;"></html:div>
-                                <Text text="Level C - Compliant Modifications"/>
+                                <Text id="legendLevelCText" text="Level C - Compliant Modifications"/>
                             </HBox>
                         </VBox>
-                        <VBox class="sapUiTinyMarginEnd">
-                            <HBox alignItems="Center">
+                        <VBox id="legendLevelDVBox" class="sapUiTinyMarginEnd">
+                            <HBox id="legendLevelDHBox" alignItems="Center">
                                 <html:div style="width: 20px; height: 20px; background-color: #ffebee; border: 2px solid #f44336; margin-right: 8px;"></html:div>
-                                <Text text="Level D - Legacy Customizations"/>
+                                <Text id="legendLevelDText" text="Level D - Legacy Customizations"/>
                             </HBox>
                         </VBox>
-                        <VBox class="sapUiTinyMarginEnd">
-                            <HBox alignItems="Center">
+                        <VBox id="legendDecisionPointVBox" class="sapUiTinyMarginEnd">
+                            <HBox id="legendDecisionPointHBox" alignItems="Center">
                                 <html:div style="width: 20px; height: 20px; background-color: #fff; border: 2px solid #757575; margin-right: 8px; border-radius: 10px;"></html:div>
-                                <Text text="Decision Point"/>
+                                <Text id="legendDecisionPointText" text="Decision Point"/>
                             </HBox>
                         </VBox>
-                        <VBox class="sapUiTinyMarginEnd">
-                            <HBox alignItems="Center">
+                        <VBox id="legendPathVBox" class="sapUiTinyMarginEnd">
+                            <HBox id="legendPathHBox" alignItems="Center">
                                 <html:div style="width: 30px; height: 2px; background-color: #333; margin-right: 8px;"></html:div>
-                                <Text text="Decision Path"/>
+                                <Text id="legendPathText" text="Decision Path"/>
                             </HBox>
                         </VBox>
                     </HBox>
@@ -118,28 +124,31 @@
                     expandable="true"
                     expanded="false"
                     width="100%">
-                    <VBox class="sapUiSmallMargin">
-                        <HBox justifyContent="SpaceBetween">
-                            <VBox>
-                                <Label text="Final Recommendation:" design="Bold"/>
+                    <VBox id="flowchartSummaryVBox" class="sapUiSmallMargin">
+                        <HBox id="flowchartSummaryHBox" justifyContent="SpaceBetween">
+                            <VBox id="summaryRecommendationVBox">
+                                <Label id="summaryRecommendationLabel" text="Final Recommendation:" design="Bold"/>
                                 <ObjectStatus
+                                    id="summaryRecommendationStatus"
                                     text="{flowchartModel>/finalRecommendation}"
                                     state="{= ${flowchartModel>/finalRecommendation} === 'Level A' ? 'Success' : ${flowchartModel>/finalRecommendation} === 'Level B' ? 'Information' : 'Warning' }"/>
                             </VBox>
-                            <VBox>
-                                <Label text="Total Steps:" design="Bold"/>
-                                <Text text="{flowchartModel>/totalSteps}"/>
+                            <VBox id="summaryStepsVBox">
+                                <Label id="summaryStepsLabel" text="Total Steps:" design="Bold"/>
+                                <Text id="summaryStepsText" text="{flowchartModel>/totalSteps}"/>
                             </VBox>
-                            <VBox>
-                                <Label text="Technical Debt Score:" design="Bold"/>
+                            <VBox id="summaryTechDebtVBox">
+                                <Label id="summaryTechDebtLabel" text="Technical Debt Score:" design="Bold"/>
                                 <ObjectNumber
+                                    id="summaryTechDebtNumber"
                                     number="{flowchartModel>/technicalDebtScore}"
                                     unit="%"
                                     state="{= ${flowchartModel>/technicalDebtScore} &lt; 30 ? 'Success' : ${flowchartModel>/technicalDebtScore} &lt; 60 ? 'Warning' : 'Error' }"/>
                             </VBox>
-                            <VBox>
-                                <Label text="Cloud Readiness:" design="Bold"/>
+                            <VBox id="summaryCloudReadyVBox">
+                                <Label id="summaryCloudReadyLabel" text="Cloud Readiness:" design="Bold"/>
                                 <ObjectNumber
+                                    id="summaryCloudReadyNumber"
                                     number="{flowchartModel>/cloudReadinessScore}"
                                     unit="%"
                                     state="{= ${flowchartModel>/cloudReadinessScore} &gt; 70 ? 'Success' : ${flowchartModel>/cloudReadinessScore} &gt; 40 ? 'Warning' : 'Error' }"/>

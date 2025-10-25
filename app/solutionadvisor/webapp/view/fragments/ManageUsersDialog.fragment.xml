@@ -10,11 +10,12 @@
         draggable="true"
         resizable="true">
         <content>
-            <VBox class="sapUiSmallMargin">
-                <Toolbar>
-                    <Title text="Assigned Users" level="H4"/>
-                    <ToolbarSpacer/>
+            <VBox id="manageUsersMainVBox" class="sapUiSmallMargin">
+                <Toolbar id="manageUsersToolbar">
+                    <Title id="assignedUsersTitle" text="Assigned Users" level="H4"/>
+                    <ToolbarSpacer id="manageUsersToolbarSpacer"/>
                     <Button
+                        id="addUserButton"
                         text="Add User"
                         icon="sap-icon://add"
                         press=".onAddUserToProject"
@@ -28,28 +29,30 @@
                     growingThreshold="20"
                     noDataText="No users assigned to this project">
                     <columns>
-                        <Column width="35%">
-                            <Text text="User Name"/>
+                        <Column id="userNameColumn" width="35%">
+                            <Text id="userNameHeader" text="User Name"/>
                         </Column>
-                        <Column width="30%">
-                            <Text text="Email"/>
+                        <Column id="userEmailColumn" width="30%">
+                            <Text id="userEmailHeader" text="Email"/>
                         </Column>
-                        <Column width="20%">
-                            <Text text="Role"/>
+                        <Column id="userRoleColumn" width="20%">
+                            <Text id="userRoleHeader" text="Role"/>
                         </Column>
-                        <Column width="15%">
-                            <Text text="Actions"/>
+                        <Column id="userActionsColumn" width="15%">
+                            <Text id="userActionsHeader" text="Actions"/>
                         </Column>
                     </columns>
                     <items>
-                        <ColumnListItem>
+                        <ColumnListItem id="userListItem-{projectUsersModel>userId}">
                             <cells>
-                                <Text text="{projectUsersModel>userName}"/>
-                                <Text text="{projectUsersModel>userEmail}"/>
+                                <Text id="userNameText-{projectUsersModel>userId}" text="{projectUsersModel>userName}"/>
+                                <Text id="userEmailText-{projectUsersModel>userId}" text="{projectUsersModel>userEmail}"/>
                                 <ObjectStatus
+                                    id="userRoleStatus-{projectUsersModel>userId}"
                                     text="{projectUsersModel>role}"
                                     state="{= ${projectUsersModel>role} === 'SolutionArchitect' ? 'Success' : 'Information' }"/>
                                 <Button
+                                    id="removeUserButton-{projectUsersModel>userId}"
                                     icon="sap-icon://delete"
                                     type="Reject"
                                     press=".onRemoveUserFromProject"
@@ -61,7 +64,7 @@
             </VBox>
         </content>
         <endButton>
-            <Button text="Close" press=".onCloseManageUsersDialog"/>
+            <Button id="closeManageUsersButton" text="Close" press=".onCloseManageUsersDialog"/>
         </endButton>
     </Dialog>
 </core:FragmentDefinition>

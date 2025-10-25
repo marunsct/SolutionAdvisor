@@ -1,16 +1,18 @@
-<mvc:View 
+<mvc:View
     controllerName="sd.solutionadvisor.controller.App"
     displayBlock="true"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:f="sap.f"
-    height="100%">
+    height="100%"
+>
     <Shell
         id="appShell"
-        appWidthLimited="false">
-        <App 
+        appWidthLimited="false"
+    >
+        <App
             id="app"
-            backgroundColor="transparent">
-        </App>
+            backgroundColor="transparent"
+        />
     </Shell>
 </mvc:View>

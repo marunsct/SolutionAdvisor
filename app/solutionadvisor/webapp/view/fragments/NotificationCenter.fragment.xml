@@ -93,13 +93,15 @@
                     growingThreshold="20">
                     
                     <CustomListItem
+                        id="notificationListItem-{notificationModel>id}"
                         type="Active"
                         press=".onNotificationPress">
                         
-                        <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
-                            <VBox class="sapUiSmallMarginEnd" width="80%">
-                                <HBox alignItems="Center">
+                        <HBox id="notificationItemHBox-{notificationModel>id}" alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                            <VBox id="notificationContentVBox-{notificationModel>id}" class="sapUiSmallMarginEnd" width="80%">
+                                <HBox id="notificationTitleHBox-{notificationModel>id}" alignItems="Center">
                                     <core:Icon
+                                        id="notificationIcon-{notificationModel>id}"
                                         src="{= ${notificationModel>type} === 'ConstraintViolation' ? 'sap-icon://warning' : 
                                              ${notificationModel>type} === 'AnalysisComplete' ? 'sap-icon://accept' :
                                              ${notificationModel>type} === 'ProjectAssigned' ? 'sap-icon://person-placeholder' :
@@ -109,15 +111,18 @@
                                                 'Neutral' }"
                                         class="sapUiTinyMarginEnd"/>
                                     <Text
+                                        id="notificationTitleText-{notificationModel>id}"
                                         text="{notificationModel>title}"
                                         class="{= ${notificationModel>isRead} ? '' : 'sapUiNotificationTitle' }"
                                         maxLines="1"/>
                                 </HBox>
                                 <Text
+                                    id="notificationMessageText-{notificationModel>id}"
                                     text="{notificationModel>message}"
                                     class="sapUiTinyMarginTop"
                                     maxLines="2"/>
                                 <Text
+                                    id="notificationTimestampText-{notificationModel>id}"
                                     text="{
                                         path: 'notificationModel>timestamp',
                                         formatter: '.formatter.formatDateTime'
@@ -125,16 +130,16 @@
                                     class="sapUiTinyMarginTop sapUiSmallMarginBottom"
                                     wrapping="false"/>
                             </VBox>
-                            <VBox alignItems="End">
+                            <VBox id="notificationActionsVBox-{notificationModel>id}" alignItems="End">
                                 <Button
-                                    id="markReadBtn"
+                                    id="markReadBtn-{notificationModel>id}"
                                     icon="sap-icon://accept"
                                     type="Transparent"
                                     tooltip="Mark as Read"
                                     visible="{= !${notificationModel>isRead} }"
                                     press=".onMarkNotificationRead"/>
                                 <Button
-                                    id="deleteNotificationBtn"
+                                    id="deleteNotificationBtn-{notificationModel>id}"
                                     icon="sap-icon://delete"
                                     type="Transparent"
                                     tooltip="Delete"
