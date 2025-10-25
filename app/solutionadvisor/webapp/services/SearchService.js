@@ -1,8 +1,9 @@
 sap.ui.define([
     "sap/ui/base/Object",
     "sap/ui/model/Filter",
-    "sap/ui/model/FilterOperator"
-], function (BaseObject, Filter, FilterOperator) {
+    "sap/ui/model/FilterOperator",
+    "sap/ui/model/json/JSONModel"
+], function (BaseObject, Filter, FilterOperator, JSONModel) {
     "use strict";
 
     /**
@@ -18,6 +19,13 @@ sap.ui.define([
         constructor: function (oComponent) {
             this._oComponent = oComponent;
             this._oModel = oComponent.getModel();
+            // State model exposed to the Component as the 'search' model
+            this._oStateModel = new JSONModel({
+                query: "",
+                results: [],
+                loading: false,
+                error: null
+            });
             this._oShellSearchService = null;
             this._bInitialized = false;
             
@@ -64,6 +72,14 @@ sap.ui.define([
         },
 
         /**
+         * Expose search state model for bindings (search bar, result lists, etc.)
+         * @returns {sap.ui.model.json.JSONModel}
+         */
+        getModel: function () {
+            return this._oStateModel;
+        },
+
+        /**
          * Initialize shell search service
          */
         _initialize: function () {
@@ -77,7 +93,9 @@ sap.ui.define([
                     // Register search provider
                     that._registerSearchProvider();
                 }).catch(function (oError) {
-                    console.warn("Shell Search service not available:", oError);
+                    if (sap && sap.base && sap.base.Log) {
+                        sap.base.Log.warning("Shell Search service not available: " + (oError && oError.message || oError));
+                    }
                 });
             }
         },
@@ -112,6 +130,9 @@ sap.ui.define([
         search: function (sQuery, oOptions) {
             const that = this;
             oOptions = oOptions || {};
+            this._oStateModel.setProperty("/error", null);
+            this._oStateModel.setProperty("/loading", true);
+            this._oStateModel.setProperty("/query", sQuery || "");
             
             if (!sQuery || sQuery.length < 2) {
                 return Promise.resolve([]);
@@ -130,7 +151,14 @@ sap.ui.define([
             return Promise.all(aSearchPromises).then(function (aResults) {
                 // Flatten and sort results
                 const aAllResults = [].concat.apply([], aResults);
-                return that._rankResults(aAllResults, sQuery);
+                const aRanked = that._rankResults(aAllResults, sQuery);
+                that._oStateModel.setProperty("/results", aRanked);
+                that._oStateModel.setProperty("/loading", false);
+                return aRanked;
+            }).catch(function (oError) {
+                that._oStateModel.setProperty("/error", (oError && oError.message) || String(oError));
+                that._oStateModel.setProperty("/loading", false);
+                return [];
             });
         },
 
@@ -168,7 +196,9 @@ sap.ui.define([
                     return that._formatSearchResult(oData, oEntityConfig);
                 });
             }).catch(function (oError) {
-                console.error("Search failed for entity:", oEntityConfig.name, oError);
+                if (sap && sap.base && sap.base.Log) {
+                    sap.base.Log.error("Search failed for entity: " + oEntityConfig.name + " - " + (oError && oError.message || oError));
+                }
                 return [];
             });
         },
