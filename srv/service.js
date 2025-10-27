@@ -408,6 +408,68 @@ module.exports = cds.service.impl(async function () {
     });
 
     /**
+     * Recalculate Scores - Update existing analysis with fresh scores
+     */
+    this.on('recalculateScores', async (req) => {
+        const { analysisID } = req.data;
+        const tenant = req.user?.tenant || 'default';
+
+        try {
+            // Verify analysis exists and has a final recommendation
+            const analysis = await SELECT.one.from(Analyses)
+                .where({ ID: analysisID, tenant: tenant });
+
+            if (!analysis) {
+                return req.error(404, req.t('error.analysisNotFound'));
+            }
+
+            if (!analysis.finalRecommendation) {
+                return req.error(400, 'Cannot recalculate scores for incomplete analysis');
+            }
+
+            // Calculate fresh scores
+            const scores = await scoringService.calculateScores(analysisID);
+
+            // Update analysis with new scores
+            await UPDATE(Analyses)
+                .set({
+                    technicalDebtScore: scores.technicalDebt,
+                    cloudReadinessScore: scores.cloudReadiness,
+                    upgradeImpactScore: scores.upgradeImpact,
+                    compositeHealthScore: scores.compositeHealth
+                })
+                .where({ ID: analysisID, tenant: tenant });
+
+            // Audit log the recalculation
+            await auditService.logDataChange(
+                req, 
+                'UPDATE', 
+                'CleanCoreAnalysis', 
+                analysisID,
+                {
+                    technicalDebtScore: analysis.technicalDebtScore,
+                    cloudReadinessScore: analysis.cloudReadinessScore,
+                    upgradeImpactScore: analysis.upgradeImpactScore,
+                    compositeHealthScore: analysis.compositeHealthScore
+                },
+                scores
+            );
+
+            return {
+                success: true,
+                message: 'Scores recalculated successfully',
+                technicalDebt: scores.technicalDebt,
+                cloudReadiness: scores.cloudReadiness,
+                upgradeImpact: scores.upgradeImpact,
+                compositeHealth: scores.compositeHealth
+            };
+        } catch (error) {
+            LOG.error('Error recalculating scores:', error);
+            return req.error(500, req.t('error.recalculateScoresFailed', [error.message]));
+        }
+    });
+
+    /**
      * Resume Wizard
      */
     this.on('resumeWizard', async (req) => {
@@ -609,6 +671,52 @@ module.exports = cds.service.impl(async function () {
     });
 
     /**
+     * Before deleting a project - cascade delete all associated analyses
+     */
+    this.before('DELETE', Projects, async (req) => {
+        const projectID = req.data.ID;
+        const tenant = req.user?.tenant || 'default';
+
+        if (!projectID) {
+            return;
+        }
+
+        try {
+            // Delete all analyses associated with this project
+            await DELETE.from(Analyses)
+                .where({ projectConfig_ID: projectID, tenant: tenant });
+
+            LOG.info(`Cascade deleted all analyses for project ${projectID}`);
+        } catch (error) {
+            LOG.error('Error cascade deleting analyses for project:', error);
+            // Continue with project deletion even if analyses deletion fails
+        }
+    });
+
+    /**
+     * Before deleting an analysis - cascade delete all associated decision paths
+     */
+    this.before('DELETE', Analyses, async (req) => {
+        const analysisID = req.data.ID;
+        const tenant = req.user?.tenant || 'default';
+
+        if (!analysisID) {
+            return;
+        }
+
+        try {
+            // Delete all decision paths associated with this analysis
+            await DELETE.from(DecisionPaths)
+                .where({ analysis_ID: analysisID, tenant: tenant });
+
+            LOG.info(`Cascade deleted all decision paths for analysis ${analysisID}`);
+        } catch (error) {
+            LOG.error('Error cascade deleting decision paths for analysis:', error);
+            // Continue with analysis deletion even if decision paths deletion fails
+        }
+    });
+
+    /**
      * Before reading projects - filter by user access
      * TEMPORARILY DISABLED - Enable after implementing user management UI
      */
@@ -658,8 +766,13 @@ module.exports = cds.service.impl(async function () {
         const analysesList = Array.isArray(analyses) ? analyses : [analyses];
 
         for (const analysis of analysesList) {
-            // Calculate scores if not already present
-            if (analysis.finalRecommendation && !analysis.technicalDebtScore) {
+            // Calculate scores if not already present or appear to be defaults (50s)
+            const hasFinal = !!analysis.finalRecommendation;
+            const missingScores = !analysis.technicalDebtScore && !analysis.cloudReadinessScore && !analysis.upgradeImpactScore && !analysis.compositeHealthScore;
+            const looksDefault = [analysis.technicalDebtScore, analysis.cloudReadinessScore, analysis.upgradeImpactScore, analysis.compositeHealthScore]
+                .every(v => v === 50 || v === 50.0);
+
+            if (hasFinal && (missingScores || looksDefault)) {
                 try {
                     const scores = await scoringService.calculateScores(analysis.ID);
                     Object.assign(analysis, {

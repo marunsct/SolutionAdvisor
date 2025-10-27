@@ -8,11 +8,13 @@
         id="examplesPanel"
         headerText="Real-World Implementation Examples"
         expandable="true"
-        expanded="true"
+        expanded="false"
+        busy="{examplesModel>/loading}"
+        expand=".onExamplesPanelToggle"
         class="sapUiResponsiveMargin"
     >
         <content>
-            <VBox id="examplesMainVBox">
+            <VBox id="examplesMainVBox" visible="{= ${examplesModel>/loaded} }">
                 <MessageStrip
                     id="examplesInfoMessage"
                     text="These examples are matched to your scenario and can guide your implementation approach"
@@ -122,98 +124,86 @@
                     noDataText="No examples found for the current context. Try adjusting filters or continue without examples."
                 >
                     <CustomListItem
-                        id="exampleListItem-{examplesModel>ID}"
+                        id="examplesListItem"
                         type="Navigation"
                         press=".onShowExampleDetails"
                     >
-                        <VBox
-                            id="exampleItemVBox-{examplesModel>ID}"
-                            class="sapUiSmallMargin"
-                        >
+                        <VBox id="examplesItemVBox" class="sapUiSmallMargin">
                             <HBox
-                                id="exampleHeaderHBox-{examplesModel>ID}"
+                                id="examplesHeaderHBox"
                                 justifyContent="SpaceBetween"
                                 alignItems="Center"
                             >
                                 <Title
-                                    id="exampleTitle-{examplesModel>ID}"
+                                    id="examplesItemTitle"
                                     text="{examplesModel>title}"
                                     level="H5"
                                 />
-                                <HBox id="exampleMetaHBox-{examplesModel>ID}">
+                                <HBox id="examplesMetaHBox">
                                     <ObjectStatus
-                                        id="exampleLevelStatus-{examplesModel>ID}"
+                                        id="examplesItemLevelStatus"
                                         text="{examplesModel>cleanCoreLevel}"
                                         state="{= ${examplesModel>cleanCoreLevel} === 'Level A' ? 'Success' : ${examplesModel>cleanCoreLevel} === 'Level B' ? 'Information' : 'Warning' }"
                                     />
                                     <Label
-                                        id="exampleIndustryLabel-{examplesModel>ID}"
+                                        id="examplesItemIndustryLabel"
                                         text="{examplesModel>industry}"
                                         class="sapUiTinyMarginBegin"
                                     />
                                 </HBox>
                             </HBox>
                             <Text
-                                id="exampleScenarioText-{examplesModel>ID}"
+                                id="examplesItemScenarioText"
                                 text="{examplesModel>scenario}"
                                 class="sapUiTinyMarginTop"
                             />
-                            <VBox
-                                id="exampleChallengeVBox-{examplesModel>ID}"
-                                class="sapUiTinyMarginTop"
-                            >
+                            <VBox id="examplesItemChallengeVBox" class="sapUiTinyMarginTop">
                                 <Label
-                                    id="exampleChallengeLabel-{examplesModel>ID}"
+                                    id="examplesItemChallengeLabel"
                                     text="Challenge:"
                                     design="Bold"
                                 />
                                 <Text
-                                    id="exampleChallengeText-{examplesModel>ID}"
+                                    id="examplesItemChallengeText"
                                     text="{examplesModel>challengeDescription}"
                                     maxLines="2"
                                 />
                             </VBox>
-                            <VBox
-                                id="exampleSolutionVBox-{examplesModel>ID}"
-                                class="sapUiTinyMarginTop"
-                            >
+                            <VBox id="examplesItemSolutionVBox" class="sapUiTinyMarginTop">
                                 <Label
-                                    id="exampleSolutionLabel-{examplesModel>ID}"
+                                    id="examplesItemSolutionLabel"
                                     text="Solution Approach:"
                                     design="Bold"
                                 />
                                 <Text
-                                    id="exampleSolutionText-{examplesModel>ID}"
+                                    id="examplesItemSolutionText"
                                     text="{examplesModel>solutionDescription}"
                                     maxLines="2"
                                 />
                             </VBox>
-                            <HBox
-                                id="exampleMetricsHBox-{examplesModel>ID}"
-                                class="sapUiTinyMarginTop"
-                            >
+                            <HBox id="examplesItemMetricsHBox" class="sapUiTinyMarginTop">
                                 <Label
-                                    id="exampleVolumeLabel-{examplesModel>ID}"
+                                    id="examplesItemVolumeLabel"
                                     text="Volume: "
                                     design="Bold"
                                 />
                                 <Text
-                                    id="exampleVolumeText-{examplesModel>ID}"
+                                    id="examplesItemVolumeText"
                                     text="{examplesModel>volumeHandled}"
                                     class="sapUiTinyMarginEnd"
                                 />
                                 <Label
-                                    id="examplePerfLabel-{examplesModel>ID}"
+                                    id="examplesItemPerfLabel"
                                     text="Performance: "
                                     design="Bold"
                                 />
                                 <Text
-                                    id="examplePerfText-{examplesModel>ID}"
+                                    id="examplesItemPerfText"
                                     text="{examplesModel>performanceAchieved}"
                                 />
                             </HBox>
                             <Link
-                                id="exampleDetailsLink-{examplesModel>ID}"
+                                id="examplesItemDetailsLink"
                                 text="View full details"
                                 press=".onShowExampleDetails"
                                 class="sapUiTinyMarginTop"

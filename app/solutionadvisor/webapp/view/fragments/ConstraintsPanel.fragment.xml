@@ -7,10 +7,12 @@
         id="constraintsPanel"
         headerText="Performance Thresholds &amp; Constraints"
         expandable="true"
-        expanded="true"
+        expanded="false"
+        busy="{constraintsModel>/loading}"
+        expand=".onConstraintsPanelToggle"
         class="sapUiResponsiveMargin">
         <content>
-            <VBox id="constraintsPanelMainVBox">
+            <VBox id="constraintsPanelMainVBox" visible="{= ${constraintsModel>/loaded} }">
                 <MessageStrip
                     id="constraintsInfoMessage"
                     text="These constraints are automatically displayed based on your selections and project context"

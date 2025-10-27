@@ -72,11 +72,18 @@ class ScoringService {
         const canonicalLevel = this.extractLevel(analysis.finalRecommendation);
 
         // Get clean core level weights
-        const level = await SELECT.one.from(CleanCoreLevels)
+        let level = await SELECT.one.from(CleanCoreLevels)
             .where({ level: canonicalLevel });
-        
+
+        // Fallback: if master data missing or level not found, derive weights from level name
         if (!level) {
-            return this.getDefaultScores();
+            const fallbackLevel = canonicalLevel || analysis.finalRecommendation;
+            level = {
+                level: fallbackLevel,
+                technicalDebtMultiplier: this.getLevelWeightByName(fallbackLevel),
+                upgradeImpactMultiplier: this.getLevelWeightByName(fallbackLevel),
+                cloudReadinessFactor: this.getCloudFactorByName(fallbackLevel)
+            };
         }
         
         // Calculate individual scores
@@ -121,7 +128,7 @@ class ScoringService {
             return 0.00;
         }
         
-        const levelWeight = level.technicalDebtMultiplier || this.getLevelWeightByName(level.level);
+    const levelWeight = (level.technicalDebtMultiplier ?? this.getLevelWeightByName(level.level));
         let totalWeightedScore = 0;
         
         for (const step of decisionPaths) {
@@ -149,7 +156,7 @@ class ScoringService {
         };
         
         const baseScore = levelScores[analysis.finalRecommendation] || 50;
-        const levelFactor = level.cloudReadinessFactor || 0.5;
+    const levelFactor = (level.cloudReadinessFactor ?? 0.5);
         
         // Apply level factor and ensure score is between 0-100
         const score = Math.min(100, Math.max(0, baseScore * levelFactor * 2));
@@ -167,7 +174,7 @@ class ScoringService {
             return 0.00;
         }
         
-        const levelWeight = level.upgradeImpactMultiplier || this.getLevelWeightByName(level.level);
+    const levelWeight = (level.upgradeImpactMultiplier ?? this.getLevelWeightByName(level.level));
         
         // Estimate complexity based on number of decisions and user comments
         let totalComplexity = 0;
@@ -191,7 +198,22 @@ class ScoringService {
             'Level C': 3.00,
             'Level D': 5.00
         };
-        return weights[levelName] || 1.00;
+    return (weights[levelName] ?? 1.00);
+    }
+
+    /**
+     * Fallback cloud readiness factor by level name
+     * @param {string} levelName
+     * @returns {number} factor between 0 and 1
+     */
+    getCloudFactorByName(levelName) {
+        const factors = {
+            'Level A': 1.00,
+            'Level B': 0.50,
+            'Level C': 0.20,
+            'Level D': 0.00
+        };
+        return factors[levelName] ?? 0.50;
     }
 
     /**
@@ -247,8 +269,19 @@ class ScoringService {
      */
     extractLevel(recommendation) {
         if (!recommendation || typeof recommendation !== 'string') return null;
-        const match = recommendation.match(/Level\s+[ABCD]\b/);
-        return match ? match[0] : recommendation;
+        const str = recommendation.trim();
+        // Match variants like "... - Level A", "Level  B", "level c", etc.
+        const m = str.match(/level\s*([ABCD])\b/i);
+        if (m && m[1]) {
+            return `Level ${m[1].toUpperCase()}`;
+        }
+        // If it already looks like Level X with unusual casing/spaces
+    const m2 = str.match(/(level)\s*[–—-]?\s*([ABCD])\b/i);
+        if (m2 && m2[2]) {
+            return `Level ${m2[2].toUpperCase()}`;
+        }
+        // Fallback: return as-is; upstream logic will still apply safe defaults
+        return str;
     }
 }
 

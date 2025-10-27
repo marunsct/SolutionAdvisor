@@ -398,6 +398,17 @@
                             />
                         </VBox>
                     </IconTabFilter>
+                    
+                    <IconTabFilter
+                        id="analysisDetails_ConstraintsTab"
+                        text="Constraints"
+                        key="constraints"
+                        icon="sap-icon://warning2"
+                    >
+                        <VBox id="analysisDetails_ConstraintsBox" class="sapUiSmallMargin">
+                            <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel" type="XML" />
+                        </VBox>
+                    </IconTabFilter>
                 </items>
             </IconTabBar>
         </content>
@@ -409,6 +420,20 @@
                     text="View Flowchart"
                     icon="sap-icon://org-chart"
                     press="onViewFlowchart"
+                />
+                <Button
+                    id="analysisDetails_RestartBtn"
+                    text="Restart Analysis"
+                    type="Emphasized"
+                    icon="sap-icon://refresh"
+                    press="onRestartAnalysis"
+                />
+                <Button
+                    id="analysisDetails_RecalculateScoresBtn"
+                    text="Recalculate Scores"
+                    icon="sap-icon://customer-financial-fact-sheet"
+                    press="onRecalculateScores"
+                    tooltip="Recalculate scoring metrics without re-running the wizard"
                 />
                 <Button
                     id="analysisDetails_ExportFlowchartPNGBtn"

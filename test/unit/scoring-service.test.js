@@ -4,9 +4,7 @@
  * Tests scoring formula calculations (TDS, CRS, UIS, CHS)
  */
 
-const ScoringService = require('../../srv/lib/scoring-service');
-
-// Mock CDS
+// Mock CDS before requiring any modules that use it
 jest.mock('@sap/cds', () => ({
     log: () => ({
         info: jest.fn(),
@@ -17,19 +15,25 @@ jest.mock('@sap/cds', () => ({
         CleanCoreAnalysis: 'sd.CleanCoreAnalysis',
         CleanCoreLevels: 'sd.CleanCoreLevels',
         DecisionPath: 'sd.DecisionPath'
-    }))
+    })),
+    // Mock CDS SQL builder to prevent SELECT getter from initializing
+    ql: {}
 }));
 
-// Mock SELECT
-global.SELECT = {
-    one: {
+const ScoringService = require('../../srv/lib/scoring-service');
+
+// Must initialize global SELECT before tests run
+beforeAll(() => {
+    global.SELECT = {
+        one: {
+            from: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis()
+        },
         from: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis()
-    },
-    from: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    orderBy: jest.fn().mockReturnThis()
-};
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis()
+    };
+});
 
 describe('ScoringService', () => {
     let scoringService;
@@ -37,6 +41,13 @@ describe('ScoringService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         scoringService = new ScoringService();
+        
+        // Reset global SELECT mocks for each test
+        global.SELECT.one.from = jest.fn().mockReturnThis();
+        global.SELECT.one.where = jest.fn().mockReturnThis();
+        global.SELECT.from = jest.fn().mockReturnThis();
+        global.SELECT.where = jest.fn().mockReturnThis();
+        global.SELECT.orderBy = jest.fn().mockReturnThis();
     });
 
     describe('calculateScores', () => {
@@ -67,7 +78,8 @@ describe('ScoringService', () => {
                 .mockResolvedValueOnce(mockLevelData);
 
             SELECT.from.mockReturnThis();
-            SELECT.where.mockResolvedValue(mockDecisionPath);
+            SELECT.where.mockReturnThis();
+            SELECT.orderBy.mockResolvedValue(mockDecisionPath);
 
             const result = await scoringService.calculateScores('analysis-1');
 
@@ -103,7 +115,8 @@ describe('ScoringService', () => {
                 .mockResolvedValueOnce(mockLevelData);
 
             SELECT.from.mockReturnThis();
-            SELECT.where.mockResolvedValue([
+            SELECT.where.mockReturnThis();
+            SELECT.orderBy.mockResolvedValue([
                 { questionId: 'Q1', selectedAnswer: 'A4' }
             ]);
 
@@ -123,11 +136,10 @@ describe('ScoringService', () => {
             };
 
             const mockLevelData = {
-                cleanCoreLevel: 'Level A',
-                technicalDebtMultiplier: 0.5,
-                cloudReadinessMultiplier: 1.0,
-                upgradeImpactMultiplier: 0.5,
-                complexityWeight: 0.2
+                level: 'Level A',
+                technicalDebtMultiplier: 0,
+                cloudReadinessFactor: 1.0,
+                upgradeImpactMultiplier: 0
             };
 
             SELECT.one.from.mockReturnThis();
@@ -136,83 +148,125 @@ describe('ScoringService', () => {
                 .mockResolvedValueOnce(mockLevelData);
 
             SELECT.from.mockReturnThis();
-            SELECT.where.mockResolvedValue([
-                { questionId: 'Q1', selectedAnswer: 'A1' }
+            SELECT.where.mockReturnThis();
+            SELECT.orderBy.mockResolvedValue([
+                { questionId: 'Q1', selectedAnswer: 'A1', timeSpentSeconds: 20, userComments: '' }
             ]);
 
             const result = await scoringService.calculateScores('analysis-3');
 
-            // Level A should have low technical debt (<40)
-            expect(result.technicalDebt).toBeLessThan(40);
-            // Level A should have high cloud readiness (>70)
-            expect(result.cloudReadiness).toBeGreaterThan(70);
+            // Level A should have zero technical debt (multiplier = 0)
+            expect(result.technicalDebt).toBe(0);
+            // Level A should have maximum cloud readiness (factor = 1.0)
+            expect(result.cloudReadiness).toBe(100);
+            // Level A should have zero upgrade impact (multiplier = 0)
+            expect(result.upgradeImpact).toBe(0);
+            // Composite health should be 100 (perfect score)
+            expect(result.compositeHealth).toBe(100);
+        });
+
+        it('should extract Level A from descriptive recommendation', async () => {
+            const mockAnalysis = {
+                ID: 'analysis-descriptive',
+                finalRecommendation: 'Standard API / Create RAP service - Level A',
+                objectType: 'Interfaces'
+            };
+
+            const mockLevelData = {
+                level: 'Level A',
+                technicalDebtMultiplier: 0,
+                cloudReadinessFactor: 1.0,
+                upgradeImpactMultiplier: 0
+            };
+
+            SELECT.one.from.mockReturnThis();
+            SELECT.one.where
+                .mockResolvedValueOnce(mockAnalysis)
+                .mockResolvedValueOnce(mockLevelData);
+
+            SELECT.from.mockReturnThis();
+            SELECT.where.mockReturnThis();
+            SELECT.orderBy.mockResolvedValue([
+                { questionId: 'Q1', selectedAnswer: 'A1', timeSpentSeconds: 30, userComments: '' }
+            ]);
+
+            const result = await scoringService.calculateScores('analysis-descriptive');
+
+            // Should correctly parse Level A from long descriptive recommendation
+            expect(result.technicalDebt).toBe(0);
+            expect(result.cloudReadiness).toBe(100);
+            expect(result.upgradeImpact).toBe(0);
+            expect(result.compositeHealth).toBe(100);
         });
     });
 
-    describe('_calculateTechnicalDebtScore', () => {
+    describe('calculateTechnicalDebt', () => {
         it('should calculate score based on decision path complexity', () => {
             const decisionPath = [
-                { selectedAnswer: 'custom' },
-                { selectedAnswer: 'high-volume' },
-                { selectedAnswer: 'complex-logic' }
+                { selectedAnswer: 'custom', timeSpentSeconds: 60, userComments: '' },
+                { selectedAnswer: 'high-volume', timeSpentSeconds: 90, userComments: '' },
+                { selectedAnswer: 'complex-logic', timeSpentSeconds: 120, userComments: '' }
             ];
-            const multiplier = 1.5;
+            const level = { technicalDebtMultiplier: 1.5, level: 'Level B' };
 
-            const score = scoringService._calculateTechnicalDebtScore(decisionPath, multiplier);
+            const score = scoringService.calculateTechnicalDebt(decisionPath, level);
 
             expect(score).toBeGreaterThanOrEqual(0);
             expect(score).toBeLessThanOrEqual(100);
         });
 
         it('should return 0 for empty decision path', () => {
-            const score = scoringService._calculateTechnicalDebtScore([], 1.0);
+            const level = { technicalDebtMultiplier: 1.0, level: 'Level B' };
+            const score = scoringService.calculateTechnicalDebt([], level);
             expect(score).toBe(0);
         });
     });
 
-    describe('_calculateCloudReadinessScore', () => {
+    describe('calculateCloudReadiness', () => {
         it('should return high score for Level A', () => {
-            const score = scoringService._calculateCloudReadinessScore('Level A', 'Cloud Public');
-            expect(score).toBeGreaterThan(80);
+            const analysis = { finalRecommendation: 'Level A' };
+            const level = { cloudReadinessFactor: 1.0, level: 'Level A' };
+            const score = scoringService.calculateCloudReadiness(analysis, level);
+            expect(score).toBe(100);
         });
 
         it('should return low score for Level D', () => {
-            const score = scoringService._calculateCloudReadinessScore('Level D', 'On-Premise');
-            expect(score).toBeLessThan(40);
+            const analysis = { finalRecommendation: 'Level D' };
+            const level = { cloudReadinessFactor: 0.0, level: 'Level D' };
+            const score = scoringService.calculateCloudReadiness(analysis, level);
+            expect(score).toBe(0);
         });
 
-        it('should boost score for Cloud Public deployment', () => {
-            const cloudScore = scoringService._calculateCloudReadinessScore('Level B', 'Cloud Public');
-            const onPremScore = scoringService._calculateCloudReadinessScore('Level B', 'On-Premise');
-            
-            expect(cloudScore).toBeGreaterThan(onPremScore);
+        it('should handle Level B with default factor', () => {
+            const analysis = { finalRecommendation: 'Level B' };
+            const level = { cloudReadinessFactor: 0.5, level: 'Level B' };
+            const score = scoringService.calculateCloudReadiness(analysis, level);
+            expect(score).toBe(75);
         });
     });
 
-    describe('_calculateUpgradeImpactScore', () => {
+    describe('calculateUpgradeImpact', () => {
         it('should calculate based on decision path and multiplier', () => {
             const decisionPath = [
-                { selectedAnswer: 'modification' },
-                { selectedAnswer: 'core-change' }
+                { selectedAnswer: 'modification', userComments: '', timeSpentSeconds: 40 },
+                { selectedAnswer: 'core-change', userComments: 'complex change', timeSpentSeconds: 60 }
             ];
-            const multiplier = 1.8;
+            const level = { upgradeImpactMultiplier: 1.8, level: 'Level B' };
 
-            const score = scoringService._calculateUpgradeImpactScore(decisionPath, multiplier);
+            const score = scoringService.calculateUpgradeImpact(decisionPath, level);
 
             expect(score).toBeGreaterThanOrEqual(0);
             expect(score).toBeLessThanOrEqual(100);
         });
     });
 
-    describe('_calculateCompositeHealthScore', () => {
+    describe('calculateCompositeHealth', () => {
         it('should calculate weighted average of all scores', () => {
-            const scores = {
-                technicalDebt: 30,
-                cloudReadiness: 80,
-                upgradeImpact: 25
-            };
+            const technicalDebt = 30;
+            const cloudReadiness = 80;
+            const upgradeImpact = 25;
 
-            const compositeScore = scoringService._calculateCompositeHealthScore(scores);
+            const compositeScore = scoringService.calculateCompositeHealth(technicalDebt, cloudReadiness, upgradeImpact);
 
             expect(compositeScore).toBeGreaterThanOrEqual(0);
             expect(compositeScore).toBeLessThanOrEqual(100);
@@ -221,14 +275,22 @@ describe('ScoringService', () => {
         });
 
         it('should handle edge cases with all zeros', () => {
-            const scores = {
-                technicalDebt: 0,
-                cloudReadiness: 0,
-                upgradeImpact: 0
-            };
+            const technicalDebt = 0;
+            const cloudReadiness = 0;
+            const upgradeImpact = 0;
 
-            const compositeScore = scoringService._calculateCompositeHealthScore(scores);
-            expect(compositeScore).toBe(50); // Neutral score when all inputs are 0
+            const compositeScore = scoringService.calculateCompositeHealth(technicalDebt, cloudReadiness, upgradeImpact);
+            // (100 - 0) * 0.4 + 0 * 0.3 + (100 - 0) * 0.3 = 40 + 0 + 30 = 70
+            expect(compositeScore).toBe(70);
+        });
+
+        it('should return 100 for perfect Level A scores', () => {
+            const technicalDebt = 0;
+            const cloudReadiness = 100;
+            const upgradeImpact = 0;
+
+            const compositeScore = scoringService.calculateCompositeHealth(technicalDebt, cloudReadiness, upgradeImpact);
+            expect(compositeScore).toBe(100); // (100 - 0) * 0.4 + 100 * 0.3 + (100 - 0) * 0.3 = 40 + 30 + 30 = 100
         });
     });
 });

@@ -31,7 +31,7 @@
                         <TileContent id="totalProjectsTileContent">
                             <NumericContent
                                 id="totalProjectsNumeric"
-                                value="{/projectsCount}"
+                                value="{viewModel>/projectsCount}"
                                 icon="sap-icon://product"
                                 withMargin="false"/>
                         </TileContent>
@@ -45,7 +45,7 @@
                         <TileContent id="activeProjectsTileContent">
                             <NumericContent
                                 id="activeProjectsNumeric"
-                                value="{/activeProjectsCount}"
+                                value="{viewModel>/activeProjectsCount}"
                                 icon="sap-icon://activity-individual"
                                 valueColor="Good"
                                 withMargin="false"/>
@@ -62,8 +62,8 @@
                             descending: true
                         }
                     }"
-                    mode="{= ${device>/system/phone} ? 'None' : 'SingleSelectMaster'}"
-                    itemPress="onProjectSelect"
+                    mode="SingleSelectLeft"
+                    selectionChange="onSelectionChange"
                     growing="true"
                     growingThreshold="20">
                     <headerToolbar>
@@ -76,11 +76,27 @@
                                 search="onSearch"
                                 placeholder="Search projects..."/>
                             <Button
+                                id="viewProjectAnalysesButton"
+                                text="View Analyses"
+                                icon="sap-icon://activities"
+                                press="onViewProjectAnalyses"
+                                enabled="{viewModel>/hasSelection}"
+                                type="Transparent"/>
+                            <Button
                                 id="editProjectButton"
                                 text="Edit Project"
                                 icon="sap-icon://edit"
                                 press="onEditProject"
+                                enabled="{viewModel>/hasSelection}"
                                 visible="{= ${user>/isAdmin} !== false }"/>
+                            <Button
+                                id="deleteProjectButton"
+                                text="Delete Project"
+                                icon="sap-icon://delete"
+                                press="onDeleteProject"
+                                enabled="{viewModel>/hasSelection}"
+                                visible="{user>/isAdmin}"
+                                type="Reject"/>
                             <Button
                                 id="newProjectButton"
                                 text="New Project"

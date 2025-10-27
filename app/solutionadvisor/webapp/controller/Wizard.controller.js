@@ -82,20 +82,25 @@ sap.ui.define([
             });
             this.getView().setModel(oWizardModel, "wizardModel");
 
-            // Initialize constraints model
+            // Initialize constraints model (lazy load flags)
             const oConstraintsModel = new JSONModel({
                 performanceConstraints: [],
                 deploymentConstraints: [],
-                complianceConstraints: []
+                complianceConstraints: [],
+                violations: [],
+                loaded: false,
+                loading: false
             });
             this.getView().setModel(oConstraintsModel, "constraintsModel");
 
-            // Initialize examples model
+            // Initialize examples model (lazy load flags)
             const oExamplesModel = new JSONModel({
                 examples: [],
                 selectedExample: {},
                 selectedIndustry: "",
-                selectedLevel: ""
+                selectedLevel: "",
+                loaded: false,
+                loading: false
             });
             this.getView().setModel(oExamplesModel, "examplesModel");
 
@@ -180,7 +185,6 @@ sap.ui.define([
         _autoSaveProgress() {
             try {
                 const oProgressModel = this.getView().getModel("progressModel");
-                const oWizardModel = this.getView().getModel("wizardModel");
                 
                 // Only auto-save if we have a session and there's progress
                 if (!this._sessionId || oProgressModel.getProperty("/currentStepIndex") === 0) {
@@ -685,9 +689,26 @@ sap.ui.define([
                 const oWizardModel = this.getView().getModel("wizardModel");
                 oWizardModel.setProperty("/objectType", oSelectedItem.getKey());
 
-                // Load constraints and examples for this object type
-                this._loadConstraints(oSelectedItem.getKey());
-                this._loadExamples(oSelectedItem.getKey());
+                // Reset lazy models so user-triggered expansion loads fresh data
+                const oConstraintsModel = this.getView().getModel("constraintsModel");
+                oConstraintsModel.setData({
+                    performanceConstraints: [],
+                    deploymentConstraints: [],
+                    complianceConstraints: [],
+                    violations: [],
+                    loaded: false,
+                    loading: false
+                });
+
+                const oExamplesModel = this.getView().getModel("examplesModel");
+                oExamplesModel.setData({
+                    examples: [],
+                    selectedExample: {},
+                    selectedIndustry: "",
+                    selectedLevel: "",
+                    loaded: false,
+                    loading: false
+                });
             }
             this._validateObjectStep();
         },
@@ -704,6 +725,9 @@ sap.ui.define([
                 Log.warning("Cannot load constraints without project and object type");
                 return;
             }
+
+            // Mark as loading
+            oConstraintsModel.setProperty("/loading", true);
 
             // Load project data first to get deployment type
             const oProjectBinding = oModel.bindContext("/Projects('" + sProjectId + "')");
@@ -764,9 +788,13 @@ sap.ui.define([
                     }
                 }).catch((oError) => {
                     Log.error("Failed to load performance thresholds:", oError);
+                }).finally(() => {
+                    oConstraintsModel.setProperty("/loading", false);
+                    oConstraintsModel.setProperty("/loaded", true);
                 });
             }).catch((oError) => {
                 Log.error("Failed to load project data:", oError);
+                oConstraintsModel.setProperty("/loading", false);
             });
         },
 
@@ -845,6 +873,8 @@ sap.ui.define([
                 return;
             }
 
+            oExamplesModel.setProperty("/loading", true);
+
             // Query examples directly (simplified approach)
             const aExampleFilters = [
                 new sap.ui.model.Filter("objectType", sap.ui.model.FilterOperator.EQ, sObjectType),
@@ -857,7 +887,37 @@ sap.ui.define([
                 oExamplesModel.setProperty("/examples", aExamples);
             }).catch((oError) => {
                 Log.error("Failed to load real-world examples:", oError);
+            }).finally(() => {
+                oExamplesModel.setProperty("/loading", false);
+                oExamplesModel.setProperty("/loaded", true);
             });
+        },
+
+        // Lazy load handlers: load when user expands panels
+        onConstraintsPanelToggle(oEvent) {
+            const bExpand = oEvent.getParameter("expand");
+            if (!bExpand) return;
+
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            const oConstraintsModel = this.getView().getModel("constraintsModel");
+
+            if (!oConstraintsModel.getProperty("/loaded")) {
+                this._loadConstraints(sObjectType);
+            }
+        },
+
+        onExamplesPanelToggle(oEvent) {
+            const bExpand = oEvent.getParameter("expand");
+            if (!bExpand) return;
+
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            const oExamplesModel = this.getView().getModel("examplesModel");
+
+            if (!oExamplesModel.getProperty("/loaded")) {
+                this._loadExamples(sObjectType);
+            }
         },
 
         onShowConstraintDetails(oEvent) {
@@ -1275,9 +1335,7 @@ sap.ui.define([
                 this.byId("wizardNextButton").setVisible(false);
                 this.byId("saveDraftButton").setVisible(true);
 
-                // Load constraints and examples for first question context
-                this._loadConstraints(oData.objectType);
-                this._loadExamples(oData.objectType);
+                // Lazy: do not auto-load constraints/examples; they'll load on panel expand
 
                 // Hide loading indicator
                 this.getView().setBusy(false);
@@ -1401,10 +1459,7 @@ sap.ui.define([
                     // Display next question
                     this._displayQuestion(oResult.nextQuestion);
 
-                    // Update constraints and examples based on new question
-                    const objectType = oWizardModel.getProperty("/objectType");
-                    this._loadConstraints(objectType);
-                    this._loadExamples(objectType);
+                    // Lazy: do not auto-refresh constraints/examples on every question
                 }
 
                 // Hide loading indicator

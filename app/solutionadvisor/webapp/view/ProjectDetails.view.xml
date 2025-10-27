@@ -33,6 +33,12 @@
             <OverflowToolbar id="projectHeaderActionsToolbar">
                 <ToolbarSpacer id="projectHeaderActionsSpacer"/>
                 <Button
+                    id="viewAnalysesButton"
+                    text="View Analyses"
+                    icon="sap-icon://activities"
+                    press="onViewAnalyses"
+                    type="Transparent"/>
+                <Button
                     id="manageUsersButton"
                     text="Manage Users"
                     icon="sap-icon://permission"

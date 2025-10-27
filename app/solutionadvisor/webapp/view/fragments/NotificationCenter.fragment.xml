@@ -93,15 +93,15 @@
                     growingThreshold="20">
                     
                     <CustomListItem
-                        id="notificationListItem-{notificationModel>id}"
+                        id="notificationListItem"
                         type="Active"
                         press=".onNotificationPress">
                         
-                        <HBox id="notificationItemHBox-{notificationModel>id}" alignItems="Center" justifyContent="SpaceBetween" width="100%">
-                            <VBox id="notificationContentVBox-{notificationModel>id}" class="sapUiSmallMarginEnd" width="80%">
-                                <HBox id="notificationTitleHBox-{notificationModel>id}" alignItems="Center">
+                        <HBox id="notificationItemHBox" alignItems="Center" justifyContent="SpaceBetween" width="100%">
+                            <VBox id="notificationContentVBox" class="sapUiSmallMarginEnd" width="80%">
+                                <HBox id="notificationTitleHBox" alignItems="Center">
                                     <core:Icon
-                                        id="notificationIcon-{notificationModel>id}"
+                                        id="notificationIcon"
                                         src="{= ${notificationModel>type} === 'ConstraintViolation' ? 'sap-icon://warning' : 
                                              ${notificationModel>type} === 'AnalysisComplete' ? 'sap-icon://accept' :
                                              ${notificationModel>type} === 'ProjectAssigned' ? 'sap-icon://person-placeholder' :
@@ -111,18 +111,18 @@
                                                 'Neutral' }"
                                         class="sapUiTinyMarginEnd"/>
                                     <Text
-                                        id="notificationTitleText-{notificationModel>id}"
+                                        id="notificationTitleText"
                                         text="{notificationModel>title}"
                                         class="{= ${notificationModel>isRead} ? '' : 'sapUiNotificationTitle' }"
                                         maxLines="1"/>
                                 </HBox>
                                 <Text
-                                    id="notificationMessageText-{notificationModel>id}"
+                                    id="notificationMessageText"
                                     text="{notificationModel>message}"
                                     class="sapUiTinyMarginTop"
                                     maxLines="2"/>
                                 <Text
-                                    id="notificationTimestampText-{notificationModel>id}"
+                                    id="notificationTimestampText"
                                     text="{
                                         path: 'notificationModel>timestamp',
                                         formatter: '.formatter.formatDateTime'
@@ -130,16 +130,16 @@
                                     class="sapUiTinyMarginTop sapUiSmallMarginBottom"
                                     wrapping="false"/>
                             </VBox>
-                            <VBox id="notificationActionsVBox-{notificationModel>id}" alignItems="End">
+                            <VBox id="notificationActionsVBox" alignItems="End">
                                 <Button
-                                    id="markReadBtn-{notificationModel>id}"
+                                    id="notificationMarkReadBtn"
                                     icon="sap-icon://accept"
                                     type="Transparent"
                                     tooltip="Mark as Read"
                                     visible="{= !${notificationModel>isRead} }"
                                     press=".onMarkNotificationRead"/>
                                 <Button
-                                    id="deleteNotificationBtn-{notificationModel>id}"
+                                    id="notificationDeleteBtn"
                                     icon="sap-icon://delete"
                                     type="Transparent"
                                     tooltip="Delete"

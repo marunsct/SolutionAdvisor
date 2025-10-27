@@ -16,6 +16,9 @@ sap.ui.define([
 
         _onObjectMatched(oEvent) {
             const sProjectId = oEvent.getParameter("arguments").key;
+            const oQueryParams = oEvent.getParameter("arguments")["?query"];
+            const bEditMode = oQueryParams && oQueryParams.edit === "true";
+            
             this._sCurrentProjectId = sProjectId;
             this.getView().bindElement({
                 path: `/Projects(${sProjectId})`,
@@ -23,6 +26,14 @@ sap.ui.define([
                     expand: "analyses"
                 }
             });
+            
+            // Enable edit mode if requested
+            if (bEditMode) {
+                // Wait for binding to be initialized
+                this.getView().getElementBinding().attachEventOnce("dataReceived", () => {
+                    this.onEdit();
+                });
+            }
         },
 
         onNavBack() {
@@ -35,6 +46,25 @@ sap.ui.define([
                 const oRouter = this.getOwnerComponent().getRouter();
                 oRouter.navTo("ProjectsList", {}, true);
             }
+        },
+
+        onViewAnalyses() {
+            const oView = this.getView();
+            const oBindingContext = oView.getBindingContext();
+            
+            if (!oBindingContext) {
+                MessageToast.show("Project data not loaded yet");
+                return;
+            }
+            
+            const sProjectId = oBindingContext.getProperty("ID");
+            const sProjectName = oBindingContext.getProperty("projectName");
+            
+            // Navigate to analyses list for this project
+            this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                projectId: sProjectId,
+                projectName: encodeURIComponent(sProjectName)
+            });
         },
 
         onNewAnalysis() {

@@ -223,7 +223,7 @@
         },
         {
           "name": "ProjectDetails",
-          "pattern": "Projects({key})",
+          "pattern": "Projects({key}):?query:",
           "target": [
             "ProjectDetails"
           ]

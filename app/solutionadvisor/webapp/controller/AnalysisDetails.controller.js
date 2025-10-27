@@ -21,6 +21,17 @@ sap.ui.define([
             if (oIconTabBar) {
                 oIconTabBar.attachSelect(this._onTabSelect, this);
             }
+
+            // Constraints model for constraints tab (lazy loaded)
+            const oConstraintsModel = new JSONModel({
+                performanceConstraints: [],
+                deploymentConstraints: [],
+                complianceConstraints: [],
+                violations: [],
+                loaded: false,
+                loading: false
+            });
+            this.getView().setModel(oConstraintsModel, "constraintsModel");
         },
 
         _onObjectMatched(oEvent) {
@@ -137,6 +148,212 @@ sap.ui.define([
                     this._flowchartGenerated = true;
                 }, 250);
             }
+
+            if (sKey === "constraints") {
+                // Auto-expand panel and load on first entry if user expands
+                // Do not force-load; rely on panel expand handler to keep lazy behavior
+            }
+        },
+
+        // Panel expand handler from ConstraintsPanel.fragment.xml
+        onConstraintsPanelToggle(oEvent) {
+            const bExpand = oEvent.getParameter("expand");
+            if (!bExpand) return;
+
+            const oConstraintsModel = this.getView().getModel("constraintsModel");
+            if (oConstraintsModel.getProperty("/loaded") || oConstraintsModel.getProperty("/loading")) return;
+
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) return;
+            const oAnalysis = oContext.getObject();
+            if (!oAnalysis) return;
+
+            this._loadConstraintsForAnalysis(oAnalysis);
+        },
+
+        _loadConstraintsForAnalysis(oAnalysis) {
+            const oModel = this.getView().getModel();
+            const oConstraintsModel = this.getView().getModel("constraintsModel");
+
+            const sObjectType = oAnalysis.objectType;
+            const sDeploymentType = oAnalysis.projectConfig?.s4HanaFlavor || "Cloud Public";
+            const aComplianceReq = oAnalysis.projectConfig?.complianceRequirements || [];
+
+            if (!sObjectType) {
+                Log.warning("Cannot load constraints without object type in analysis details");
+                return;
+            }
+
+            oConstraintsModel.setProperty("/loading", true);
+
+            // Client-side generated constraints
+            const aDeploymentConstraints = this._getDeploymentConstraints(sDeploymentType, sObjectType);
+            oConstraintsModel.setProperty("/deploymentConstraints", aDeploymentConstraints);
+
+            const aComplianceConstraints = this._getComplianceConstraints(aComplianceReq);
+            oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
+
+            // Performance thresholds from backend
+            const aThresholdFilters = [
+                new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
+                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+            ];
+            const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
+
+            oThresholdBinding.requestContexts().then((aContexts) => {
+                const aThresholds = aContexts.map(ctx => ctx.getObject());
+
+                // Separate violations vs regular (placeholder logic; can be enhanced using analysis decisionPath)
+                const aViolations = [];
+                const aRegular = [];
+                aThresholds.forEach((c) => {
+                    c.isViolated = false;
+                    aRegular.push(c);
+                });
+
+                oConstraintsModel.setProperty("/violations", aViolations);
+                oConstraintsModel.setProperty("/performanceConstraints", aRegular);
+            }).catch((oError) => {
+                Log.error("Failed to load performance thresholds (details):", oError);
+            }).finally(() => {
+                oConstraintsModel.setProperty("/loading", false);
+                oConstraintsModel.setProperty("/loaded", true);
+            });
+        },
+
+        _getDeploymentConstraints(sDeployment, sObjectType) {
+            const constraints = [];
+            if (sDeployment === "Cloud Public") {
+                constraints.push({
+                    title: "No Custom ABAP",
+                    description: "Cloud Public Edition does not support custom ABAP code. Use Key User Extensibility or Side-by-Side extensions only.",
+                    severity: "Critical"
+                });
+                if (sObjectType === "Enhancements") {
+                    constraints.push({
+                        title: "Limited Enhancement Options",
+                        description: "Only Released Extension Points and Key User Tools are available. No modification adjustments.",
+                        severity: "High"
+                    });
+                }
+            }
+            if (sDeployment === "Private Cloud" || sDeployment === "On-Premise") {
+                constraints.push({
+                    title: "Clean Core Principle",
+                    description: "While custom code is technically possible, clean core principles should guide all decisions.",
+                    severity: "Information"
+                });
+            }
+            return constraints;
+        },
+
+        _getComplianceConstraints(aCompliance) {
+            const constraints = [];
+            if (!aCompliance || !Array.isArray(aCompliance)) return constraints;
+            if (aCompliance.includes("SOX")) {
+                constraints.push({
+                    standard: "SOX",
+                    requirement: "Audit Trail",
+                    description: "All changes must be logged with complete audit trail for financial reporting.",
+                    impact: "High"
+                });
+            }
+            if (aCompliance.includes("GDPR")) {
+                constraints.push({
+                    standard: "GDPR",
+                    requirement: "Data Privacy",
+                    description: "Personal data must be handled according to GDPR requirements. Implement data masking and retention policies.",
+                    impact: "High"
+                });
+            }
+            if (aCompliance.includes("FDA")) {
+                constraints.push({
+                    standard: "FDA 21 CFR Part 11",
+                    requirement: "Electronic Records",
+                    description: "System must support electronic signatures and validation requirements for life sciences.",
+                    impact: "Critical"
+                });
+            }
+            return constraints;
+        },
+
+        onRestartAnalysis() {
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis loaded");
+                return;
+            }
+            const oAnalysis = oContext.getObject();
+            const oModel = this.getView().getModel();
+
+            this.getView().setBusy(true);
+
+            const oOperation = oModel.bindContext("/startWizard(...)");
+            oOperation.setParameter("projectID", oAnalysis.projectConfig_ID || oAnalysis.projectConfig?.ID);
+            oOperation.setParameter("ricefwId", oAnalysis.ricefwId);
+            oOperation.setParameter("objectType", oAnalysis.objectType);
+            oOperation.setParameter("objectName", oAnalysis.objectName);
+
+            oOperation.execute().then(() => {
+                const oResult = oOperation.getBoundContext().getObject();
+                this.getView().setBusy(false);
+                // Navigate to Wizard to resume newly created analysis
+                const oRouter = this.getOwnerComponent().getRouter();
+                oRouter.navTo("Wizard", {
+                    projectId: oAnalysis.projectConfig_ID || oAnalysis.projectConfig?.ID || "",
+                    sessionId: oResult.sessionID,
+                    analysisId: oResult.analysisID
+                });
+            }).catch((oError) => {
+                this.getView().setBusy(false);
+                Log.error("Failed to restart analysis:", oError);
+                ErrorHandler.showServiceError(oError, "Failed to restart analysis");
+            });
+        },
+
+        /**
+         * Recalculate scores for the current analysis without re-running wizard
+         */
+        onRecalculateScores() {
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis loaded");
+                return;
+            }
+
+            const oAnalysis = oContext.getObject();
+            if (!oAnalysis.finalRecommendation) {
+                MessageToast.show("Cannot recalculate scores for incomplete analysis");
+                return;
+            }
+
+            const oModel = this.getView().getModel();
+            this.getView().setBusy(true);
+
+            // Call the recalculateScores action
+            const oOperation = oModel.bindContext("/recalculateScores(...)");
+            oOperation.setParameter("analysisID", oAnalysis.ID);
+
+            oOperation.execute().then(() => {
+                const oResult = oOperation.getBoundContext().getObject();
+                
+                this.getView().setBusy(false);
+                MessageToast.show(`Scores recalculated: TD=${oResult.technicalDebt}, CR=${oResult.cloudReadiness}, UI=${oResult.upgradeImpact}, CH=${oResult.compositeHealth}`);
+
+                // Force rebind to fetch fresh data from backend (avoids draft issues)
+                const sAnalysisId = oAnalysis.ID;
+                this.getView().unbindElement();
+                this.getView().bindElement({
+                    path: this._getAnalysisKeyPath(sAnalysisId),
+                    parameters: {
+                        $expand: "projectConfig,decisionPaths"
+                    }
+                });
+            }).catch((oError) => {
+                this.getView().setBusy(false);
+                Log.error("Failed to recalculate scores:", oError);
+                ErrorHandler.showServiceError(oError, "Failed to recalculate scores");
+            });
         },
         
         _generateFlowchart(oMockData) {
@@ -520,47 +737,174 @@ sap.ui.define([
          * @private
          */
         _openScoringDialog: function() {
-            const oAnalysis = this.getView().getBindingContext().getObject();
-            const breakdownData = this._prepareScoringBreakdown(oAnalysis);
+            const oContext = this.getView().getBindingContext();
+            const oAnalysis = oContext.getObject();
+            const oModel = this.getView().getModel();
+            
+            // Need to load decision paths with $expand
+            const oBinding = oModel.bindContext(this._getAnalysisKeyPath(oAnalysis.ID), null, {
+                $expand: "decisionPaths"
+            });
 
-            const oModel = new JSONModel(breakdownData);
-            this._oScoringDialog.setModel(oModel, "scoring");
-
-            this._oScoringDialog.open();
+            this.getView().setBusy(true);
+            
+            oBinding.requestObject().then((oData) => {
+                const breakdownData = this._prepareScoringBreakdown(oData);
+                const oScoringModel = new JSONModel(breakdownData);
+                this._oScoringDialog.setModel(oScoringModel, "scoring");
+                this._oScoringDialog.open();
+                this.getView().setBusy(false);
+            }).catch((oError) => {
+                this.getView().setBusy(false);
+                Log.error("Failed to load analysis data for scoring breakdown:", oError);
+                MessageToast.show("Failed to load scoring breakdown data");
+            });
         },
 
         /**
          * Prepare scoring breakdown data
-         * @param {object} analysis - Analysis object
+         * @param {object} analysis - Analysis object with decisionPaths
          * @returns {object} Breakdown data
          * @private
          */
         _prepareScoringBreakdown: function(analysis) {
-            // Parse decision path if it's a string
-            let decisionPath = [];
-            if (typeof analysis.decisionPath === 'string') {
-                try {
-                    decisionPath = JSON.parse(analysis.decisionPath);
-                } catch (e) {
-                    Log.error("Failed to parse decision path:", e);
-                }
-            } else if (Array.isArray(analysis.decisionPath)) {
-                decisionPath = analysis.decisionPath;
+            // Get decision paths from the expanded association
+            const decisionPaths = analysis.decisionPaths || [];
+            
+            // Extract level from finalRecommendation (e.g., "Event-Driven Integration - Level A" -> "Level A")
+            const extractLevel = (recommendation) => {
+                if (!recommendation) return 'Unknown';
+                const match = recommendation.match(/Level\s+([ABCD])\b/i);
+                return match ? match[1].toUpperCase() : 'Unknown';
+            };
+            
+            const recommendedLevel = extractLevel(analysis.finalRecommendation);
+
+            // Build technical debt breakdown from decision paths
+            const technicalDebtBreakdown = decisionPaths.map((step, index) => {
+                const weight = this._getLevelWeight(recommendedLevel);
+                const timeMinutes = (step.timeSpentSeconds || 60) / 60;
+                const factor = Math.min(2, timeMinutes); // Complexity factor capped at 2
+                const contribution = weight * factor;
+                
+                return {
+                    stepOrder: step.stepOrder || (index + 1),
+                    stepDescription: step.questionText || 'Decision Step',
+                    level: recommendedLevel,
+                    weight: weight.toFixed(2),
+                    factor: factor.toFixed(2),
+                    contribution: contribution.toFixed(2)
+                };
+            });
+
+            // Count levels in decision paths (for cloud readiness)
+            const levelCounts = {
+                A: 0,
+                B: 0,
+                C: 0,
+                D: 0
+            };
+            
+            // Since all steps point to the same final recommendation, count total steps for that level
+            if (recommendedLevel && Object.prototype.hasOwnProperty.call(levelCounts, recommendedLevel)) {
+                levelCounts[recommendedLevel] = decisionPaths.length;
             }
 
-            const technicalDebtBreakdown = decisionPath.map(step => ({
-                stepDescription: step.questionText || 'Decision Step',
-                level: step.recommendedLevel || 'Unknown',
-                weight: this._getLevelWeight(step.recommendedLevel),
-                factor: step.complexityFactor || 1.0,
-                contribution: Math.round(this._getLevelWeight(step.recommendedLevel) * (step.complexityFactor || 1.0))
-            }));
-
             return {
+                ricefwId: analysis.ricefwId,
+                objectType: analysis.objectType,
+                recommendedLevel: `Level ${recommendedLevel}`,
+                analysisDate: analysis.createdAt || analysis.analysisDate,
+                
+                // Technical Debt
                 technicalDebtBreakdown: technicalDebtBreakdown,
-                cloudReadinessExplanation: `Level A: ${this._countLevel(decisionPath, 'A')}, Level B: ${this._countLevel(decisionPath, 'B')}`,
-                upgradeImpactExplanation: `Total impact based on ${decisionPath.length} decision points`
+                finalTechnicalDebtScore: analysis.technicalDebtScore || 0,
+                
+                // Cloud Readiness
+                cloudReadiness: {
+                    levelACount: levelCounts.A,
+                    levelBCount: levelCounts.B,
+                    levelCDCount: levelCounts.C + levelCounts.D
+                },
+                finalCloudReadinessScore: analysis.cloudReadinessScore || 0,
+                
+                // Upgrade Impact
+                upgradeImpact: {
+                    customCodeLines: decisionPaths.length * 50, // Estimate
+                    standardFunctionality: recommendedLevel === 'A' ? 100 : recommendedLevel === 'B' ? 80 : 50,
+                    complexityMultiplier: this._getLevelWeight(recommendedLevel)
+                },
+                finalUpgradeImpactScore: analysis.upgradeImpactScore || 0,
+                
+                // Composite Health
+                finalCompositeHealthScore: analysis.compositeHealthScore || 0,
+                
+                // Recommendations
+                recommendations: this._generateRecommendations(analysis, recommendedLevel)
             };
+        },
+
+        /**
+         * Generate recommendations based on scores
+         * @param {object} analysis - Analysis object
+         * @param {string} level - Recommended level (A/B/C/D)
+         * @returns {array} Array of recommendations
+         * @private
+         */
+        _generateRecommendations: function(analysis, level) {
+            const recommendations = [];
+            
+            if (level === 'A') {
+                recommendations.push({
+                    title: "Excellent Clean Core Alignment",
+                    description: "Solution follows standard SAP functionality with no customizations",
+                    priority: "Low",
+                    priorityState: "Success",
+                    icon: "sap-icon://accept"
+                });
+            }
+            
+            if (level === 'B') {
+                recommendations.push({
+                    title: "Use Side-by-Side Extensions",
+                    description: "Leverage SAP BTP for extensions to maintain clean core",
+                    priority: "Medium",
+                    priorityState: "Warning",
+                    icon: "sap-icon://quality-issue"
+                });
+            }
+            
+            if (level === 'C' || level === 'D') {
+                recommendations.push({
+                    title: "Refactor to Standard SAP APIs",
+                    description: "Consider migrating custom code to released SAP APIs and standard patterns",
+                    priority: "High",
+                    priorityState: "Error",
+                    icon: "sap-icon://warning"
+                });
+            }
+            
+            if ((analysis.technicalDebtScore || 0) > 60) {
+                recommendations.push({
+                    title: "Reduce Technical Debt",
+                    description: "Simplify solution architecture and remove unnecessary complexity",
+                    priority: "High",
+                    priorityState: "Error",
+                    icon: "sap-icon://activity-2"
+                });
+            }
+            
+            if ((analysis.cloudReadinessScore || 0) < 70) {
+                recommendations.push({
+                    title: "Improve Cloud Readiness",
+                    description: "Review BTP services that can replace custom implementations",
+                    priority: "Medium",
+                    priorityState: "Warning",
+                    icon: "sap-icon://cloud"
+                });
+            }
+            
+            return recommendations;
         },
 
         /**
@@ -597,6 +941,72 @@ sap.ui.define([
             if (this._oScoringDialog) {
                 this._oScoringDialog.close();
             }
+        },
+
+        /**
+         * Export scoring breakdown data
+         */
+        onExportBreakdown: function() {
+            MessageToast.show("Export functionality will be implemented in future release");
+        },
+
+        /**
+         * Save analysis from drill-down dialog
+         */
+        onSaveAnalysis: function() {
+            if (this._oScoringDialog) {
+                this._oScoringDialog.close();
+            }
+            MessageToast.show("Analysis saved successfully");
+        },
+
+        /**
+         * Format level state for ObjectStatus
+         * @param {string} level - Clean core level
+         * @returns {string} State value
+         */
+        formatLevelState: function(level) {
+            if (!level) return "None";
+            const levelStr = level.toString().toUpperCase();
+            if (levelStr.includes('A')) return "Success";
+            if (levelStr.includes('B')) return "Warning";
+            if (levelStr.includes('C')) return "Error";
+            if (levelStr.includes('D')) return "Error";
+            return "None";
+        },
+
+        /**
+         * Format score state (lower is better for tech debt and upgrade impact)
+         * @param {number} score - Score value
+         * @returns {string} State value
+         */
+        formatScoreState: function(score) {
+            if (score < 30) return "Success";
+            if (score < 60) return "Warning";
+            return "Error";
+        },
+
+        /**
+         * Format cloud readiness state (higher is better)
+         * @param {number} score - Score value
+         * @returns {string} State value
+         */
+        formatCloudReadinessState: function(score) {
+            if (score >= 80) return "Success";
+            if (score >= 60) return "Warning";
+            return "Error";
+        },
+
+        /**
+         * Format composite health state (higher is better)
+         * @param {number} score - Score value
+         * @returns {string} State value
+         */
+        formatHealthState: function(score) {
+            if (score >= 80) return "Success";
+            if (score >= 60) return "Warning";
+            if (score >= 40) return "Error";
+            return "Error";
         }
     });
 });

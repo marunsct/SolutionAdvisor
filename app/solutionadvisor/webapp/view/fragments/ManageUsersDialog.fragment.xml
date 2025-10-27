@@ -43,16 +43,16 @@
                         </Column>
                     </columns>
                     <items>
-                        <ColumnListItem id="userListItem-{projectUsersModel>userId}">
+                        <ColumnListItem id="manageUsersListItem">
                             <cells>
-                                <Text id="userNameText-{projectUsersModel>userId}" text="{projectUsersModel>userName}"/>
-                                <Text id="userEmailText-{projectUsersModel>userId}" text="{projectUsersModel>userEmail}"/>
+                                <Text id="manageUsersNameText" text="{projectUsersModel>userName}"/>
+                                <Text id="manageUsersEmailText" text="{projectUsersModel>userEmail}"/>
                                 <ObjectStatus
-                                    id="userRoleStatus-{projectUsersModel>userId}"
+                                    id="manageUsersRoleStatus"
                                     text="{projectUsersModel>role}"
                                     state="{= ${projectUsersModel>role} === 'SolutionArchitect' ? 'Success' : 'Information' }"/>
                                 <Button
-                                    id="removeUserButton-{projectUsersModel>userId}"
+                                    id="manageUsersRemoveButton"
                                     icon="sap-icon://delete"
                                     type="Reject"
                                     press=".onRemoveUserFromProject"

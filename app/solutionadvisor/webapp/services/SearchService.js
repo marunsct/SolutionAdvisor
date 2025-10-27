@@ -11,7 +11,7 @@ sap.ui.define([
      * Integrates with SAP Fiori Launchpad search
      */
     return BaseObject.extend("sd.solutionadvisor.services.SearchService", {
-        
+
         /**
          * Constructor
          * @param {sap.ui.core.UIComponent} oComponent - Application component
@@ -28,7 +28,7 @@ sap.ui.define([
             });
             this._oShellSearchService = null;
             this._bInitialized = false;
-            
+
             // Search configuration
             this._oSearchConfig = {
                 searchableEntities: [
@@ -66,7 +66,7 @@ sap.ui.define([
                     }
                 ]
             };
-            
+
             // Initialize shell search service
             this._initialize();
         },
@@ -84,12 +84,12 @@ sap.ui.define([
          */
         _initialize: function () {
             const that = this;
-            
+
             if (sap.ushell && sap.ushell.Container) {
                 sap.ushell.Container.getServiceAsync("Search").then(function (oService) {
                     that._oShellSearchService = oService;
                     that._bInitialized = true;
-                    
+
                     // Register search provider
                     that._registerSearchProvider();
                 }).catch(function (oError) {
@@ -107,9 +107,9 @@ sap.ui.define([
             if (!this._oShellSearchService) {
                 return;
             }
-            
+
             const that = this;
-            
+
             // Register search provider for Solution Advisor
             this._oShellSearchService.registerSearchProvider({
                 id: "sd.solutionadvisor.search",
@@ -133,21 +133,21 @@ sap.ui.define([
             this._oStateModel.setProperty("/error", null);
             this._oStateModel.setProperty("/loading", true);
             this._oStateModel.setProperty("/query", sQuery || "");
-            
+
             if (!sQuery || sQuery.length < 2) {
                 return Promise.resolve([]);
             }
-            
+
             // Determine which entities to search
-            const aEntitiesToSearch = oOptions.entities 
+            const aEntitiesToSearch = oOptions.entities
                 ? this._oSearchConfig.searchableEntities.filter(e => oOptions.entities.includes(e.name))
                 : this._oSearchConfig.searchableEntities;
-            
+
             // Search all entities in parallel
             const aSearchPromises = aEntitiesToSearch.map(function (oEntityConfig) {
                 return that._searchEntity(sQuery, oEntityConfig, oOptions);
             });
-            
+
             return Promise.all(aSearchPromises).then(function (aResults) {
                 // Flatten and sort results
                 const aAllResults = [].concat.apply([], aResults);
@@ -172,24 +172,24 @@ sap.ui.define([
         _searchEntity: function (sQuery, oEntityConfig, oOptions) {
             const that = this;
             const oModel = this._oModel;
-            
+
             // Build filter for search fields
             const aFilters = oEntityConfig.searchFields.map(function (sField) {
                 return new Filter(sField, FilterOperator.Contains, sQuery);
             });
-            
+
             // Combine with OR logic
             const oFilter = new Filter({
                 filters: aFilters,
                 and: false
             });
-            
+
             // Bind list with filter
             const oBinding = oModel.bindList(oEntityConfig.path, null, null, [oFilter]);
-            
+
             // Set max results
             const iMaxResults = oOptions.maxResults || 10;
-            
+
             return oBinding.requestContexts(0, iMaxResults).then(function (aContexts) {
                 return aContexts.map(function (oContext) {
                     const oData = oContext.getObject();
@@ -219,7 +219,7 @@ sap.ui.define([
                 description: "",
                 data: oData
             };
-            
+
             // Build description from result fields
             const aDescParts = [];
             for (let i = 1; i < oEntityConfig.resultFields.length; i++) {
@@ -229,7 +229,7 @@ sap.ui.define([
                 }
             }
             oResult.description = aDescParts.join(" • ");
-            
+
             return oResult;
         },
 
@@ -241,13 +241,13 @@ sap.ui.define([
          */
         _rankResults: function (aResults, sQuery) {
             const sQueryLower = sQuery.toLowerCase();
-            
+
             // Calculate relevance score
             aResults.forEach(function (oResult) {
                 let iScore = 0;
                 const sTitleLower = (oResult.title || "").toLowerCase();
                 const sDescLower = (oResult.description || "").toLowerCase();
-                
+
                 // Exact match in title = highest score
                 if (sTitleLower === sQueryLower) {
                     iScore += 100;
@@ -260,20 +260,20 @@ sap.ui.define([
                 else if (sTitleLower.includes(sQueryLower)) {
                     iScore += 25;
                 }
-                
+
                 // Contains in description
                 if (sDescLower.includes(sQueryLower)) {
                     iScore += 10;
                 }
-                
+
                 oResult.score = iScore;
             });
-            
+
             // Sort by score (descending)
             aResults.sort(function (a, b) {
                 return b.score - a.score;
             });
-            
+
             return aResults;
         },
 
@@ -304,7 +304,7 @@ sap.ui.define([
             const oModel = this._oModel;
             const oFilter = new Filter("ricefwId", FilterOperator.EQ, sRicefwId);
             const oBinding = oModel.bindList("/CleanCoreAnalysis", null, null, [oFilter]);
-            
+
             return oBinding.requestContexts().then(function (aContexts) {
                 return aContexts.map(function (oContext) {
                     return oContext.getObject();
@@ -320,7 +320,7 @@ sap.ui.define([
          */
         getSuggestions: function (sQuery, iMaxSuggestions) {
             iMaxSuggestions = iMaxSuggestions || 5;
-            
+
             return this.search(sQuery, { maxResults: iMaxSuggestions }).then(function (aResults) {
                 return aResults.slice(0, iMaxSuggestions).map(function (oResult) {
                     return {
@@ -342,7 +342,7 @@ sap.ui.define([
             if (!oNavigationService) {
                 return;
             }
-            
+
             switch (oResult.type) {
                 case "Project":
                     oNavigationService.toProjectDetails(oResult.id);

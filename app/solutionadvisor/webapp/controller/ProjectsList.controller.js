@@ -5,16 +5,24 @@ sap.ui.define([
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/ui/core/Fragment"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Fragment) => {
+    "sap/ui/core/Fragment",
+    "sap/base/Log"
+], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Fragment, Log) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.ProjectsList", {
         onInit() {
+            // Initialize user model for role-based visibility
+            const oUserModel = new JSONModel({
+                isAdmin: true // TODO: Get from actual authentication/authorization
+            });
+            this.getView().setModel(oUserModel, "user");
+            
             // Initialize view model for counts
             const oViewModel = new JSONModel({
                 projectsCount: 0,
-                activeProjectsCount: 0
+                activeProjectsCount: 0,
+                hasSelection: false
             });
             this.getView().setModel(oViewModel, "viewModel");
             
@@ -52,6 +60,12 @@ sap.ui.define([
                 }
             }
         },
+        
+        onSelectionChange() {
+            const oTable = this.byId("projectsTable");
+            const bHasSelection = oTable.getSelectedItems().length > 0;
+            this.getView().getModel("viewModel").setProperty("/hasSelection", bHasSelection);
+        },
 
         _loadCounts() {
             const oModel = this.getView().getModel();
@@ -67,7 +81,7 @@ sap.ui.define([
                 const iCount = oTotalBinding.getLength();
                 oViewModel.setProperty("/projectsCount", iCount);
             }).catch((oError) => {
-                console.error("Failed to load projects count:", oError);
+                Log.error("Failed to load projects count:", oError);
                 oViewModel.setProperty("/projectsCount", 0);
             });
 
@@ -78,7 +92,7 @@ sap.ui.define([
                 const iCount = oActiveBinding.getLength();
                 oViewModel.setProperty("/activeProjectsCount", iCount);
             }).catch((oError) => {
-                console.error("Failed to load active projects count:", oError);
+                Log.error("Failed to load active projects count:", oError);
                 oViewModel.setProperty("/activeProjectsCount", 0);
             });
         },
@@ -105,6 +119,26 @@ sap.ui.define([
         onProjectSelect(oEvent) {
             const oItem = oEvent.getParameter("listItem") || oEvent.getSource();
             const oContext = oItem.getBindingContext();
+            const sProjectId = oContext.getProperty("ID");
+            const sProjectName = oContext.getProperty("projectName");
+
+            // Navigate to analyses list with project context
+            this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                projectId: sProjectId,
+                projectName: encodeURIComponent(sProjectName)
+            });
+        },
+
+        onViewProjectAnalyses() {
+            const oTable = this.byId("projectsTable");
+            const aSelectedItems = oTable.getSelectedItems();
+            
+            if (aSelectedItems.length === 0) {
+                MessageToast.show("Please select a project to view its analyses");
+                return;
+            }
+            
+            const oContext = aSelectedItems[0].getBindingContext();
             const sProjectId = oContext.getProperty("ID");
             const sProjectName = oContext.getProperty("projectName");
 
@@ -247,9 +281,80 @@ sap.ui.define([
             const oContext = aSelectedItems[0].getBindingContext();
             const sProjectId = oContext.getProperty("ID");
             
-            // Navigate to project details for editing
+            // Navigate to project details in edit mode
             this.getOwnerComponent().getRouter().navTo("ProjectDetails", {
-                key: sProjectId
+                key: sProjectId,
+                "?query": {
+                    edit: true
+                }
+            });
+        },
+
+        onDeleteProject() {
+            const oTable = this.byId("projectsTable");
+            const aSelectedItems = oTable.getSelectedItems();
+            
+            if (aSelectedItems.length === 0) {
+                MessageToast.show("Please select a project to delete");
+                return;
+            }
+            
+            const oContext = aSelectedItems[0].getBindingContext();
+            const sProjectName = oContext.getProperty("projectName");
+            const sProjectId = oContext.getProperty("ID");
+            
+            // Confirm deletion
+            MessageBox.confirm(
+                `Are you sure you want to delete project "${sProjectName}"? This will also delete all associated analyses.`,
+                {
+                    title: "Delete Project",
+                    onClose: (sAction) => {
+                        if (sAction === MessageBox.Action.OK) {
+                            this._deleteProjectWithAnalyses(oContext, sProjectId, sProjectName);
+                        }
+                    },
+                    emphasizedAction: MessageBox.Action.CANCEL
+                }
+            );
+        },
+
+        _deleteProjectWithAnalyses(oContext, sProjectId, sProjectName) {
+            const oModel = this.getView().getModel();
+            const oTable = this.byId("projectsTable");
+            
+            this.getView().setBusy(true);
+
+            // First, get all analyses for this project
+            const oAnalysesBinding = oModel.bindList("/Analyses", null, null, [
+                new Filter("projectConfig_ID", FilterOperator.EQ, sProjectId)
+            ]);
+
+            oAnalysesBinding.requestContexts().then((aAnalysesContexts) => {
+                // Delete all analyses first
+                const aDeletePromises = aAnalysesContexts.map(ctx => ctx.delete());
+                
+                return Promise.all(aDeletePromises);
+            }).then(() => {
+                // Now delete the project
+                return oContext.delete();
+            }).then(() => {
+                this.getView().setBusy(false);
+                MessageToast.show(`Project "${sProjectName}" and all associated analyses deleted successfully`);
+                
+                // Refresh table and counts
+                if (oTable && oTable.getBinding("items")) {
+                    oTable.getBinding("items").refresh();
+                }
+                // Clear selection and disable action buttons
+                if (oTable) {
+                    oTable.removeSelections();
+                }
+                this.getView().getModel("viewModel").setProperty("/hasSelection", false);
+                this._loadCounts();
+            }).catch((oError) => {
+                this.getView().setBusy(false);
+                Log.error("Failed to delete project:", oError);
+                MessageBox.error(`Failed to delete project: ${oError.message || oError.toString()}`);
             });
         },
         
