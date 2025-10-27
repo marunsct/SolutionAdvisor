@@ -1598,6 +1598,37 @@ sap.ui.define([
                 // Navigate back to project list
                 this.getOwnerComponent().getRouter().navTo("ProjectsList");
             }
+        },
+
+        /**
+         * Close wizard after completion
+         * @description
+         * Handles closing the wizard from the final recommendation screen.
+         * If analysis has been saved, navigates to analysis details.
+         * Otherwise, navigates back to the analyses list or project list.
+         * @public
+         */
+        onCloseWizard() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sProjectId = oWizardModel.getProperty("/projectID");
+            const sProjectName = oWizardModel.getProperty("/projectName");
+
+            // If we have an analysis ID, it means the analysis was saved
+            if (this._analysisId) {
+                // Navigate to the analysis details page
+                this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
+                    key: this._analysisId
+                });
+            } else if (sProjectId) {
+                // Navigate back to analyses list with project context
+                this.getOwnerComponent().getRouter().navTo("AnalysesList", {
+                    projectId: sProjectId,
+                    projectName: encodeURIComponent(sProjectName)
+                });
+            } else {
+                // Navigate back to project list
+                this.getOwnerComponent().getRouter().navTo("ProjectsList");
+            }
         }
     });
 });

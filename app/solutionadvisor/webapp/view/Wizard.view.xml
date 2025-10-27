@@ -656,6 +656,12 @@
                                 press="onViewAnalysisDetails"
                                 class="sapUiMediumMarginTop"
                             />
+                            <Button
+                                id="closeWizardButton"
+                                text="Close"
+                                press="onCloseWizard"
+                                class="sapUiMediumMarginTop sapUiSmallMarginBegin"
+                            />
                         </VBox>
                     </Panel>
                 </WizardStep>
@@ -682,12 +688,20 @@
                     id="wizardCancelButton"
                     text="Cancel"
                     press="onCancel"
+                    visible="{= !${wizardModel>/finalRecommendation} }"
+                />
+                <Button
+                    id="wizardCloseFooterButton"
+                    text="Close"
+                    press="onCloseWizard"
+                    visible="{= !!${wizardModel>/finalRecommendation} }"
                 />
                 <Button
                     id="wizardNextButton"
                     text="Next"
                     type="Emphasized"
                     press="onNextStep"
+                    visible="{= !${wizardModel>/finalRecommendation} }"
                 />
                 <Button
                     id="wizardStartButton"
