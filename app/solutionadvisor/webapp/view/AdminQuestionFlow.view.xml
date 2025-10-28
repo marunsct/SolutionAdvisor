@@ -218,7 +218,7 @@
                                 />
                                 <Text
                                     id="modifiedAtText"
-                                    text="{modifiedAt}"
+                                    text="{ path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: { pattern: 'yyyy-MM-dd HH:mm' } }"
                                 />
                                 <HBox
                                     id="actionsHBox"

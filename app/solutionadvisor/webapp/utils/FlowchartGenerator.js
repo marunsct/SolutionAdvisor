@@ -366,7 +366,10 @@ sap.ui.define([
                 
                 // Draw final recommendation node
                 const finalY = prevY + verticalSpacing;
-                const finalNodeHeight = baseNodeHeight;
+                
+                // Calculate dynamic height for final recommendation
+                const recLines = this._wrapText(finalRecommendation, 38);
+                const finalNodeHeight = Math.max(100, 50 + (recLines.length * 16));
                 
                 // Connection to final node
                 const finalLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -394,22 +397,26 @@ sap.ui.define([
                 
                 const finalText = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 finalText.setAttribute("x", startX + nodeWidth / 2);
-                finalText.setAttribute("y", finalY + 35);
+                finalText.setAttribute("y", finalY + 25);
                 finalText.setAttribute("text-anchor", "middle");
                 finalText.setAttribute("font-size", "12");
                 finalText.setAttribute("font-weight", "600");
                 finalText.textContent = "Final Recommendation";
                 svg.appendChild(finalText);
                 
-                const levelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                levelText.setAttribute("x", startX + nodeWidth / 2);
-                levelText.setAttribute("y", finalY + 60);
-                levelText.setAttribute("text-anchor", "middle");
-                levelText.setAttribute("font-size", "18");
-                levelText.setAttribute("font-weight", "bold");
-                levelText.setAttribute("fill", finalColor.border);
-                levelText.textContent = finalRecommendation;
-                svg.appendChild(levelText);
+                // Wrap and display final recommendation text
+                const recLines = this._wrapText(finalRecommendation, 38);
+                recLines.forEach((line, idx) => {
+                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    text.setAttribute("x", startX + nodeWidth / 2);
+                    text.setAttribute("y", finalY + 50 + (idx * 16));
+                    text.setAttribute("text-anchor", "middle");
+                    text.setAttribute("font-size", "14");
+                    text.setAttribute("font-weight", "bold");
+                    text.setAttribute("fill", finalColor.border);
+                    text.textContent = line;
+                    svg.appendChild(text);
+                });
             
                 // Insert into container
                 const container = document.getElementById(containerId);

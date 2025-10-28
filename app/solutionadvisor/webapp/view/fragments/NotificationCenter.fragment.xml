@@ -123,10 +123,7 @@
                                     maxLines="2"/>
                                 <Text
                                     id="notificationTimestampText"
-                                    text="{
-                                        path: 'notificationModel>timestamp',
-                                        formatter: '.formatter.formatDateTime'
-                                    }"
+                                    text="{ path: 'notificationModel>timestamp', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: { pattern: 'yyyy-MM-dd HH:mm' } }"
                                     class="sapUiTinyMarginTop sapUiSmallMarginBottom"
                                     wrapping="false"/>
                             </VBox>

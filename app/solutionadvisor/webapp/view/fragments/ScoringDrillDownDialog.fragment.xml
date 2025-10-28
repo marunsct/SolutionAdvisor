@@ -38,7 +38,8 @@
                                 <Label id="scoringAnalysisDateLabel" text="Analysis Date" class="sapUiTinyMarginBottom"/>
                                 <Text id="scoringAnalysisDateText" text="{
                                     path: 'scoring>/analysisDate',
-                                    type: 'sap.ui.model.odata.type.DateTimeOffset'
+                                    type: 'sd.solutionadvisor.types.FlexibleDateTime',
+                                    formatOptions: { pattern: 'yyyy-MM-dd HH:mm' }
                                 }" class="sapUiMediumText"/>
                             </VBox>
                         </layout:Grid>

@@ -80,10 +80,7 @@
                         />
                         <Text
                             id="ricefwHistory_FirstAnalysisText"
-                            text="{
-                            path: 'historyModel>/firstAnalysisDate',
-                            formatter: '.formatter.formatDate'
-                        }"
+                            text="{ path: 'historyModel>/firstAnalysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: { pattern: 'yyyy-MM-dd' } }"
                         />
 
                         <Label
@@ -92,10 +89,7 @@
                         />
                         <Text
                             id="ricefwHistory_LastAnalysisText"
-                            text="{
-                            path: 'historyModel>/lastAnalysisDate',
-                            formatter: '.formatter.formatDate'
-                        }"
+                            text="{ path: 'historyModel>/lastAnalysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: { pattern: 'yyyy-MM-dd' } }"
                         />
                     </f:content>
                 </f:SimpleForm>

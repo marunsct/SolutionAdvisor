@@ -34,7 +34,7 @@ sap.ui.define([
                 searchableEntities: [
                     {
                         name: "Projects",
-                        path: "/ProjectConfiguration",
+                        path: "/Projects",
                         searchFields: ["projectName", "clientName", "description"],
                         resultFields: ["projectName", "clientName", "status"],
                         icon: "sap-icon://folder",
@@ -42,7 +42,7 @@ sap.ui.define([
                     },
                     {
                         name: "Analyses",
-                        path: "/CleanCoreAnalysis",
+                        path: "/Analyses",
                         searchFields: ["ricefwId", "objectName", "description"],
                         resultFields: ["ricefwId", "objectName", "status", "recommendedLevel_ID"],
                         icon: "sap-icon://list",
@@ -303,7 +303,7 @@ sap.ui.define([
         searchByRicefwId: function (sRicefwId) {
             const oModel = this._oModel;
             const oFilter = new Filter("ricefwId", FilterOperator.EQ, sRicefwId);
-            const oBinding = oModel.bindList("/CleanCoreAnalysis", null, null, [oFilter]);
+            const oBinding = oModel.bindList("/Analyses", null, null, [oFilter]);
 
             return oBinding.requestContexts().then(function (aContexts) {
                 return aContexts.map(function (oContext) {

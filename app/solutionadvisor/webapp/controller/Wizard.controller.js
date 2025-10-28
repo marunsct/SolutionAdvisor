@@ -1079,7 +1079,9 @@ sap.ui.define([
             });
 
             if (!this._saveDraftDialog) {
+                // Provide the View ID as the fragment ID prefix so fragment controls resolve via this.byId()
                 this._saveDraftDialog = sap.ui.xmlfragment(
+                    this.getView().getId(),
                     "sd.solutionadvisor.view.fragments.SaveDraftDialog",
                     this
                 );
@@ -1501,10 +1503,9 @@ sap.ui.define([
         },
 
         onConfirmSaveDraft() {
-            const sDraftName = sap.ui.core.Fragment.byId(
-                this.getView().getId(),
-                "draftNameInput"
-            ).getValue();
+            // With the fragment created using the View ID as prefix, controls can be accessed via this.byId()
+            const oInput = this.byId("draftNameInput");
+            const sDraftName = oInput ? oInput.getValue() : "";
 
             // If analysis hasn't been started yet, create it first
             if (!this._sessionId) {

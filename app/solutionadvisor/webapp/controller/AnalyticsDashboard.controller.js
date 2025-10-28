@@ -108,8 +108,8 @@ sap.ui.define([
         MessageToast.show("Failed to load Clean Core levels");
       });
       
-      // Load Projects
-      const oProjectsBinding = oModel.bindList("/ProjectConfiguration");
+  // Load Projects
+  const oProjectsBinding = oModel.bindList("/Projects");
       oProjectsBinding.requestContexts().then((aContexts) => {
         const aProjects = aContexts.map(ctx => ctx.getObject());
         oFilterModel.setProperty("/projects", aProjects);

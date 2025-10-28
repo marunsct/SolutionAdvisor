@@ -26,7 +26,7 @@
                 <attributes>
                     <ObjectAttribute id="flavorAttr" title="S/4HANA Flavor" text="{s4HanaFlavor}"/>
                     <ObjectAttribute id="criticalityAttr" title="Business Criticality" text="{businessCriticality}"/>
-                    <ObjectAttribute id="timelineAttr" title="Timeline" text="{path: 'timeline', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                    <ObjectAttribute id="timelineAttr" title="Timeline" text="{path: 'timeline', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
                 </attributes>
                 
             </ObjectHeader>
