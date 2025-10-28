@@ -20,7 +20,8 @@ sap.ui.define([
                 levelDCount: 0,
                 projectId: null,
                 projectName: "",
-                isFiltered: false
+                isFiltered: false,
+                hasSelection: false
             });
             this.getView().setModel(oViewModel, "viewModel");
 
@@ -195,6 +196,67 @@ sap.ui.define([
                     key: sAnalysisId
                 });
             }
+        },
+
+        onSelectionChange(oEvent) {
+            const oTable = oEvent.getSource();
+            const aSelectedItems = oTable.getSelectedItems();
+            const oViewModel = this.getView().getModel("viewModel");
+            
+            // Update selection flag
+            oViewModel.setProperty("/hasSelection", aSelectedItems.length > 0);
+        },
+
+        onDeleteAnalysis() {
+            const oTable = this.byId("analysesTable");
+            const aSelectedItems = oTable.getSelectedItems();
+            
+            if (aSelectedItems.length === 0) {
+                MessageToast.show("Please select an analysis to delete");
+                return;
+            }
+            
+            const oContext = aSelectedItems[0].getBindingContext();
+            const sAnalysisId = oContext.getProperty("ID");
+            const sRicefwId = oContext.getProperty("ricefwId");
+            const sObjectName = oContext.getProperty("objectName");
+            
+            MessageBox.confirm(
+                `Are you sure you want to delete the analysis for "${sObjectName}" (${sRicefwId})?`,
+                {
+                    title: "Confirm Deletion",
+                    actions: [MessageBox.Action.DELETE, MessageBox.Action.CANCEL],
+                    emphasizedAction: MessageBox.Action.DELETE,
+                    onClose: (sAction) => {
+                        if (sAction === MessageBox.Action.DELETE) {
+                            this._deleteAnalysis(oContext);
+                        }
+                    }
+                }
+            );
+        },
+
+        _deleteAnalysis(oContext) {
+            const oModel = this.getView().getModel();
+            
+            // Delete the context using OData V4
+            oContext.delete().then(() => {
+                MessageToast.show("Analysis deleted successfully");
+                
+                // Clear selection
+                const oTable = this.byId("analysesTable");
+                oTable.removeSelections(true);
+                
+                // Update view model
+                const oViewModel = this.getView().getModel("viewModel");
+                oViewModel.setProperty("/hasSelection", false);
+                
+                // Reload counts
+                this._loadCounts();
+            }).catch((oError) => {
+                Log.error("Failed to delete analysis:", oError);
+                MessageBox.error("Failed to delete analysis. Please try again.");
+            });
         },
 
         _navigateToWizard(sAnalysisId) {

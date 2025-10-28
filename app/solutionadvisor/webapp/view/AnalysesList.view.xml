@@ -118,8 +118,8 @@
                             descending: true
                         }
                     }"
-                    mode="SingleSelectMaster"
-                    selectionChange="onAnalysisSelect"
+                    mode="SingleSelectLeft"
+                    selectionChange="onSelectionChange"
                     growing="true"
                     growingThreshold="20"
                 >
@@ -136,6 +136,14 @@
                                 width="200px"
                                 search="onSearch"
                                 placeholder="Search analyses..."
+                            />
+                            <Button
+                                id="deleteAnalysisButton"
+                                text="Delete"
+                                icon="sap-icon://delete"
+                                type="Reject"
+                                press="onDeleteAnalysis"
+                                enabled="{viewModel>/hasSelection}"
                             />
                             <Button
                                 id="newAnalysisButton"
@@ -229,7 +237,7 @@
                     <items>
                         <ColumnListItem
                             id="analysesTableItem"
-                            type="Navigation"
+                            type="Active"
                             press="onAnalysisSelect"
                         >
                             <cells>

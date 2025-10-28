@@ -33,10 +33,10 @@ sap.ui.define([
                     const decisionPaths = analysisData.decisionPaths || [];
                     const finalRecommendation = analysisData.finalRecommendation || "Unknown";
                     
-                    // Configuration - Changed to vertical layout
-                    const margin = { top: 40, right: 90, bottom: 40, left: 90 };
-                    const width = 960 - margin.left - margin.right;
-                    const height = 800 - margin.top - margin.bottom;
+                    // Configuration - Changed to vertical layout with better spacing
+                    const margin = { top: 60, right: 120, bottom: 60, left: 120 };
+                    const width = 1200 - margin.left - margin.right;
+                    const height = 1000 - margin.top - margin.bottom;
                     
                     // Clear existing content
                     const container = document.getElementById(containerId);
@@ -112,12 +112,22 @@ sap.ui.define([
                         .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
                         .attr("transform", d => `translate(${d.x},${d.y})`);
                     
-                    // Add rectangles for nodes
+                    // Add rectangles for nodes with dynamic height
                     node.append("rect")
-                        .attr("width", 180)
-                        .attr("height", 70)
-                        .attr("x", -90)
-                        .attr("y", -35)
+                        .attr("width", 220)
+                        .attr("height", d => {
+                            // Calculate height based on text length
+                            const questionLines = this._calculateTextLines(d.data.question || "", 30);
+                            const answerLines = this._calculateTextLines(d.data.answer || "", 35);
+                            return Math.max(90, 30 + (questionLines * 16) + (answerLines * 14));
+                        })
+                        .attr("x", -110)
+                        .attr("y", d => {
+                            const questionLines = this._calculateTextLines(d.data.question || "", 30);
+                            const answerLines = this._calculateTextLines(d.data.answer || "", 35);
+                            const height = Math.max(90, 30 + (questionLines * 16) + (answerLines * 14));
+                            return -height / 2;
+                        })
                         .attr("rx", 5)
                         .attr("ry", 5)
                         .style("fill", d => this._getNodeColor(d.data))
@@ -128,36 +138,67 @@ sap.ui.define([
                             this._onNodeClick(event, d);
                         });
                     
-                    // Add question text
-                    node.append("text")
-                        .attr("dy", -10)
-                        .attr("x", 0)
-                        .attr("text-anchor", "middle")
-                        .style("font-size", "11px")
-                        .style("font-weight", "bold")
-                        .text(d => d.data.question ? this._truncateText(d.data.question, 25) : "");
+                    // Add question text with wrapping
+                    node.each(function(d) {
+                        const nodeGroup = window.d3.select(this);
+                        const questionText = d.data.question || "";
+                        const wrappedLines = window.FlowchartGenerator._wrapText(questionText, 30);
+                        
+                        let yOffset = -20;
+                        wrappedLines.forEach((line, i) => {
+                            nodeGroup.append("text")
+                                .attr("x", 0)
+                                .attr("y", yOffset + (i * 16))
+                                .attr("text-anchor", "middle")
+                                .style("font-size", "11px")
+                                .style("font-weight", "bold")
+                                .text(line);
+                        });
+                    });
                     
-                    // Add answer text
-                    node.append("text")
-                        .attr("dy", 10)
-                        .attr("x", 0)
-                        .attr("text-anchor", "middle")
-                        .style("font-size", "10px")
-                        .style("fill", "#666")
-                        .text(d => d.data.answer ? this._truncateText(d.data.answer, 30) : "");
+                    // Add answer text with wrapping
+                    node.each(function(d) {
+                        const nodeGroup = window.d3.select(this);
+                        const answerText = d.data.answer || "";
+                        if (answerText) {
+                            const wrappedLines = window.FlowchartGenerator._wrapText(answerText, 35);
+                            const questionLines = window.FlowchartGenerator._calculateTextLines(d.data.question || "", 30);
+                            
+                            let yOffset = -20 + (questionLines * 16) + 10;
+                            wrappedLines.forEach((line, i) => {
+                                nodeGroup.append("text")
+                                    .attr("x", 0)
+                                    .attr("y", yOffset + (i * 14))
+                                    .attr("text-anchor", "middle")
+                                    .style("font-size", "10px")
+                                    .style("fill", "#666")
+                                    .text(line);
+                            });
+                        }
+                    });
                     
                     // Add step number badge
                     node.filter(d => d.data.step)
                         .append("circle")
-                        .attr("cx", -80)
-                        .attr("cy", -28)
-                        .attr("r", 12)
+                        .attr("cx", -100)
+                        .attr("cy", d => {
+                            const questionLines = this._calculateTextLines(d.data.question || "", 30);
+                            const answerLines = this._calculateTextLines(d.data.answer || "", 35);
+                            const height = Math.max(90, 30 + (questionLines * 16) + (answerLines * 14));
+                            return -(height / 2) + 15;
+                        })
+                        .attr("r", 14)
                         .style("fill", "#0078D4");
                     
                     node.filter(d => d.data.step)
                         .append("text")
-                        .attr("x", -80)
-                        .attr("y", -23)
+                        .attr("x", -100)
+                        .attr("y", d => {
+                            const questionLines = this._calculateTextLines(d.data.question || "", 30);
+                            const answerLines = this._calculateTextLines(d.data.answer || "", 35);
+                            const height = Math.max(90, 30 + (questionLines * 16) + (answerLines * 14));
+                            return -(height / 2) + 20;
+                        })
                         .attr("text-anchor", "middle")
                         .style("fill", "white")
                         .style("font-size", "10px")
@@ -180,16 +221,17 @@ sap.ui.define([
                 const decisionPaths = analysisData.decisionPaths || [];
                 const finalRecommendation = analysisData.finalRecommendation || "Unknown";
                 
-                // Configuration - VERTICAL layout
-                const nodeWidth = 240;
-                const nodeHeight = 90;
-                const verticalSpacing = 80; // Space between nodes vertically
-                const startX = 300; // Center X position
-                const startY = 50;
+                // Configuration - VERTICAL layout with better centering
+                const nodeWidth = 280;
+                const baseNodeHeight = 100;
+                const verticalSpacing = 100; // Space between nodes vertically
+                const containerWidth = 1200;
+                const startX = (containerWidth - nodeWidth) / 2; // Center horizontally
+                const startY = 60;
                 
                 // Calculate SVG dimensions
-                const totalWidth = startX + nodeWidth + 100;
-                const totalHeight = startY + ((decisionPaths.length + 2) * (nodeHeight + verticalSpacing));
+                const totalWidth = containerWidth;
+                const totalHeight = startY + ((decisionPaths.length + 2) * (baseNodeHeight + verticalSpacing)) + 100;
                 
                 // Create SVG
                 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -216,11 +258,12 @@ sap.ui.define([
                 
                 // Draw start node
                 const startNodeY = startY;
+                const startNodeHeight = baseNodeHeight;
                 const startRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 startRect.setAttribute("x", startX);
                 startRect.setAttribute("y", startNodeY);
                 startRect.setAttribute("width", nodeWidth);
-                startRect.setAttribute("height", nodeHeight);
+                startRect.setAttribute("height", startNodeHeight);
                 startRect.setAttribute("fill", "#e3f2fd");
                 startRect.setAttribute("stroke", "#1976d2");
                 startRect.setAttribute("stroke-width", "2");
@@ -229,7 +272,7 @@ sap.ui.define([
                 
                 const startText = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 startText.setAttribute("x", startX + nodeWidth / 2);
-                startText.setAttribute("y", startNodeY + nodeHeight / 2 + 5);
+                startText.setAttribute("y", startNodeY + startNodeHeight / 2 + 5);
                 startText.setAttribute("text-anchor", "middle");
                 startText.setAttribute("font-size", "14");
                 startText.setAttribute("font-weight", "bold");
@@ -238,10 +281,15 @@ sap.ui.define([
                 svg.appendChild(startText);
                 
                 // Track previous node position
-                let prevY = startNodeY + nodeHeight;
+                let prevY = startNodeY + startNodeHeight;
                 
                 // Draw decision nodes vertically
                 decisionPaths.forEach((path, index) => {
+                    // Calculate dynamic height based on question text
+                    const questionLines = this._wrapText(path.questionText || "", 35);
+                    const answerLines = this._wrapText(path.selectedAnswer || "", 40);
+                    const nodeHeight = Math.max(baseNodeHeight, 40 + (questionLines.length * 16) + (answerLines.length * 14));
+                    
                     const y = prevY + verticalSpacing;
                     
                     // Draw connection line from previous node (vertical)
@@ -255,19 +303,22 @@ sap.ui.define([
                     line.setAttribute("marker-end", "url(#arrowhead)");
                     svg.appendChild(line);
                     
-                    // Add answer label on the line
+                    // Add answer label on the line (wrapped if needed)
                     if (path.selectedAnswer) {
-                        const answerLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        answerLabel.setAttribute("x", startX + nodeWidth / 2 + 10);
-                        answerLabel.setAttribute("y", prevY + verticalSpacing / 2);
-                        answerLabel.setAttribute("font-size", "11");
-                        answerLabel.setAttribute("fill", "#666");
-                        answerLabel.setAttribute("font-style", "italic");
-                        answerLabel.textContent = this._truncateText(path.selectedAnswer, 25);
-                        svg.appendChild(answerLabel);
+                        const answerLabelLines = this._wrapText(path.selectedAnswer, 30);
+                        answerLabelLines.forEach((line, lineIndex) => {
+                            const answerLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                            answerLabel.setAttribute("x", startX + nodeWidth / 2 + 15);
+                            answerLabel.setAttribute("y", prevY + (verticalSpacing / 2) - 10 + (lineIndex * 14));
+                            answerLabel.setAttribute("font-size", "11");
+                            answerLabel.setAttribute("fill", "#666");
+                            answerLabel.setAttribute("font-style", "italic");
+                            answerLabel.textContent = line;
+                            svg.appendChild(answerLabel);
+                        });
                     }
                     
-                    // Draw node rectangle
+                    // Draw node rectangle with dynamic height
                     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                     rect.setAttribute("x", startX);
                     rect.setAttribute("y", y);
@@ -281,38 +332,41 @@ sap.ui.define([
                     
                     // Add question number badge
                     const badge = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    badge.setAttribute("cx", startX + 20);
-                    badge.setAttribute("cy", y + 20);
-                    badge.setAttribute("r", "15");
+                    badge.setAttribute("cx", startX + 22);
+                    badge.setAttribute("cy", y + 22);
+                    badge.setAttribute("r", "16");
                     badge.setAttribute("fill", "#0078D4");
                     svg.appendChild(badge);
                     
                     const badgeText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    badgeText.setAttribute("x", startX + 20);
-                    badgeText.setAttribute("y", y + 25);
+                    badgeText.setAttribute("x", startX + 22);
+                    badgeText.setAttribute("y", y + 27);
                     badgeText.setAttribute("text-anchor", "middle");
                     badgeText.setAttribute("font-size", "12");
                     badgeText.setAttribute("font-weight", "bold");
                     badgeText.setAttribute("fill", "#fff");
-                    badgeText.textContent = `Q${index + 1}`;
+                    badgeText.textContent = `${index + 1}`;
                     svg.appendChild(badgeText);
                     
-                    // Add question text (wrapped)
-                    const questionText = this._truncateText(path.questionText, 35);
-                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", startX + nodeWidth / 2);
-                    text.setAttribute("y", y + nodeHeight / 2 + 5);
-                    text.setAttribute("text-anchor", "middle");
-                    text.setAttribute("font-size", "12");
-                    text.setAttribute("font-weight", "600");
-                    text.textContent = questionText;
-                    svg.appendChild(text);
+                    // Add wrapped question text
+                    let textY = y + 50;
+                    questionLines.forEach((line, lineIndex) => {
+                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        text.setAttribute("x", startX + nodeWidth / 2);
+                        text.setAttribute("y", textY + (lineIndex * 16));
+                        text.setAttribute("text-anchor", "middle");
+                        text.setAttribute("font-size", "12");
+                        text.setAttribute("font-weight", "600");
+                        text.textContent = line;
+                        svg.appendChild(text);
+                    });
                     
                     prevY = y + nodeHeight;
                 });
                 
                 // Draw final recommendation node
                 const finalY = prevY + verticalSpacing;
+                const finalNodeHeight = baseNodeHeight;
                 
                 // Connection to final node
                 const finalLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -331,7 +385,7 @@ sap.ui.define([
                 finalRect.setAttribute("x", startX);
                 finalRect.setAttribute("y", finalY);
                 finalRect.setAttribute("width", nodeWidth);
-                finalRect.setAttribute("height", nodeHeight);
+                finalRect.setAttribute("height", finalNodeHeight);
                 finalRect.setAttribute("fill", finalColor.bg);
                 finalRect.setAttribute("stroke", finalColor.border);
                 finalRect.setAttribute("stroke-width", "3");
@@ -340,7 +394,7 @@ sap.ui.define([
                 
                 const finalText = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 finalText.setAttribute("x", startX + nodeWidth / 2);
-                finalText.setAttribute("y", finalY + 30);
+                finalText.setAttribute("y", finalY + 35);
                 finalText.setAttribute("text-anchor", "middle");
                 finalText.setAttribute("font-size", "12");
                 finalText.setAttribute("font-weight", "600");
@@ -349,12 +403,12 @@ sap.ui.define([
                 
                 const levelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 levelText.setAttribute("x", startX + nodeWidth / 2);
-                levelText.setAttribute("y", finalY + 55);
+                levelText.setAttribute("y", finalY + 60);
                 levelText.setAttribute("text-anchor", "middle");
                 levelText.setAttribute("font-size", "18");
                 levelText.setAttribute("font-weight", "bold");
                 levelText.setAttribute("fill", finalColor.border);
-                levelText.textContent = `Level ${finalRecommendation}`;
+                levelText.textContent = finalRecommendation;
                 svg.appendChild(levelText);
             
                 // Insert into container
@@ -471,6 +525,60 @@ sap.ui.define([
                     title: nodeData.data.step ? `Step ${nodeData.data.step} Details` : "Details"
                 });
             }
+        },
+
+        /**
+         * Wrap text to fit within specified character width
+         * @param {string} text - Text to wrap
+         * @param {number} maxCharsPerLine - Maximum characters per line
+         * @returns {Array} Array of text lines
+         */
+        _wrapText: function(text, maxCharsPerLine) {
+            if (!text) return [];
+            
+            const words = text.split(/\s+/);
+            const lines = [];
+            let currentLine = "";
+            
+            words.forEach(word => {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                
+                if (testLine.length <= maxCharsPerLine) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    // If single word is longer than max, split it
+                    if (word.length > maxCharsPerLine) {
+                        let remainingWord = word;
+                        while (remainingWord.length > maxCharsPerLine) {
+                            lines.push(remainingWord.substring(0, maxCharsPerLine - 1) + "-");
+                            remainingWord = remainingWord.substring(maxCharsPerLine - 1);
+                        }
+                        currentLine = remainingWord;
+                    } else {
+                        currentLine = word;
+                    }
+                }
+            });
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines;
+        },
+
+        /**
+         * Calculate number of lines needed for text
+         * @param {string} text - Text to measure
+         * @param {number} maxCharsPerLine - Maximum characters per line
+         * @returns {number} Number of lines
+         */
+        _calculateTextLines: function(text, maxCharsPerLine) {
+            if (!text) return 0;
+            return this._wrapText(text, maxCharsPerLine).length;
         },
 
         /**

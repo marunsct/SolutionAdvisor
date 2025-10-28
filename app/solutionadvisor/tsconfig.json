@@ -1,10 +1,11 @@
 {
     // Disable TypeScript type-checking for JavaScript files to avoid TS linting in the editor
     "compilerOptions": {
-        "module": "none",
         "noEmit": true,
         "checkJs": false,
         "allowJs": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
         // Keep types optional; they won't trigger JS checking when checkJs is false
         "types": []
     }

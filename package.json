@@ -32,9 +32,10 @@
   },
   "scripts": {
     "start": "cds-serve",
+    "ui": "cd app && npm run start",
     "start-local": "npm run generate-entry-point && npm run cds-watch",
     "generate-entry-point": "dev-cap-tools gen-entrypoint",
-    "cds-watch": "cds watch --profile hybrid",
+    "watch": "cds watch --profile hybrid",
     "build": "mbt build",
     "deploy": "cf push mta_archives/SolutionAdvisor.mtar",
     "watch-solutionadvisor": "cds watch --open sd.solutionadvisor/index.html?sap-ui-xx-viewCache=false --livereload false",

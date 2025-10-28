@@ -281,12 +281,9 @@ sap.ui.define([
             const oContext = aSelectedItems[0].getBindingContext();
             const sProjectId = oContext.getProperty("ID");
             
-            // Navigate to project details in edit mode
+            // Navigate to project details in display mode
             this.getOwnerComponent().getRouter().navTo("ProjectDetails", {
-                key: sProjectId,
-                "?query": {
-                    edit: true
-                }
+                key: sProjectId
             });
         },
 

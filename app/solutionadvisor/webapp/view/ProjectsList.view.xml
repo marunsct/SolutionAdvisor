@@ -84,8 +84,8 @@
                                 type="Transparent"/>
                             <Button
                                 id="editProjectButton"
-                                text="Edit Project"
-                                icon="sap-icon://edit"
+                                text="To Project"
+                                icon="sap-icon://navigation-right-arrow"
                                 press="onEditProject"
                                 enabled="{viewModel>/hasSelection}"
                                 visible="{= ${user>/isAdmin} !== false }"/>

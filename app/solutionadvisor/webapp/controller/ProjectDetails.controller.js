@@ -23,24 +23,19 @@ sap.ui.define([
 
         _onObjectMatched(oEvent) {
             const sProjectId = oEvent.getParameter("arguments").key;
-            const oQueryParams = oEvent.getParameter("arguments")["?query"];
-            const bEditMode = oQueryParams && oQueryParams.edit === "true";
             
             this._sCurrentProjectId = sProjectId;
+            
+            // Always start in display mode
+            const oViewModel = this.getView().getModel("viewModel");
+            oViewModel.setProperty("/editMode", false);
+            
             this.getView().bindElement({
                 path: `/Projects(${sProjectId})`,
                 parameters: {
                     expand: "analyses"
                 }
             });
-            
-            // Enable edit mode if requested
-            if (bEditMode) {
-                // Wait for binding to be initialized
-                this.getView().getElementBinding().attachEventOnce("dataReceived", () => {
-                    this.onEdit();
-                });
-            }
         },
 
         onNavBack() {
