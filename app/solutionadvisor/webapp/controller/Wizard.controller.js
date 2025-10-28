@@ -1075,7 +1075,8 @@ sap.ui.define([
                 sessionID: this._sessionId,
                 analysisID: this._analysisId,
                 currentQuestion: oWizardModel.getProperty("/currentQuestion"),
-                selectedAnswer: oWizardModel.getProperty("/selectedAnswer")
+                selectedAnswer: oWizardModel.getProperty("/selectedAnswer"),
+                draftName: oDraftModel.getProperty("/draftName") || ""
             });
 
             if (!this._saveDraftDialog) {
@@ -1503,9 +1504,9 @@ sap.ui.define([
         },
 
         onConfirmSaveDraft() {
-            // With the fragment created using the View ID as prefix, controls can be accessed via this.byId()
-            const oInput = this.byId("draftNameInput");
-            const sDraftName = oInput ? oInput.getValue() : "";
+            // Read draft name from the draft model to avoid control resolution issues
+            const oDraftModel = this.getView().getModel("draftModel");
+            const sDraftName = (oDraftModel && oDraftModel.getProperty("/draftName")) || "";
 
             // If analysis hasn't been started yet, create it first
             if (!this._sessionId) {

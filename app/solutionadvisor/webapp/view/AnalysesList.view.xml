@@ -278,7 +278,7 @@
                                 />
                                 <Text
                                     id="analysisDateCell"
-                                    text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"
+                                    text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"
                                 />
                             </cells>
                         </ColumnListItem>

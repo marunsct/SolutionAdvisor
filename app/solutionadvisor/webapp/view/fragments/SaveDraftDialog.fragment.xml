@@ -17,6 +17,7 @@
                 <Label id="draftNameLabel" text="Draft Name (Optional):" class="sapUiTinyMarginTop"/>
                 <Input
                     id="draftNameInput"
+                    value="{draftModel>/draftName}"
                     placeholder="Enter a name to identify this draft..."
                     width="100%"/>
                 

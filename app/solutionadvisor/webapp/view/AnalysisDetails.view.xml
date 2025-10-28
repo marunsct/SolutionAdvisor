@@ -49,7 +49,7 @@
                     <ObjectAttribute
                         id="analysisDetails_AnalysisDateAttr"
                         title="Analysis Date"
-                        text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"
+                        text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"
                     />
                 </attributes>
             </ObjectHeader>
@@ -314,7 +314,7 @@
                                 />
                                 <Text
                                     id="analysisDetails_ObjAnalysisDateText"
-                                    text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"
+                                    text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"
                                 />
 
                                 <Label

@@ -159,7 +159,7 @@
                                     id="thresholdActiveSwitch"
                                     state="{isActive}"
                                     enabled="false"/>
-                                <Text id="thresholdModifiedAtText" text="{path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <Text id="thresholdModifiedAtText" text="{path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"/>
                                 <HBox id="thresholdActionsHBox">
                                     <Button
                                         id="editThresholdButton"

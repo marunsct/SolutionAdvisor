@@ -159,7 +159,7 @@
                                     state="{= ${cleanCoreLevel} === 'A' ? 'Success' : ${cleanCoreLevel} === 'B' ? 'Information' : ${cleanCoreLevel} === 'C' ? 'Warning' : 'Error' }"/>
                                 <Text id="exampleDescriptionText" text="{description}" maxLines="2"/>
                                 <Text id="exampleTechnologiesText" text="{technologies}" maxLines="1"/>
-                                <Text id="exampleModifiedAtText" text="{path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                                <Text id="exampleModifiedAtText" text="{path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"/>
                                 <HBox id="exampleActionsHBox">
                                     <Button
                                         id="editExampleButton"
