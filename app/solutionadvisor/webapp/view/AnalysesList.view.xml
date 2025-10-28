@@ -91,6 +91,22 @@
                             />
                         </TileContent>
                     </GenericTile>
+                    <GenericTile
+                        id="levelDTile"
+                        class="sapUiTinyMarginBegin sapUiTinyMarginTop"
+                        header="Level D"
+                        subheader="Non-Compliant/Legacy"
+                    >
+                        <TileContent id="levelDTileContent">
+                            <NumericContent
+                                id="levelDNumeric"
+                                value="{viewModel>/levelDCount}"
+                                icon="sap-icon://warning"
+                                valueColor="Error"
+                                withMargin="false"
+                            />
+                        </TileContent>
+                    </GenericTile>
                 </HeaderContainer>
 
                 <Table

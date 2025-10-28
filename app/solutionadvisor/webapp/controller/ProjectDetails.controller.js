@@ -4,12 +4,19 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/ui/core/Fragment"
-], (Controller, History, JSONModel, MessageToast, MessageBox, Fragment) => {
+    "sap/ui/core/Fragment",
+    "sap/base/Log"
+], (Controller, History, JSONModel, MessageToast, MessageBox, Fragment, Log) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.ProjectDetails", {
         onInit() {
+            // Initialize view model for edit mode
+            const oViewModel = new JSONModel({
+                editMode: false
+            });
+            this.getView().setModel(oViewModel, "viewModel");
+            
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("ProjectDetails").attachPatternMatched(this._onObjectMatched, this);
         },
@@ -67,6 +74,80 @@ sap.ui.define([
             });
         },
 
+        onEdit() {
+            const oViewModel = this.getView().getModel("viewModel");
+            const oBindingContext = this.getView().getBindingContext();
+            
+            if (!oBindingContext) {
+                MessageToast.show("Project data not loaded yet");
+                return;
+            }
+            
+            // Store original data for cancel operation
+            this._originalData = Object.assign({}, oBindingContext.getObject());
+            
+            // Enable edit mode
+            oViewModel.setProperty("/editMode", true);
+            MessageToast.show("Edit mode enabled");
+        },
+
+        onSave() {
+            const oView = this.getView();
+            const oBindingContext = oView.getBindingContext();
+            const oModel = oView.getModel();
+            
+            if (!oBindingContext) {
+                MessageBox.error("No data to save");
+                return;
+            }
+            
+            // Check if there are pending changes
+            if (!oModel.hasPendingChanges()) {
+                MessageToast.show("No changes to save");
+                this._exitEditMode();
+                return;
+            }
+            
+            // Submit changes using OData V4
+            oModel.submitBatch("updateGroup").then(() => {
+                MessageToast.show("Project updated successfully");
+                this._exitEditMode();
+                
+                // Refresh binding to get latest data
+                oBindingContext.refresh();
+            }).catch((oError) => {
+                Log.error("Failed to save project:", oError);
+                MessageBox.error("Failed to save changes. Please try again.");
+            });
+        },
+
+        onCancelEdit() {
+            const oView = this.getView();
+            const oBindingContext = oView.getBindingContext();
+            const oModel = oView.getModel();
+            
+            // Reset changes
+            if (oModel.hasPendingChanges()) {
+                oModel.resetChanges();
+            }
+            
+            // Restore original data if available
+            if (this._originalData && oBindingContext) {
+                Object.keys(this._originalData).forEach((sKey) => {
+                    oBindingContext.setProperty(sKey, this._originalData[sKey]);
+                });
+            }
+            
+            this._exitEditMode();
+            MessageToast.show("Changes cancelled");
+        },
+
+        _exitEditMode() {
+            const oViewModel = this.getView().getModel("viewModel");
+            oViewModel.setProperty("/editMode", false);
+            this._originalData = null;
+        },
+
         onNewAnalysis() {
             this.getOwnerComponent().getRouter().navTo("Wizard");
         },
@@ -106,7 +187,7 @@ sap.ui.define([
                 });
                 this.getView().setModel(oUsersModel, "projectUsersModel");
             }).catch((oError) => {
-                console.error("Failed to load project users:", oError);
+                Log.error("Failed to load project users:", oError);
                 MessageBox.error("Failed to load project users");
             });
         },
@@ -162,7 +243,7 @@ sap.ui.define([
                 this._addUserDialog.close();
                 this._loadProjectUsers(sProjectId);
             }).catch((oError) => {
-                console.error("Failed to add user:", oError);
+                Log.error("Failed to add user:", oError);
                 const sMessage = oError.message || "Failed to add user";
                 MessageBox.error(sMessage);
             });
@@ -203,7 +284,7 @@ sap.ui.define([
                 MessageToast.show("User removed successfully");
                 this._loadProjectUsers(sProjectId);
             }).catch((oError) => {
-                console.error("Failed to remove user:", oError);
+                Log.error("Failed to remove user:", oError);
                 MessageBox.error("Failed to remove user");
             });
         },

@@ -33,6 +33,27 @@
             <OverflowToolbar id="projectHeaderActionsToolbar">
                 <ToolbarSpacer id="projectHeaderActionsSpacer"/>
                 <Button
+                    id="editButton"
+                    text="Edit"
+                    icon="sap-icon://edit"
+                    press="onEdit"
+                    visible="{= !${viewModel>/editMode}}"
+                    type="Transparent"/>
+                <Button
+                    id="saveButton"
+                    text="Save"
+                    icon="sap-icon://save"
+                    press="onSave"
+                    visible="{viewModel>/editMode}"
+                    type="Emphasized"/>
+                <Button
+                    id="cancelButton"
+                    text="Cancel"
+                    icon="sap-icon://decline"
+                    press="onCancelEdit"
+                    visible="{viewModel>/editMode}"
+                    type="Transparent"/>
+                <Button
                     id="viewAnalysesButton"
                     text="View Analyses"
                     icon="sap-icon://activities"
@@ -57,7 +78,7 @@
                         icon="sap-icon://hint">
                         <form:SimpleForm
                             id="generalInfoForm"
-                            editable="false"
+                            editable="true"
                             layout="ResponsiveGridLayout"
                             labelSpanXL="4"
                             labelSpanL="3"
@@ -74,22 +95,61 @@
                             singleContainerFullSize="false">
                             <form:content>
                                 <Label id="clientNameLabel" text="Client Name"/>
-                                <Text id="clientNameText" text="{clientName}"/>
+                                <Input 
+                                    id="clientNameInput" 
+                                    value="{clientName}"
+                                    editable="{viewModel>/editMode}"/>
                                 
                                 <Label id="projectNameLabel" text="Project Name"/>
-                                <Text id="projectNameText" text="{projectName}"/>
+                                <Input 
+                                    id="projectNameInput" 
+                                    value="{projectName}"
+                                    editable="{viewModel>/editMode}"/>
                                 
                                 <Label id="projectTypeLabel" text="Project Type"/>
-                                <Text id="projectTypeText" text="{projectType}"/>
+                                <Select
+                                    id="projectTypeSelect"
+                                    selectedKey="{projectType}"
+                                    enabled="{viewModel>/editMode}">
+                                    <items>
+                                        <core:Item key="Greenfield" text="Greenfield"/>
+                                        <core:Item key="Brownfield" text="Brownfield"/>
+                                        <core:Item key="System Conversion" text="System Conversion"/>
+                                        <core:Item key="Selective Data Transition" text="Selective Data Transition"/>
+                                    </items>
+                                </Select>
                                 
-                                <Label id="expectedDurationLabel" text="Expected Duration"/>
-                                <Text id="expectedDurationText" text="{expectedDuration} months"/>
+                                <Label id="expectedDurationLabel" text="Expected Duration (months)"/>
+                                <Input 
+                                    id="expectedDurationInput" 
+                                    value="{expectedDuration}"
+                                    type="Number"
+                                    editable="{viewModel>/editMode}"/>
+                                
+                                <Label id="timelineLabel" text="Timeline"/>
+                                <DatePicker
+                                    id="timelineDatePicker"
+                                    value="{
+                                        path: 'timeline',
+                                        type: 'sap.ui.model.type.Date',
+                                        formatOptions: { pattern: 'yyyy-MM-dd', UTC: true }
+                                    }"
+                                    displayFormat="yyyy-MM-dd"
+                                    valueFormat="yyyy-MM-dd"
+                                    enabled="{viewModel>/editMode}"/>
                                 
                                 <Label id="statusLabel" text="Status"/>
-                                <ObjectStatus
-                                    id="statusValue"
-                                    text="{status}"
-                                    state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
+                                <Select
+                                    id="statusSelect"
+                                    selectedKey="{status}"
+                                    enabled="{viewModel>/editMode}">
+                                    <items>
+                                        <core:Item key="Planning" text="Planning"/>
+                                        <core:Item key="Active" text="Active"/>
+                                        <core:Item key="On Hold" text="On Hold"/>
+                                        <core:Item key="Completed" text="Completed"/>
+                                    </items>
+                                </Select>
                             </form:content>
                         </form:SimpleForm>
                     </IconTabFilter>
@@ -101,20 +161,39 @@
                         icon="sap-icon://settings">
                         <form:SimpleForm
                             id="technicalConfigForm"
-                            editable="false"
+                            editable="true"
                             layout="ResponsiveGridLayout">
                             <form:content>
                                 <Label id="techFlavorLabel" text="S/4HANA Flavor"/>
-                                <Text id="techFlavorText" text="{s4HanaFlavor}"/>
+                                <Select
+                                    id="s4HanaFlavorSelect"
+                                    selectedKey="{s4HanaFlavor}"
+                                    enabled="{viewModel>/editMode}">
+                                    <items>
+                                        <core:Item key="Cloud Public" text="Cloud Public"/>
+                                        <core:Item key="Cloud Private" text="Cloud Private"/>
+                                        <core:Item key="On-Premise" text="On-Premise"/>
+                                    </items>
+                                </Select>
                                 
                                 <Label id="availableBtpServicesLabel" text="Available BTP Services"/>
-                                <Text id="availableBtpServicesText" text="{availableBTPServices}"/>
+                                <Input 
+                                    id="availableBtpServicesInput" 
+                                    value="{availableBTPServices}"
+                                    editable="{viewModel>/editMode}"/>
                                 
                                 <Label id="thirdPartyServicesLabel" text="Third Party Services"/>
-                                <Text id="thirdPartyServicesText" text="{thirdPartyServices}"/>
+                                <Input 
+                                    id="thirdPartyServicesInput" 
+                                    value="{thirdPartyServices}"
+                                    editable="{viewModel>/editMode}"/>
                                 
                                 <Label id="technicalTeamSizeLabel" text="Technical Team Size"/>
-                                <Text id="technicalTeamSizeText" text="{technicalTeamSize}"/>
+                                <Input 
+                                    id="technicalTeamSizeInput" 
+                                    value="{technicalTeamSize}"
+                                    type="Number"
+                                    editable="{viewModel>/editMode}"/>
                             </form:content>
                         </form:SimpleForm>
                     </IconTabFilter>
@@ -126,20 +205,45 @@
                         icon="sap-icon://create-form">
                         <form:SimpleForm
                             id="governanceForm"
-                            editable="false"
+                            editable="true"
                             layout="ResponsiveGridLayout">
                             <form:content>
                                 <Label id="governanceModelLabel" text="Governance Model"/>
-                                <Text id="governanceModelText" text="{governanceModel}"/>
+                                <Select
+                                    id="governanceModelSelect"
+                                    selectedKey="{governanceModel}"
+                                    enabled="{viewModel>/editMode}">
+                                    <items>
+                                        <core:Item key="Centralized" text="Centralized"/>
+                                        <core:Item key="Federated" text="Federated"/>
+                                        <core:Item key="Hybrid" text="Hybrid"/>
+                                    </items>
+                                </Select>
                                 
                                 <Label id="complianceRequirementsLabel" text="Compliance Requirements"/>
-                                <Text id="complianceRequirementsText" text="{complianceRequirements}"/>
+                                <Input 
+                                    id="complianceRequirementsInput" 
+                                    value="{complianceRequirements}"
+                                    editable="{viewModel>/editMode}"/>
                                 
                                 <Label id="governanceBusinessCriticalityLabel" text="Business Criticality"/>
-                                <Text id="governanceBusinessCriticalityText" text="{businessCriticality}"/>
+                                <Select
+                                    id="businessCriticalitySelect"
+                                    selectedKey="{businessCriticality}"
+                                    enabled="{viewModel>/editMode}">
+                                    <items>
+                                        <core:Item key="Low" text="Low"/>
+                                        <core:Item key="Medium" text="Medium"/>
+                                        <core:Item key="High" text="High"/>
+                                        <core:Item key="Critical" text="Critical"/>
+                                    </items>
+                                </Select>
                                 
                                 <Label id="budgetRangeLabel" text="Budget Range"/>
-                                <Text id="budgetRangeText" text="{budgetRange}"/>
+                                <Input 
+                                    id="budgetRangeInput" 
+                                    value="{budgetRange}"
+                                    editable="{viewModel>/editMode}"/>
                             </form:content>
                         </form:SimpleForm>
                     </IconTabFilter>

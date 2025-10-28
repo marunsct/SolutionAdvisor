@@ -4,8 +4,9 @@ sap.ui.define([
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
-    "sap/m/MessageBox"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) => {
+    "sap/m/MessageBox",
+    "sap/base/Log"
+], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Log) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysesList", {
@@ -16,6 +17,7 @@ sap.ui.define([
                 levelACount: 0,
                 levelBCount: 0,
                 levelCCount: 0,
+                levelDCount: 0,
                 projectId: null,
                 projectName: "",
                 isFiltered: false
@@ -109,41 +111,52 @@ sap.ui.define([
                 const iCount = oListBinding.getLength();
                 oViewModel.setProperty("/analysesCount", iCount);
             }).catch((oError) => {
-                console.error("Failed to load analyses count:", oError);
+                Log.error("Failed to load analyses count:", oError);
                 oViewModel.setProperty("/analysesCount", 0);
             });
 
             // Get Level A count
-            const aLevelAFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level A")];
+            const aLevelAFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level A")];
             const oLevelABinding = oModel.bindList("/Analyses", null, null, aLevelAFilters);
             oLevelABinding.requestContexts(0, 0).then(() => {
                 const iCount = oLevelABinding.getLength();
                 oViewModel.setProperty("/levelACount", iCount);
             }).catch((oError) => {
-                console.error("Failed to load Level A count:", oError);
+                Log.error("Failed to load Level A count:", oError);
                 oViewModel.setProperty("/levelACount", 0);
             });
 
             // Get Level B count
-            const aLevelBFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level B")];
+            const aLevelBFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level B")];
             const oLevelBBinding = oModel.bindList("/Analyses", null, null, aLevelBFilters);
             oLevelBBinding.requestContexts(0, 0).then(() => {
                 const iCount = oLevelBBinding.getLength();
                 oViewModel.setProperty("/levelBCount", iCount);
             }).catch((oError) => {
-                console.error("Failed to load Level B count:", oError);
+                Log.error("Failed to load Level B count:", oError);
                 oViewModel.setProperty("/levelBCount", 0);
             });
 
             // Get Level C count
-            const aLevelCFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.EQ, "Level C")];
+            const aLevelCFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level C")];
             const oLevelCBinding = oModel.bindList("/Analyses", null, null, aLevelCFilters);
             oLevelCBinding.requestContexts(0, 0).then(() => {
                 const iCount = oLevelCBinding.getLength();
                 oViewModel.setProperty("/levelCCount", iCount);
             }).catch((oError) => {
-                console.error("Failed to load Level C count:", oError);
+                Log.error("Failed to load Level C count:", oError);
                 oViewModel.setProperty("/levelCCount", 0);
+            });
+
+            // Get Level D count
+            const aLevelDFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level D")];
+            const oLevelDBinding = oModel.bindList("/Analyses", null, null, aLevelDFilters);
+            oLevelDBinding.requestContexts(0, 0).then(() => {
+                const iCount = oLevelDBinding.getLength();
+                oViewModel.setProperty("/levelDCount", iCount);
+            }).catch((oError) => {
+                Log.error("Failed to load Level D count:", oError);
+                oViewModel.setProperty("/levelDCount", 0);
             });
         },
 
@@ -206,7 +219,7 @@ sap.ui.define([
                     });
                     MessageToast.show("Resuming in-progress analysis...");
                 }
-            }).catch((oError) => {
+            }).catch(() => {
                 // On error, just navigate to wizard
                 this.getOwnerComponent().getRouter().navTo("Wizard", {
                     analysisId: sAnalysisId
