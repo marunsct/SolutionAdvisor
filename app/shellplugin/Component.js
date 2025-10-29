@@ -1,10 +1,10 @@
 sap.ui.define([
-    "sap/ui/core/Component",
+    "sap/ui/core/UIComponent",
     "sap/ui/core/IconPool",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/model/json/JSONModel"
-], function (Component, IconPool, MessageToast, MessageBox, JSONModel) {
+], function (UIComponent, IconPool, MessageToast, MessageBox, JSONModel) {
     "use strict";
 
     /**
@@ -16,7 +16,7 @@ sap.ui.define([
      * - Theme management
      * - Shell branding
      */
-    return Component.extend("sd.solutionadvisor.shellplugin.Component", {
+    return UIComponent.extend("sd.solutionadvisor.shellplugin.Component", {
         metadata: {
             manifest: "json"
         },
@@ -25,7 +25,8 @@ sap.ui.define([
          * Initialize the shell plugin
          */
         init: function () {
-            Component.prototype.init.apply(this, arguments);
+            // Call parent init - UIComponent handles manifest loading
+            UIComponent.prototype.init.apply(this, arguments);
 
             // Get the shell renderer
             this.oRenderer = sap.ushell.Container.getRenderer("fiori2");

@@ -27,7 +27,7 @@ service solutionAdvisorService {
             to   : 'Developer'
         }
     ]
-    entity Projects          as projection on my.ProjectConfiguration;
+    entity Projects              as projection on my.ProjectConfiguration;
 
     // Analyses entity - draft-enabled for user workflow
     @odata.draft.enabled
@@ -52,19 +52,19 @@ service solutionAdvisorService {
             to   : 'Developer'
         }
     ]
-    entity Analyses          as projection on my.CleanCoreAnalysis;
+    entity Analyses              as projection on my.CleanCoreAnalysis;
 
     @restrict: [{
         grant: 'READ',
         to   : 'authenticated-user'
     }]
-    entity DecisionPaths     as projection on my.DecisionPath;
+    entity DecisionPaths         as projection on my.DecisionPath;
 
     @restrict: [{
         grant: '*',
         to   : 'authenticated-user'
     }]
-    entity WizardSessions    as projection on my.WizardSession;
+    entity WizardSessions        as projection on my.WizardSession;
 
     // ===============================
     // Master Data Entities
@@ -75,21 +75,21 @@ service solutionAdvisorService {
         grant: 'READ',
         to   : 'authenticated-user'
     }]
-    entity QuestionFlows     as projection on my.QuestionFlow;
+    entity QuestionFlows         as projection on my.QuestionFlow;
 
     @readonly
     @restrict: [{
         grant: 'READ',
         to   : 'authenticated-user'
     }]
-    entity CleanCoreLevels   as projection on my.CleanCoreLevels;
+    entity CleanCoreLevels       as projection on my.CleanCoreLevels;
 
     @readonly
     @restrict: [{
         grant: 'READ',
         to   : 'authenticated-user'
     }]
-    entity ObjectTypes       as projection on my.ObjectTypes;
+    entity ObjectTypes           as projection on my.ObjectTypes;
 
     @readonly
     @restrict: [{
@@ -103,7 +103,7 @@ service solutionAdvisorService {
         grant: 'READ',
         to   : 'authenticated-user'
     }]
-    entity RealWorldExamples as projection on my.RealWorldExample;
+    entity RealWorldExamples     as projection on my.RealWorldExample;
 
     // ===============================
     // Logging Entities
@@ -116,7 +116,7 @@ service solutionAdvisorService {
         ],
         to   : 'authenticated-user'
     }]
-    entity ConstraintLogs    as projection on my.ConstraintLog;
+    entity ConstraintLogs        as projection on my.ConstraintLog;
 
     @restrict: [{
         grant: [
@@ -125,7 +125,7 @@ service solutionAdvisorService {
         ],
         to   : 'authenticated-user'
     }]
-    entity ExampleLogs       as projection on my.ExampleLog;
+    entity ExampleLogs           as projection on my.ExampleLog;
 
     // ===============================
     // Notification Entities (FLP Shell Integration)
@@ -136,7 +136,7 @@ service solutionAdvisorService {
         grant: 'READ',
         to   : 'authenticated-user'
     }]
-    entity Notifications     as projection on my.UserNotifications;
+    entity Notifications         as projection on my.UserNotifications;
 
     // Project Users for access management
     @restrict: [
@@ -153,7 +153,7 @@ service solutionAdvisorService {
             to   : 'SolutionArchitect'
         }
     ]
-    entity ProjectUsers      as projection on my.ProjectUsers;
+    entity ProjectUsers          as projection on my.ProjectUsers;
 
     // ===============================
     // Custom Actions & Functions
@@ -162,31 +162,31 @@ service solutionAdvisorService {
     /**
      * Start a new wizard session for an analysis
      */
-    action   startWizard(projectID : String, ricefwId : String, objectType : String, objectName : String) returns {
-        sessionID   : String;
-        analysisID  : String;
+    action   startWizard(projectID: String, ricefwId: String, objectType: String, objectName: String)                                                    returns {
+        sessionID     : String;
+        analysisID    : String;
         firstQuestion : {
-            questionId   : String;
-            questionText : String;
+            questionId    : String;
+            questionText  : String;
             answerOptions : String;
-            hint         : String;
+            hint          : String;
         };
     };
 
     /**
      * Submit an answer and get the next question
      */
-    action   submitAnswer(sessionID : String, questionId : String, selectedAnswer : String, answerIndex : Integer, userComments : String, timeSpent : Integer) returns {
-        nextQuestion : {
-            questionId   : String;
-            questionText : String;
+    action   submitAnswer(sessionID: String, questionId: String, selectedAnswer: String, answerIndex: Integer, userComments: String, timeSpent: Integer) returns {
+        nextQuestion   : {
+            questionId    : String;
+            questionText  : String;
             answerOptions : String;
-            hint         : String;
+            hint          : String;
         };
-        isComplete   : Boolean;
+        isComplete     : Boolean;
         recommendation : String;
-        reasoning    : String;
-        scores       : {
+        reasoning      : String;
+        scores         : {
             technicalDebt   : Decimal(5, 2);
             cloudReadiness  : Decimal(5, 2);
             upgradeImpact   : Decimal(5, 2);
@@ -197,29 +197,29 @@ service solutionAdvisorService {
     /**
      * Get relevant performance thresholds for current context
      */
-    function getRelevantConstraints(objectType : String, deploymentType : String, volumeLevel : String) returns array of {
-        category    : String;
-        method      : String;
-        threshold   : String;
-        level       : String;
-        guidance    : String;
+    function getRelevantConstraints(objectType: String, deploymentType: String, volumeLevel: String)                                                     returns array of {
+        category  : String;
+        method    : String;
+        threshold : String;
+        level     : String;
+        guidance  : String;
     };
 
     /**
      * Get contextual real-world examples
      */
-    function getContextualExamples(objectType : String, scenario : String, keywords : String) returns array of {
-        title       : String;
-        scenario    : String;
-        challenge   : String;
-        solution    : String;
-        level       : String;
+    function getContextualExamples(objectType: String, scenario: String, keywords: String)                                                               returns array of {
+        title     : String;
+        scenario  : String;
+        challenge : String;
+        solution  : String;
+        level     : String;
     };
 
     /**
      * Calculate scores for an analysis
      */
-    function calculateScores(analysisID : String)                                                                                                             returns {
+    function calculateScores(analysisID: String)                                                                                                         returns {
         technicalDebt   : Decimal(5, 2);
         cloudReadiness  : Decimal(5, 2);
         upgradeImpact   : Decimal(5, 2);
@@ -229,7 +229,7 @@ service solutionAdvisorService {
     /**
      * Recalculate and update scores for an existing analysis
      */
-    action   recalculateScores(analysisID : String)                                                                                                           returns {
+    action   recalculateScores(analysisID: String)                                                                                                       returns {
         success         : Boolean;
         message         : String;
         technicalDebt   : Decimal(5, 2);
@@ -241,16 +241,16 @@ service solutionAdvisorService {
     /**
      * Resume a paused wizard session
      */
-    action   resumeWizard(sessionID : String)                                                                                                                 returns {
+    action   resumeWizard(sessionID: String)                                                                                                             returns {
         currentQuestion : {
-            questionId   : String;
-            questionText : String;
+            questionId    : String;
+            questionText  : String;
             answerOptions : String;
-            hint         : String;
+            hint          : String;
         };
         progress        : {
-            currentStep : Integer;
-            totalSteps  : Integer;
+            currentStep  : Integer;
+            totalSteps   : Integer;
             answeredPath : String;
         };
     };
@@ -258,7 +258,7 @@ service solutionAdvisorService {
     /**
      * Export decision flowchart
      */
-    action   exportFlowchart(analysisID : String, format : String)                                                                                            returns {
+    action   exportFlowchart(analysisID: String, format: String)                                                                                         returns {
         downloadUrl : String;
         filename    : String;
     };
@@ -266,54 +266,48 @@ service solutionAdvisorService {
     /**
      * Assign user to project
      */
-    action   assignUserToProject(
-        projectId   : String,
-        userId      : String,
-        userEmail   : String,
-        userName    : String,
-        role        : String
-    ) returns {
-        ID          : String;
-        message     : String;
+    action   assignUserToProject(projectId: String,
+                                 userId: String,
+                                 userEmail: String,
+                                 userName: String,
+                                 role: String)                                                                                                           returns {
+        ID      : String;
+        message : String;
     };
 
     /**
      * Remove user from project
      */
-    action   removeUserFromProject(
-        projectUserId : String
-    ) returns {
-        success     : Boolean;
-        message     : String;
+    action   removeUserFromProject(projectUserId: String)                                                                                                returns {
+        success : Boolean;
+        message : String;
     };
 
     /**
      * Get accessible projects for current user
      */
-    function getAccessibleProjects() returns array of {
-        ID              : String;
-        projectName     : String;
-        clientName      : String;
-        status          : String;
-        s4HanaFlavor    : String;
+    function getAccessibleProjects()                                                                                                                     returns array of {
+        ID           : String;
+        projectName  : String;
+        clientName   : String;
+        status       : String;
+        s4HanaFlavor : String;
     };
 
     /**
      * Get analytics dashboard data with optional filters
      */
-    function getAnalyticsData(
-        dateFrom          : Date,
-        dateTo            : Date,
-        ricefwTypes       : String,  // JSON array string
-        cleanCoreLevels   : String,  // JSON array string
-        projectId         : String
-    ) returns {
-        technicalDebtScore   : Integer;
-        cloudReadinessScore  : Integer;
-        upgradeImpactScore   : Integer;
-        compositeHealthScore : Integer;
-        totalAnalyses        : Integer;
-        levelDistribution    : array of {
+    function getAnalyticsData(dateFrom: Date,
+                              dateTo: Date,
+                              ricefwTypes: String, // JSON array string
+                              cleanCoreLevels: String, // JSON array string
+                              projectId: String)                                                                                                         returns {
+        technicalDebtScore     : Integer;
+        cloudReadinessScore    : Integer;
+        upgradeImpactScore     : Integer;
+        compositeHealthScore   : Integer;
+        totalAnalyses          : Integer;
+        levelDistribution      : array of {
             level      : String;
             count      : Integer;
             percentage : Integer;
@@ -323,22 +317,22 @@ service solutionAdvisorService {
             count      : Integer;
             percentage : Integer;
         };
-        trendData            : array of {
+        trendData              : array of {
             month          : String;
             technicalDebt  : Integer;
             cloudReadiness : Integer;
             upgradeImpact  : Integer;
             analysisCount  : Integer;
         };
-        riskMatrixData       : array of {
-            id        : String;
-            ricefwId  : String;
-            level     : String;
-            x         : Integer;
-            y         : Integer;
-            size      : Integer;
+        riskMatrixData         : array of {
+            id       : String;
+            ricefwId : String;
+            level    : String;
+            x        : Integer;
+            y        : Integer;
+            size     : Integer;
         };
-        topObjects           : array of {
+        topObjects             : array of {
             id              : String;
             ricefwId        : String;
             objectType      : String;
@@ -354,15 +348,15 @@ service solutionAdvisorService {
     /**
      * Mark notification as read
      */
-    action   markNotificationAsRead(notificationId : String)                                                                                                  returns {
+    action markNotificationAsRead(notificationId : String) returns {
         success : Boolean;
         message : String;
-    }                                                                                                                        bound to Notifications;
+    };
 
     /**
      * Get count of unread notifications
      */
-    function getUnreadNotificationCount()                                                                                                                      returns {
+    function getUnreadNotificationCount() returns {
         count : Integer;
-    }                                                                                                                        bound to Notifications;
+    };
 }
