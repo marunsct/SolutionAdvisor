@@ -1,11 +1,21 @@
 {
+  "$schema": "http://json.schemastore.org/xs-security",
   "xsappname": "solutionadvisor",
   "tenant-mode": "shared",
-  "description": "SAP Clean Core Solution Advisor - Security Configuration",
+  "description": "SAP Clean Core Solution Advisor - Enhanced Security Configuration with ABAC and Role Collections",
+  
   "scopes": [
     {
+      "name": "$XSAPPNAME.Admin",
+      "description": "Full system administrator with unrestricted access to all resources, users, and configurations across all tenants"
+    },
+    {
       "name": "$XSAPPNAME.TenantAdmin",
-      "description": "Tenant Administrator - Full access to project configuration, user management, and all analyses"
+      "description": "Tenant Administrator - Full access to project configuration, user management, and all analyses within assigned tenant"
+    },
+    {
+      "name": "$XSAPPNAME.ProjectAdmin",
+      "description": "Project Administrator - Manage specific project details and analyses within assigned projects (attribute-based)"
     },
     {
       "name": "$XSAPPNAME.SolutionArchitect",
@@ -13,29 +23,47 @@
     },
     {
       "name": "$XSAPPNAME.Developer",
-      "description": "Developer/Consultant - Execute wizard, view results, and access examples"
+      "description": "Developer/Consultant - Execute wizard, view results, and access examples (read-only for other users' analyses)"
+    },
+    {
+      "name": "$XSAPPNAME.Viewer",
+      "description": "Read-only access to analyses and reports without edit or export capabilities"
     },
     {
       "name": "$XSAPPNAME.ServiceProviderAdmin",
-      "description": "Service Provider Administrator - Cross-tenant analytics and master data management"
+      "description": "Service Provider Administrator - Cross-tenant analytics and master data management for SaaS operations"
     }
   ],
+  
   "attributes": [
     {
       "name": "projectId",
-      "description": "Project assignment for attribute-based access control",
+      "description": "Project assignment for attribute-based access control - limits access to specific projects",
       "valueType": "string"
     },
     {
       "name": "tenantId",
-      "description": "Tenant identifier for multi-tenant isolation",
+      "description": "Tenant identifier for multi-tenant isolation - automatically assigned based on subdomain",
+      "valueType": "string"
+    },
+    {
+      "name": "userId",
+      "description": "User identifier for owner-based access control - users can only edit their own analyses",
       "valueType": "string"
     }
   ],
+  
   "role-templates": [
     {
+      "name": "Administrator",
+      "description": "System Administrator - Unrestricted access to all application features, master data management, and cross-tenant operations. Assigned to: IT administrators, application owners.",
+      "scope-references": [
+        "$XSAPPNAME.Admin"
+      ]
+    },
+    {
       "name": "TenantAdministrator",
-      "description": "Full project and user management capabilities within tenant",
+      "description": "Tenant Administrator - Full control within assigned tenant including project creation, user assignment, analysis management, and tenant-specific configuration. Assigned to: Tenant business owners, implementation leads.",
       "scope-references": [
         "$XSAPPNAME.TenantAdmin"
       ],
@@ -44,10 +72,10 @@
       ]
     },
     {
-      "name": "SolutionArchitect",
-      "description": "Create and manage clean core analyses, export reports, configure projects",
+      "name": "ProjectAdministrator",
+      "description": "Project Administrator - Manage specific S/4HANA implementation projects including project details, RICEFW object configurations, and team member assignments. Cannot delete projects or access other projects. Assigned to: Project managers, implementation coordinators.",
       "scope-references": [
-        "$XSAPPNAME.SolutionArchitect"
+        "$XSAPPNAME.ProjectAdmin"
       ],
       "attribute-references": [
         "projectId",
@@ -55,62 +83,109 @@
       ]
     },
     {
+      "name": "SolutionArchitect",
+      "description": "Solution Architect - Create and manage clean core analyses, run wizard sessions, calculate scoring metrics, export detailed reports (PDF/PNG/SVG), and access constraints/examples library. Can edit own analyses and view others. Assigned to: SAP solution architects, senior consultants.",
+      "scope-references": [
+        "$XSAPPNAME.SolutionArchitect"
+      ],
+      "attribute-references": [
+        "tenantId",
+        "userId"
+      ]
+    },
+    {
       "name": "DeveloperConsultant",
-      "description": "Execute wizard, view analyses, access constraints and examples",
+      "description": "Developer/Consultant - Execute clean core wizard for RICEFW analysis, view scoring dashboards, access real-world examples and constraints. Read-only access to analyses created by other users. Assigned to: SAP developers, junior consultants, technical analysts.",
       "scope-references": [
         "$XSAPPNAME.Developer"
       ],
       "attribute-references": [
-        "projectId",
+        "tenantId",
+        "userId"
+      ]
+    },
+    {
+      "name": "Viewer",
+      "description": "Viewer - Read-only access to completed analyses, scoring metrics, and decision flowcharts. Cannot create, edit, or export analyses. Assigned to: Business stakeholders, auditors, compliance officers.",
+      "scope-references": [
+        "$XSAPPNAME.Viewer"
+      ],
+      "attribute-references": [
         "tenantId"
       ]
     },
     {
       "name": "ServiceProviderAdministrator",
-      "description": "Cross-tenant operations, master data seeding, system monitoring",
+      "description": "Service Provider Administrator - Cross-tenant master data management, global analytics, system monitoring, and SaaS configuration. Assigned to: SaaS operators, support teams (use with caution).",
       "scope-references": [
         "$XSAPPNAME.ServiceProviderAdmin"
       ]
     }
   ],
+  
   "role-collections": [
     {
+      "name": "SolutionAdvisor_Administrator",
+      "description": "Full system administrator access with unrestricted permissions across all tenants and features",
+      "role-template-references": [
+        "$XSAPPNAME.Administrator"
+      ]
+    },
+    {
       "name": "SolutionAdvisor_TenantAdmin",
-      "description": "Tenant Administrator role collection",
+      "description": "Tenant-level administrator for managing projects, users, and analyses within a specific tenant",
       "role-template-references": [
         "$XSAPPNAME.TenantAdministrator"
       ]
     },
     {
-      "name": "SolutionAdvisor_Architect",
-      "description": "Solution Architect role collection",
+      "name": "SolutionAdvisor_ProjectAdmin",
+      "description": "Project-level administrator for managing specific S/4HANA implementation projects and team assignments",
+      "role-template-references": [
+        "$XSAPPNAME.ProjectAdministrator"
+      ]
+    },
+    {
+      "name": "SolutionAdvisor_SolutionArchitect",
+      "description": "Solution architects who create and manage clean core analyses with full wizard and reporting capabilities",
       "role-template-references": [
         "$XSAPPNAME.SolutionArchitect"
       ]
     },
     {
       "name": "SolutionAdvisor_Developer",
-      "description": "Developer/Consultant role collection",
+      "description": "Developers and consultants who execute wizards and view analysis results",
       "role-template-references": [
         "$XSAPPNAME.DeveloperConsultant"
       ]
     },
     {
-      "name": "SolutionAdvisor_ServiceAdmin",
-      "description": "Service Provider Administrator role collection",
+      "name": "SolutionAdvisor_Viewer",
+      "description": "Read-only access for stakeholders and auditors to view completed analyses and reports",
+      "role-template-references": [
+        "$XSAPPNAME.Viewer"
+      ]
+    },
+    {
+      "name": "SolutionAdvisor_ServiceProviderAdmin",
+      "description": "SaaS operations team with cross-tenant access for master data and system management",
       "role-template-references": [
         "$XSAPPNAME.ServiceProviderAdministrator"
       ]
     }
   ],
+  
   "oauth2-configuration": {
     "redirect-uris": [
       "https://*.applicationstudio.cloud.sap/**",
       "https://*.github*/**",
       "https://*.hana.ondemand.com/**",
+      "https://*.cfapps.*.hana.ondemand.com/**",
       "http://localhost:4004/**",
       "http://localhost:5000/**",
       "http://localhost:5001/**"
-    ]
+    ],
+    "token-validity": 3600,
+    "refresh-token-validity": 86400
   }
 }

@@ -334,37 +334,98 @@ entity ExampleLog : cuid {
 }
 
 /**
- * AuditLog - Comprehensive audit trail for compliance and security
- * Tracks: authentication, data changes, exports, constraint violations, config changes
+ * AuditLog - Comprehensive immutable audit trail for compliance and security
+ * Enterprise-grade logging for GDPR, SOX, FDA, HIPAA compliance
+ * 
+ * Features:
+ * - Immutable records (@readonly fields prevent modification)
+ * - Granular change tracking (field-level before/after values)
+ * - Multi-dimensional event classification
+ * - Regulatory compliance flags and retention policies
+ * - Performance metrics and distributed tracing support
+ * 
+ * Retention: 7 years default (configurable per compliance framework)
  */
 entity AuditLog : cuid {
     // Event Classification
-    eventType               : String(50) not null; // AUTH, DATA_CHANGE, EXPORT, CONSTRAINT_VIOLATION, CONFIG_CHANGE, SECURITY
-    entityType              : String(100) not null; // CleanCoreAnalysis, ProjectConfiguration, User, etc.
-    entityId                : String(255) not null;
+    eventType               : String(50) not null @readonly; 
+    // Types: AUTH, DATA_CHANGE, EXPORT, CONSTRAINT_VIOLATION, CONFIG_CHANGE, SECURITY,
+    //        RATE_LIMIT, ROLE_MANAGEMENT, WIZARD_OPERATION, ANALYSIS_OPERATION
+    
+    eventCategory           : String(30) not null @readonly default 'DATA_CHANGE';
+    // Categories: DATA_CHANGE, SECURITY_EVENT, BUSINESS_OPERATION, 
+    //             CONFIGURATION_CHANGE, SYSTEM_EVENT, USER_MANAGEMENT
+    
+    entityType              : String(100) not null @readonly; // CleanCoreAnalysis, ProjectConfiguration, User, etc.
+    entityId                : String(255) not null @readonly;
+    entityKey               : String(255); // Business key (ricefwId, clientName, etc.)
     
     // User Context
-    userId                  : String(255) not null;
-    userName                : String(255);
-    userEmail               : String(255);
+    userId                  : String(255) not null @readonly;
+    userName                : String(255) @readonly;
+    userEmail               : String(255) @readonly;
+    userRole                : String(100) @readonly; // Role at time of action
     
     // Action Details
-    action                  : String(50) not null; // CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT, EXPORT_PDF, etc.
-    timestamp               : DateTime not null;
+    action                  : String(50) not null @readonly; // CREATE, READ, UPDATE, DELETE, LOGIN, LOGOUT, EXPORT_PDF, etc.
+    operation               : String(20) @readonly; // CREATE, UPDATE, DELETE, READ (for consistency)
+    timestamp               : DateTime not null @readonly default $now;
+    
+    // Granular Change Tracking (for DATA_CHANGE events)
+    fieldName               : String(100); // Specific field changed
+    oldValue                : LargeString; // JSON-serialized old value
+    newValue                : LargeString; // JSON-serialized new value
+    changeReason            : LargeString; // Business justification
     
     // Request Context
-    ipAddress               : String(50);
-    userAgent               : String(500);
-    sessionId               : String(100);
+    ipAddress               : String(50) @readonly;
+    ipCountry               : String(2); // ISO country code from GeoIP lookup
+    userAgent               : String(500) @readonly;
+    sessionId               : String(100) @readonly;
+    httpMethod              : String(10); // GET, POST, PUT, DELETE, PATCH
+    requestPath             : String(500); // OData path or API endpoint
+    httpStatusCode          : Integer; // HTTP response code
     
     // Multi-tenancy
-    tenantId                : String(36);
+    tenantId                : String(36) @readonly;
     
     // Event Details (JSON)
     details                 : String(5000); // JSON string containing before/after values, violations, etc.
+    additionalInfo          : LargeString; // Extended context data
     
     // Severity
-    severity                : String(20); // INFO, WARNING, ERROR, CRITICAL
+    severity                : String(20) @readonly default 'INFO'; // DEBUG, INFO, WARNING, ERROR, CRITICAL
+    
+    // Compliance & Regulatory
+    isPersonalData          : Boolean default false @readonly; // GDPR compliance flag
+    isFinancialData         : Boolean default false @readonly; // SOX compliance flag
+    isRegulatedData         : Boolean default false @readonly; // FDA/GxP/HIPAA flag
+    isCriticalOperation     : Boolean default false @readonly; // Requires approval/review
+    dataRetentionYears      : Integer default 7; // Legal retention period
+    complianceFramework     : String(100); // GDPR, SOX, FDA, HIPAA, ISO 27001
+    regulatoryArticle       : String(200); // Specific regulation (e.g., "GDPR Art. 17", "SOX Section 302")
+    
+    // Workflow & Traceability
+    workflowId              : String(36); // Business process instance ID
+    correlationId           : String(100) @readonly; // Distributed tracing correlation ID
+    parentEventId           : String(36); // Link to parent audit event (cascading operations)
+    
+    // Performance Metrics
+    durationMs              : Integer; // Operation duration in milliseconds
+    affectedRecords         : Integer default 1; // Number of records affected (batch operations)
+    dbQueryCount            : Integer; // Database query count (performance monitoring)
+    
+    // Review & Alerting
+    requiresReview          : Boolean default false; // Manual review required flag
+    reviewedBy              : String(255); // Compliance officer ID
+    reviewedAt              : DateTime; // Review timestamp
+    reviewNotes             : LargeString; // Compliance review findings
+    alertTriggered          : Boolean default false; // Alert sent to compliance team
+    
+    // Index for high-performance queries
+    @cds.autoexpose
+    @assert.unique: {audit_event: [timestamp, userId, entityId]}
+    index_timestamp_user    : Integer;
 }
 
 // ===============================

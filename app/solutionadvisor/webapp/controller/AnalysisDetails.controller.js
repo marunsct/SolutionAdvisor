@@ -391,6 +391,84 @@ sap.ui.define([
                 ErrorHandler.showServiceError(oError, "Failed to recalculate scores");
             });
         },
+
+        /**
+         * Save analysis permanently (finalize draft or in-progress analysis)
+         * This button only appears when status !== 'Completed'
+         */
+        onSaveAnalysis() {
+            const oContext = this.getView().getBindingContext();
+            if (!oContext) {
+                MessageToast.show("No analysis loaded");
+                return;
+            }
+
+            const oAnalysis = oContext.getObject();
+            
+            // Validation: Check if analysis has required data
+            if (!oAnalysis.finalRecommendation) {
+                sap.m.MessageBox.error("Cannot save incomplete analysis. Please complete the wizard first.");
+                return;
+            }
+
+            // Confirmation dialog
+            sap.m.MessageBox.confirm(
+                `Save analysis "${oAnalysis.ricefwId}" permanently?\n\n` +
+                `Recommended Level: ${oAnalysis.finalRecommendation}\n` +
+                `Technical Debt: ${oAnalysis.technicalDebtScore || 'N/A'}\n` +
+                `Cloud Readiness: ${oAnalysis.cloudReadinessScore || 'N/A'}%\n\n` +
+                `This will create a permanent record and cannot be undone.`,
+                {
+                    title: "Confirm Save Analysis",
+                    actions: [sap.m.MessageBox.Action.OK, sap.m.MessageBox.Action.CANCEL],
+                    emphasizedAction: sap.m.MessageBox.Action.OK,
+                    onClose: (oAction) => {
+                        if (oAction === sap.m.MessageBox.Action.OK) {
+                            this._saveAnalysisPermanently(oAnalysis);
+                        }
+                    }
+                }
+            );
+        },
+
+        /**
+         * Save analysis permanently to database
+         * @param {object} oAnalysis - Analysis object to save
+         * @private
+         */
+        _saveAnalysisPermanently(oAnalysis) {
+            const oModel = this.getView().getModel();
+            this.getView().setBusy(true);
+
+            // Update status to Completed
+            const oContext = this.getView().getBindingContext();
+            oContext.setProperty("status", "Completed");
+
+            // Submit changes using OData V4 batch
+            oModel.submitBatch("updateGroup").then(() => {
+                this.getView().setBusy(false);
+                
+                MessageToast.show(`Analysis "${oAnalysis.ricefwId}" saved successfully!`);
+                
+                // Refresh binding to get updated data including notifications
+                const sAnalysisId = oAnalysis.ID;
+                this.getView().unbindElement();
+                this.getView().bindElement({
+                    path: this._getAnalysisKeyPath(sAnalysisId),
+                    parameters: {
+                        $expand: "projectConfig,decisionPaths"
+                    }
+                });
+
+                // Optional: Navigate to analysis list
+                // this.getOwnerComponent().getRouter().navTo("AnalysesList");
+
+            }).catch((oError) => {
+                this.getView().setBusy(false);
+                Log.error("Failed to save analysis:", oError);
+                ErrorHandler.showServiceError(oError, "Failed to save analysis permanently");
+            });
+        },
         
         _generateFlowchart(oMockData) {
             const loadGenerator = () => new Promise((resolve, reject) => {

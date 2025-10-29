@@ -12,44 +12,44 @@ service solutionAdvisorService {
     @restrict: [
         {
             grant: '*',
-            to   : 'TenantAdmin'
+            to   : ['Admin', 'TenantAdmin']
         },
         {
-            grant: [
-                'READ',
-                'CREATE',
-                'UPDATE'
-            ],
+            grant: ['READ', 'UPDATE'],
+            to   : 'ProjectAdmin'
+        },
+        {
+            grant: ['READ', 'CREATE', 'UPDATE'],
             to   : 'SolutionArchitect'
         },
         {
             grant: 'READ',
-            to   : 'Developer'
+            to   : ['Developer', 'Viewer']
         }
     ]
     entity Projects              as projection on my.ProjectConfiguration;
 
     // Analyses entity - draft-enabled for user workflow
+    // ABAC enforcement for ownership is implemented in service.js handlers
     @odata.draft.enabled
     @restrict: [
         {
             grant: '*',
-            to   : 'TenantAdmin'
+            to   : ['Admin', 'TenantAdmin']
         },
         {
-            grant: [
-                'READ',
-                'CREATE',
-                'UPDATE'
-            ],
+            grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'],
             to   : 'SolutionArchitect'
+            // ABAC: Users can only edit/delete their own analyses (enforced in service.js)
         },
         {
-            grant: [
-                'READ',
-                'CREATE'
-            ],
+            grant: ['READ', 'CREATE'],
             to   : 'Developer'
+            // ABAC: Users can only edit/delete their own analyses (enforced in service.js)
+        },
+        {
+            grant: 'READ',
+            to   : 'Viewer'
         }
     ]
     entity Analyses              as projection on my.CleanCoreAnalysis;
@@ -239,6 +239,29 @@ service solutionAdvisorService {
     };
 
     /**
+     * Batch recalculate scores for multiple analyses (optimized for performance)
+     * Uses parallel processing and batch operations to update large datasets efficiently
+     */
+    action   batchRecalculateScores(analysisIDs: array of String)                                                                                       returns {
+        success         : Boolean;
+        message         : String;
+        totalProcessed  : Integer;
+        successCount    : Integer;
+        failedCount     : Integer;
+        durationMs      : Integer;
+        results         : array of {
+            analysisID      : String;
+            ricefwId        : String;
+            success         : Boolean;
+            technicalDebt   : Decimal(5, 2);
+            cloudReadiness  : Decimal(5, 2);
+            upgradeImpact   : Decimal(5, 2);
+            compositeHealth : Decimal(5, 2);
+            error           : String;
+        };
+    };
+
+    /**
      * Resume a paused wizard session
      */
     action   resumeWizard(sessionID: String)                                                                                                             returns {
@@ -359,4 +382,56 @@ service solutionAdvisorService {
     function getUnreadNotificationCount() returns {
         count : Integer;
     };
+
+    // ===============================
+    // Rate Limiting Management (Admin Only)
+    // ===============================
+
+    /**
+     * Get rate limit status for current user
+     * @restrict Admin, TenantAdmin only
+     */
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'TenantAdmin', 'ServiceProviderAdmin']
+    }]
+    function getRateLimitStatus(userId : String, tenantId : String) returns {
+        user   : {
+            remaining : Integer;
+            limit     : Integer;
+            resetAt   : DateTime;
+        };
+        tenant : {
+            remaining : Integer;
+            limit     : Integer;
+            resetAt   : DateTime;
+        };
+    };
+
+    /**
+     * Reset rate limits for a user (Admin only)
+     * @restrict Admin only
+     */
+    @restrict: [{
+        grant: '*',
+        to   : 'Admin'
+    }]
+    action resetUserRateLimit(userId : String) returns {
+        success : Boolean;
+        message : String;
+    };
+
+    /**
+     * Reset rate limits for a tenant (Admin only)
+     * @restrict Admin only
+     */
+    @restrict: [{
+        grant: '*',
+        to   : 'Admin'
+    }]
+    action resetTenantRateLimit(tenantId : String) returns {
+        success : Boolean;
+        message : String;
+    };
 }
+

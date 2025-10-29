@@ -436,6 +436,15 @@
                     tooltip="Recalculate scoring metrics without re-running the wizard"
                 />
                 <Button
+                    id="analysisDetails_SaveAnalysisBtn"
+                    text="Save Analysis"
+                    type="Accept"
+                    icon="sap-icon://save"
+                    press="onSaveAnalysis"
+                    tooltip="Finalize and save this analysis permanently"
+                    visible="{= ${status} !== 'Completed' }"
+                />
+                <Button
                     id="analysisDetails_ExportFlowchartPNGBtn"
                     text="Export PNG"
                     icon="sap-icon://camera"

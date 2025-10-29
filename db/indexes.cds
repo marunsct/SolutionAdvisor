@@ -77,6 +77,14 @@ annotate sd.CleanCoreAnalysis with @(cds.persistence.indexes: {
     idx_compliance_tenant: { 
         unique: false, 
         elements: ['complianceStatus', 'tenant'] 
+    },
+    idx_createdby_tenant: { 
+        unique: false, 
+        elements: ['createdBy', 'tenant'] 
+    },
+    idx_level_tenant: { 
+        unique: false, 
+        elements: ['recommendedLevel_levelCode', 'tenant'] 
     }
 });
 

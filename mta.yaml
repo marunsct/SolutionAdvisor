@@ -10,6 +10,7 @@ modules:
   - name: SolutionAdvisor-auth
   - name: SolutionAdvisor-db
   - name: SolutionAdvisor-alerts
+  - name: SolutionAdvisor-logging
   provides:
   - name: srv-api
     properties:
@@ -71,6 +72,13 @@ resources:
   type: org.cloudfoundry.existing-service
   parameters:
     service-name: SolutionAdvisor-alerts
+- name: SolutionAdvisor-logging
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: application-logs
+    service-plan: lite
+    config:
+      retention-period: 7
 parameters:
   enable-parallel-deployments: true
 build-parameters:
