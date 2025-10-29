@@ -404,8 +404,7 @@ sap.ui.define([
                 finalText.textContent = "Final Recommendation";
                 svg.appendChild(finalText);
                 
-                // Wrap and display final recommendation text
-                const recLines = this._wrapText(finalRecommendation, 38);
+                // Wrap and display final recommendation text (reuse recLines from above)
                 recLines.forEach((line, idx) => {
                     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                     text.setAttribute("x", startX + nodeWidth / 2);
