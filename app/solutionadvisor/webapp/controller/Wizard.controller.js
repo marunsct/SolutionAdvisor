@@ -295,6 +295,14 @@ sap.ui.define([
             const sSessionId = oArgs.sessionId;
             const sAnalysisId = oArgs.analysisId;
 
+            // Check if we're navigating back from history without valid context
+            // If no parameters provided and wizard was not intentionally opened, redirect
+            if (!sProjectId && !sSessionId && !sAnalysisId) {
+                // User likely navigated back from browser history - redirect to projects list
+                this.getOwnerComponent().getRouter().navTo("ProjectsList", {}, true);
+                return;
+            }
+
             if (sAnalysisId) {
                 // Resume from in-progress analysis
                 this._resumeFromAnalysis(sAnalysisId);
@@ -902,7 +910,8 @@ sap.ui.define([
             const sObjectType = oWizardModel.getProperty("/objectType");
             const oConstraintsModel = this.getView().getModel("constraintsModel");
 
-            if (!oConstraintsModel.getProperty("/loaded")) {
+            // Only load if not already loaded or loading
+            if (!oConstraintsModel.getProperty("/loaded") && !oConstraintsModel.getProperty("/loading")) {
                 this._loadConstraints(sObjectType);
             }
         },
@@ -915,7 +924,8 @@ sap.ui.define([
             const sObjectType = oWizardModel.getProperty("/objectType");
             const oExamplesModel = this.getView().getModel("examplesModel");
 
-            if (!oExamplesModel.getProperty("/loaded")) {
+            // Only load if not already loaded or loading
+            if (!oExamplesModel.getProperty("/loaded") && !oExamplesModel.getProperty("/loading")) {
                 this._loadExamples(sObjectType);
             }
         },
@@ -1215,11 +1225,8 @@ sap.ui.define([
                 oObjectDescriptionInput.setValue(oPreviousAnalysis.objectDescription);
             }
 
-            // Load constraints and examples for copied object type
-            if (oPreviousAnalysis.objectType) {
-                this._loadConstraints(oPreviousAnalysis.objectType);
-                this._loadExamples(oPreviousAnalysis.objectType);
-            }
+            // Don't load constraints and examples yet - they will be loaded when user expands the panels
+            // This ensures smooth UI performance and lazy loading
 
             // Validate step
             this._validateObjectStep();
@@ -1592,13 +1599,15 @@ sap.ui.define([
 
             if (sProjectId) {
                 // Navigate back to analyses list with project context
+                // Use replace: true to remove wizard from browser history
                 this.getOwnerComponent().getRouter().navTo("AnalysesList", {
                     projectId: sProjectId,
                     projectName: encodeURIComponent(sProjectName)
-                });
+                }, true); // replace: true
             } else {
                 // Navigate back to project list
-                this.getOwnerComponent().getRouter().navTo("ProjectsList");
+                // Use replace: true to remove wizard from browser history
+                this.getOwnerComponent().getRouter().navTo("ProjectsList", {}, true); // replace: true
             }
         },
 
@@ -1608,6 +1617,7 @@ sap.ui.define([
          * Handles closing the wizard from the final recommendation screen.
          * If analysis has been saved, navigates to analysis details.
          * Otherwise, navigates back to the analyses list or project list.
+         * Uses replace: true to prevent wizard from appearing in browser back history.
          * @public
          */
         onCloseWizard() {
@@ -1617,19 +1627,19 @@ sap.ui.define([
 
             // If we have an analysis ID, it means the analysis was saved
             if (this._analysisId) {
-                // Navigate to the analysis details page
+                // Navigate to the analysis details page, replacing history to prevent back to wizard
                 this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
                     key: this._analysisId
-                });
+                }, true); // replace: true
             } else if (sProjectId) {
-                // Navigate back to analyses list with project context
+                // Navigate back to analyses list with project context, replacing history
                 this.getOwnerComponent().getRouter().navTo("AnalysesList", {
                     projectId: sProjectId,
                     projectName: encodeURIComponent(sProjectName)
-                });
+                }, true); // replace: true
             } else {
-                // Navigate back to project list
-                this.getOwnerComponent().getRouter().navTo("ProjectsList");
+                // Navigate back to project list, replacing history
+                this.getOwnerComponent().getRouter().navTo("ProjectsList", {}, true); // replace: true
             }
         }
     });

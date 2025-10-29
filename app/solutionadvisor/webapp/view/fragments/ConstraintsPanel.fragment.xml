@@ -12,6 +12,15 @@
         expand=".onConstraintsPanelToggle"
         class="sapUiResponsiveMargin">
         <content>
+            <!-- Placeholder message before data is loaded -->
+            <MessageStrip
+                id="constraintsPlaceholder"
+                visible="{= !${constraintsModel>/loaded} &amp;&amp; !${constraintsModel>/loading} }"
+                text="Expand this panel to view performance thresholds and constraints for your selection"
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin"/>
+            
             <VBox id="constraintsPanelMainVBox" visible="{= ${constraintsModel>/loaded} }">
                 <MessageStrip
                     id="constraintsInfoMessage"
@@ -72,14 +81,15 @@
                         <StandardListItem
                             id="performanceConstraintItem"
                             title="{constraintsModel>category} - {constraintsModel>method}"
-                            description="Threshold: {constraintsModel>threshold}"
-                            info="{constraintsModel>level}"
-                            infoState="{= ${constraintsModel>isViolated} ? 'Error' : ${constraintsModel>level} === 'Level A' ? 'Success' : ${constraintsModel>level} === 'Level B' ? 'Information' : 'Warning' }"
+                            description="{= ${constraintsModel>volumeLimit} ? 'Volume: ' + ${constraintsModel>volumeLimit} + ' records' : '' }{= ${constraintsModel>sizeThreshold} ? (${constraintsModel>volumeLimit} ? ' | Size: ' : 'Size: ') + ${constraintsModel>sizeThreshold} : '' }{= ${constraintsModel>responseTimeTarget} ? ' | Response: ' + ${constraintsModel>responseTimeTarget} + 'ms' : '' }{= ${constraintsModel>frequencyLimit} ? ' | Frequency: ' + ${constraintsModel>frequencyLimit} : '' }"
+                            info="{constraintsModel>cleanCoreLevel}"
+                            infoState="{= ${constraintsModel>isViolated} ? 'Error' : ${constraintsModel>cleanCoreLevel} === 'Level A' ? 'Success' : ${constraintsModel>cleanCoreLevel} === 'Level B' ? 'Information' : 'Warning' }"
                             type="Navigation"
                             press=".onShowConstraintDetails"
                             highlight="{= ${constraintsModel>isViolated} ? 'Error' : 'None' }">
                             <customData>
-                                <core:CustomData key="guidance" value="{constraintsModel>guidance}"/>
+                                <core:CustomData key="guidance" value="{constraintsModel>whenExceeded}"/>
+                                <core:CustomData key="alternative" value="{constraintsModel>alternativeSolution}"/>
                             </customData>
                         </StandardListItem>
                     </List>

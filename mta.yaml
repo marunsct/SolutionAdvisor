@@ -9,6 +9,7 @@ modules:
   requires:
   - name: SolutionAdvisor-auth
   - name: SolutionAdvisor-db
+  - name: SolutionAdvisor-alerts
   provides:
   - name: srv-api
     properties:
@@ -66,6 +67,10 @@ resources:
   parameters:
     service: html5-apps-repo
     service-plan: app-host
+- name: SolutionAdvisor-alerts
+  type: org.cloudfoundry.existing-service
+  parameters:
+    service-name: SolutionAdvisor-alerts
 parameters:
   enable-parallel-deployments: true
 build-parameters:

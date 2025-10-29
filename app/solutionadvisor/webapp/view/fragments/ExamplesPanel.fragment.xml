@@ -14,6 +14,16 @@
         class="sapUiResponsiveMargin"
     >
         <content>
+            <!-- Placeholder message before data is loaded -->
+            <MessageStrip
+                id="examplesPlaceholder"
+                visible="{= !${examplesModel>/loaded} &amp;&amp; !${examplesModel>/loading} }"
+                text="Expand this panel to view real-world implementation examples relevant to your scenario"
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin"
+            />
+            
             <VBox id="examplesMainVBox" visible="{= ${examplesModel>/loaded} }">
                 <MessageStrip
                     id="examplesInfoMessage"

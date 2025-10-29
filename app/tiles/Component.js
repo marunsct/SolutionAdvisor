@@ -52,6 +52,51 @@ sap.ui.define([
         },
 
         /**
+         * Create tile content view
+         * Called by FLP to render the tile
+         */
+        createContent: function () {
+            // Get the view name from component properties (set by FLP)
+            const sViewName = this.getComponentData()?.properties?.viewName || this.getProperty("viewName") || "WizardTile";
+            
+            // Create and return the view
+            const oView = sap.ui.view({
+                viewName: "sd.solutionadvisor.tiles." + sViewName,
+                type: "XML",
+                height: "100%"
+            });
+            
+            // Add press handler to the view's controller
+            oView.addEventDelegate({
+                onAfterRendering: function() {
+                    // The GenericTile in the view will handle press events
+                }.bind(this)
+            });
+            
+            return oView;
+        },
+
+        /**
+         * Handle tile press - navigate to target application
+         */
+        onPress: function () {
+            // Get navigation target from component data
+            const oComponentData = this.getComponentData();
+            const oTarget = oComponentData?.properties?.target;
+            
+            if (oTarget && sap.ushell && sap.ushell.Container) {
+                const oCrossAppNav = sap.ushell.Container.getService("CrossApplicationNavigation");
+                const sHash = oCrossAppNav.hrefForExternal({
+                    target: {
+                        semanticObject: oTarget.semanticObject,
+                        action: oTarget.action
+                    }
+                });
+                oCrossAppNav.toExternal({ target: { shellHash: sHash } });
+            }
+        },
+
+        /**
          * Load KPI data from backend
          */
         _loadKPIData: function () {

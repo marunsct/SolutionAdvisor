@@ -12,6 +12,9 @@
                 "bootstrapPlugins": {
                     "ShellPlugin": {
                         "component": "sd.solutionadvisor.shellplugin"
+                    },
+                    "NotificationPlugin": {
+                        "component": "sap.ushell.plugins.notifications"
                     }
                 },
                 "renderers": {
@@ -48,8 +51,11 @@
                                             "icon": "sap-icon://action",
                                             "info": "Quick Start",
                                             "size": "1x1",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "tileType": "sap.ushell.ui.tile.DynamicTile",
                                             "keywords": ["wizard", "analysis", "ricefw"],
+                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
+                                            "componentName": "sd.solutionadvisor.tiles",
+                                            "viewName": "WizardTile",
                                             "target": {
                                                 "semanticObject": "SolutionAdvisor",
                                                 "action": "wizard"
@@ -62,8 +68,11 @@
                                             "icon": "sap-icon://folder",
                                             "info": "Manage",
                                             "size": "1x1",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "tileType": "sap.ushell.ui.tile.DynamicTile",
                                             "keywords": ["projects", "s4hana"],
+                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
+                                            "componentName": "sd.solutionadvisor.tiles",
+                                            "viewName": "ProjectsTile",
                                             "target": {
                                                 "semanticObject": "SolutionAdvisor",
                                                 "action": "projects"
@@ -76,8 +85,11 @@
                                             "icon": "sap-icon://bar-chart",
                                             "info": "Dashboard",
                                             "size": "1x2",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "tileType": "sap.ushell.ui.tile.DynamicTile",
                                             "keywords": ["analytics", "dashboard", "metrics"],
+                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
+                                            "componentName": "sd.solutionadvisor.tiles",
+                                            "viewName": "AnalyticsTile",
                                             "target": {
                                                 "semanticObject": "SolutionAdvisor",
                                                 "action": "analytics"
@@ -90,8 +102,11 @@
                                             "icon": "sap-icon://list",
                                             "info": "Browse",
                                             "size": "1x1",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "tileType": "sap.ushell.ui.tile.DynamicTile",
                                             "keywords": ["analyses", "ricefw", "list"],
+                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
+                                            "componentName": "sd.solutionadvisor.tiles",
+                                            "viewName": "AnalysesTile",
                                             "target": {
                                                 "semanticObject": "SolutionAdvisor",
                                                 "action": "analyses"
@@ -104,8 +119,11 @@
                                             "icon": "sap-icon://settings",
                                             "info": "Configure",
                                             "size": "1x1",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
+                                            "tileType": "sap.ushell.ui.tile.DynamicTile",
                                             "keywords": ["admin", "configuration"],
+                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
+                                            "componentName": "sd.solutionadvisor.tiles",
+                                            "viewName": "AdminTile",
                                             "target": {
                                                 "semanticObject": "SolutionAdvisor",
                                                 "action": "admin"
@@ -251,7 +269,7 @@
                         "config": {
                             "enabled": true,
                             "serviceUrl": "/service/SolutionAdvisorSvcs/Notifications",
-                            "pollingIntervalInSeconds": 60
+                            "pollingIntervalInSeconds": 30
                         }
                     }
                 }
@@ -267,6 +285,11 @@
             data-sap-ui-frameOptions="allow"
             data-sap-ui-bindingSyntax="complex"
             data-sap-ui-xx-viewCache="false"
+            data-sap-ui-resourceroots='{
+                "sd.solutionadvisor": "./solutionadvisor/webapp",
+                "sd.solutionadvisor.tiles": "./tiles",
+                "sd.solutionadvisor.shellplugin": "./shellplugin"
+            }'
         ></script>
         <script>
             sap.ui.getCore().attachInit(function() {

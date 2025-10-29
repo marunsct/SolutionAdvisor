@@ -7,6 +7,7 @@ const ExamplesService = require('./lib/examples-service');
 const AnalyticsService = require('./lib/analytics-service');
 const AuditService = require('./lib/audit-service');
 const SecurityMiddleware = require('./lib/security-middleware');
+const notificationService = require('./lib/notification-service');
 
 /**
  * Solution Advisor Service Implementation
@@ -44,7 +45,8 @@ module.exports = cds.service.impl(async function () {
         DecisionPaths,
         WizardSessions,
         QuestionFlows,
-        ProjectUsers
+        ProjectUsers,
+        Notifications
     } = this.entities;
 
     // Initialize service components
@@ -305,16 +307,27 @@ module.exports = cds.service.impl(async function () {
 
                 // Send notifications for analysis completion and threshold violations
                 try {
-                    const notificationService = require('./lib/notification-service');
                     const analysisData = await SELECT.one.from(Analyses).where({ ID: session.analysis_ID });
                     const userData = {
-                        email: req.user?.id || 'user@example.com',
+                        id: req.user?.id || req.user?.email,
+                        email: req.user?.id || req.user?.email || 'user@example.com',
                         name: req.user?.name || 'User',
+                        tenant: req.user?.tenant || 'default',
                         preferences: { emailNotifications: true, pushNotifications: false }
                     };
 
                     // Send analysis complete notification
                     await notificationService.sendAnalysisCompleteNotification(analysisData, userData);
+
+                    // Check for high technical debt (threshold: 80)
+                    if (scores.technicalDebt >= 80) {
+                        await notificationService.notifyHighTechnicalDebt(analysisData, userData);
+                    }
+
+                    // Check for low cloud readiness (threshold: 50%)
+                    if (scores.cloudReadiness < 50) {
+                        await notificationService.notifyLowCloudReadiness(analysisData, userData);
+                    }
 
                     // Check for threshold violations and send alerts if needed
                     await notificationService.sendThresholdExceededNotification(analysisData, userData);
@@ -342,6 +355,21 @@ module.exports = cds.service.impl(async function () {
                         lastActivity: new Date().toISOString()
                     })
                     .where({ ID: sessionID });
+
+                // Send session saved notification (fire-and-forget)
+                try {
+                    const sessionData = await SELECT.one.from(WizardSessions).where({ ID: sessionID });
+                    const userData = {
+                        id: req.user?.id || req.user?.email,
+                        email: req.user?.id || req.user?.email || 'user@example.com',
+                        tenant: req.user?.tenant || 'default'
+                    };
+                    notificationService.notifySessionSaved(sessionData, userData).catch(err => 
+                        LOG.warn('Failed to send session saved notification:', err)
+                    );
+                } catch (err) {
+                    LOG.warn('Error preparing session saved notification:', err);
+                }
 
                 return {
                     nextQuestion: nextStep.question,
@@ -807,6 +835,141 @@ module.exports = cds.service.impl(async function () {
         } catch (error) {
             LOG.error('Error getting analytics data:', error);
             return req.error(500, req.t('error.getAnalyticsDataFailed', [error.message]));
+        }
+    });
+
+    // ===============================
+    // Notification Handlers (FLP Shell Integration)
+    // ===============================
+
+    /**
+     * Before reading notifications - filter by current user and tenant
+     */
+    this.before('READ', Notifications, async (req) => {
+        try {
+            const userId = req.user?.id || req.user?.email;
+            const tenant = req.user?.tenant || 'default';
+
+            if (!userId) {
+                return req.error(401, 'User not authenticated');
+            }
+
+            // Add user and tenant filters to query
+            if (!req.query.SELECT) {
+                req.query = SELECT.from(Notifications);
+            }
+
+            const existing = req.query.SELECT.where || [];
+            req.query.SELECT.where = [
+                ...existing,
+                { userId: userId },
+                { tenant: tenant }
+            ];
+
+            LOG.info(`Filtering notifications for user: ${userId}, tenant: ${tenant}`);
+        } catch (error) {
+            LOG.error('Error filtering notifications:', error);
+            return req.error(500, 'Failed to filter notifications');
+        }
+    });
+
+    /**
+     * After reading notifications - cleanup expired notifications
+     */
+    this.after('READ', Notifications, async (notifications, req) => {
+        if (!notifications) return;
+
+        try {
+            const now = new Date();
+            const userId = req.user?.id || req.user?.email;
+            const tenant = req.user?.tenant || 'default';
+
+            // Delete expired notifications for this user (fire-and-forget)
+            DELETE.from(Notifications)
+                .where({
+                    userId: userId,
+                    tenant: tenant,
+                    expiresAt: { '<': now.toISOString() }
+                })
+                .catch(err => LOG.error('Failed to cleanup expired notifications:', err));
+
+        } catch (error) {
+            LOG.error('Error in notifications after hook:', error);
+        }
+
+        return notifications;
+    });
+
+    /**
+     * Custom action: Mark notification as read
+     * 
+     * @param {string} notificationId - ID of notification to mark as read
+     * @returns {object} Updated notification
+     */
+    this.on('markNotificationAsRead', Notifications, async (req) => {
+        try {
+            const { notificationId } = req.data;
+            const userId = req.user?.id || req.user?.email;
+            const tenant = req.user?.tenant || 'default';
+
+            if (!notificationId) {
+                return req.error(400, 'Notification ID is required');
+            }
+
+            // Update notification
+            const updated = await UPDATE(Notifications)
+                .set({
+                    isRead: true,
+                    readAt: new Date().toISOString()
+                })
+                .where({
+                    ID: notificationId,
+                    userId: userId,
+                    tenant: tenant
+                });
+
+            if (updated === 0) {
+                return req.error(404, 'Notification not found or access denied');
+            }
+
+            LOG.info(`Notification ${notificationId} marked as read by user ${userId}`);
+
+            // Return updated notification
+            return await SELECT.one.from(Notifications).where({ ID: notificationId });
+        } catch (error) {
+            LOG.error('Error marking notification as read:', error);
+            return req.error(500, 'Failed to mark notification as read');
+        }
+    });
+
+    /**
+     * Custom function: Get unread notification count
+     * 
+     * @returns {number} Count of unread notifications
+     */
+    this.on('getUnreadNotificationCount', Notifications, async (req) => {
+        try {
+            const userId = req.user?.id || req.user?.email;
+            const tenant = req.user?.tenant || 'default';
+            const now = new Date();
+
+            if (!userId) {
+                return req.error(401, 'User not authenticated');
+            }
+
+            const count = await SELECT.one.from(Notifications)
+                .columns('count(*) as count')
+                .where({
+                    userId: userId,
+                    tenant: tenant,
+                    isRead: false,
+                    expiresAt: { '>': now.toISOString() }
+                });
+
+            return { count: count?.count || 0 };
+        } catch (error) {
+            LOG.error('Error getting unread notification count:', error);
+            return req.error(500, 'Failed to get notification count');
         }
     });
 });

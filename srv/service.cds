@@ -127,6 +127,17 @@ service solutionAdvisorService {
     }]
     entity ExampleLogs       as projection on my.ExampleLog;
 
+    // ===============================
+    // Notification Entities (FLP Shell Integration)
+    // ===============================
+
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : 'authenticated-user'
+    }]
+    entity Notifications     as projection on my.UserNotifications;
+
     // Project Users for access management
     @restrict: [
         {
@@ -335,4 +346,23 @@ service solutionAdvisorService {
             level           : String;
         };
     };
+
+    // ===============================
+    // Notification Actions (FLP Shell Integration)
+    // ===============================
+
+    /**
+     * Mark notification as read
+     */
+    action   markNotificationAsRead(notificationId : String)                                                                                                  returns {
+        success : Boolean;
+        message : String;
+    }                                                                                                                        bound to Notifications;
+
+    /**
+     * Get count of unread notifications
+     */
+    function getUnreadNotificationCount()                                                                                                                      returns {
+        count : Integer;
+    }                                                                                                                        bound to Notifications;
 }

@@ -1,4 +1,5 @@
 <core:View
+    controllerName="sd.solutionadvisor.tiles.BaseTile"
     xmlns:core="sap.ui.core"
     xmlns="sap.m"
     height="100%">
@@ -6,7 +7,7 @@
         class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout adminTile"
         header="Administration"
         subheader="System configuration"
-        press="onPress">
+        press=".onPress">
         <TileContent>
             <ImageContent src="sap-icon://settings" />
         </TileContent>

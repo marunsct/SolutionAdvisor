@@ -7,15 +7,58 @@
  * - Constraint violations detected
  * - Wizard session expires
  * 
+ * Integrates with SAP Alert Notification Service and Fiori Launchpad Shell
+ * 
  * Supports multiple notification channels:
- * - In-app notifications (stored in database)
+ * - In-app notifications (stored in database for FLP shell)
+ * - SAP Alert Notification Service (external events)
  * - Email notifications (via SAP Destination Service or SMTP)
  * - Push notifications (via SAP Mobile Services)
  */
 
 const cds = require('@sap/cds');
+const axios = require('axios');
 
 class NotificationService {
+    constructor() {
+        this.alertNotificationClient = null;
+        this.initialized = false;
+    }
+
+    /**
+     * Initialize Alert Notification Service client from VCAP_SERVICES
+     */
+    async initialize() {
+        if (this.initialized) return;
+
+        try {
+            const alertNotificationBinding = await cds.connect.to('SolutionAdvisor-alerts');
+            
+            if (alertNotificationBinding && alertNotificationBinding.credentials) {
+                const credentials = alertNotificationBinding.credentials;
+                
+                // Create axios client with OAuth2 authentication
+                this.alertNotificationClient = axios.create({
+                    baseURL: credentials.url,
+                    auth: {
+                        username: credentials.client_id,
+                        password: credentials.client_secret
+                    },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                this.initialized = true;
+                console.log('Alert Notification Service initialized successfully');
+            } else {
+                console.warn('Alert Notification Service binding not found - notifications will be stored in DB only');
+            }
+        } catch (error) {
+            console.error('Failed to initialize Alert Notification Service:', error.message);
+            // Continue without external service - notifications will still be stored in DB
+        }
+    }
     /**
      * Send notification when analysis completes
      * @param {Object} analysisData - Completed analysis data
@@ -23,12 +66,39 @@ class NotificationService {
      * @returns {Promise<Object>} Notification result
      */
     async sendAnalysisCompleteNotification(analysisData, userData) {
+        await this.initialize();
+        
         try {
+            const severity = this._getSeverityForLevel(analysisData.finalRecommendation);
+            
+            // Send to SAP Alert Notification Service
+            if (this.alertNotificationClient) {
+                try {
+                    const event = {
+                        eventType: 'ANALYSIS_COMPLETED',
+                        severity: severity.toUpperCase(),
+                        category: 'NOTIFICATION',
+                        subject: `Clean Core Analysis Completed: ${analysisData.ricefwId}`,
+                        body: `Your analysis for ${analysisData.objectName} (${analysisData.ricefwId}) is complete.\n\nRecommended Level: ${analysisData.finalRecommendation}\nTechnical Debt: ${analysisData.technicalDebtScore}/100\nCloud Readiness: ${analysisData.cloudReadinessScore}%`,
+                        tags: {
+                            ricefwId: analysisData.ricefwId,
+                            recommendedLevel: analysisData.finalRecommendation,
+                            technicalDebtScore: analysisData.technicalDebtScore?.toString() || '0',
+                            cloudReadinessScore: analysisData.cloudReadinessScore?.toString() || '0'
+                        }
+                    };
+                    await this.alertNotificationClient.post('/cf/producer/v1/resource-events', event);
+                    console.log(`Alert Notification sent for analysis ${analysisData.ricefwId}`);
+                } catch (error) {
+                    console.error('Failed to send to Alert Notification Service:', error.message);
+                }
+            }
+            
             const notification = {
                 type: 'AnalysisComplete',
                 title: 'Clean Core Analysis Complete',
                 message: `Your analysis for ${analysisData.objectName} (${analysisData.ricefwId}) is complete. Recommended Level: ${analysisData.finalRecommendation}`,
-                severity: this._getSeverityForLevel(analysisData.finalRecommendation),
+                severity: severity,
                 data: {
                     analysisID: analysisData.ID,
                     ricefwId: analysisData.ricefwId,
@@ -40,8 +110,8 @@ class NotificationService {
                 createdAt: new Date().toISOString()
             };
 
-            // Store in-app notification
-            await this._storeInAppNotification(notification);
+            // Store in-app notification for FLP shell
+            await this._storeInAppNotification(notification, userData);
 
             // Send email if configured
             if (this._shouldSendEmail(analysisData, userData)) {
@@ -113,6 +183,175 @@ class NotificationService {
                 success: false,
                 error: error.message
             };
+        }
+    }
+
+    /**
+     * Send notification for high technical debt score
+     * @param {Object} analysisData - Analysis data with high technical debt
+     * @param {Object} userData - User information
+     * @returns {Promise<Object>} Notification result
+     */
+    async notifyHighTechnicalDebt(analysisData, userData) {
+        await this.initialize();
+        
+        try {
+            const { UserNotifications } = cds.entities('sd');
+            const technicalDebtScore = analysisData.technicalDebtScore || 0;
+            
+            // Send to Alert Notification Service
+            if (this.alertNotificationClient) {
+                try {
+                    const event = {
+                        eventType: 'HIGH_TECHNICAL_DEBT',
+                        severity: 'WARNING',
+                        category: 'ALERT',
+                        subject: `High Technical Debt Detected: ${analysisData.ricefwId}`,
+                        body: `Analysis ${analysisData.ricefwId} has high technical debt score: ${technicalDebtScore}/100\n\nRecommendation: ${analysisData.finalRecommendation}\nObject: ${analysisData.objectName}`,
+                        tags: {
+                            ricefwId: analysisData.ricefwId,
+                            technicalDebtScore: technicalDebtScore.toString(),
+                            recommendedLevel: analysisData.finalRecommendation
+                        }
+                    };
+                    await this.alertNotificationClient.post('/cf/producer/v1/resource-events', event);
+                } catch (error) {
+                    console.error('Failed to send high tech debt alert:', error.message);
+                }
+            }
+            
+            // Store in-app notification
+            const notification = await INSERT.into(UserNotifications).entries({
+                userId: userData.id || userData.email,
+                tenant: userData.tenant || 'default',
+                notificationType: 'HIGH_TECHNICAL_DEBT',
+                title: 'High Technical Debt Alert',
+                description: `Analysis ${analysisData.ricefwId} has a technical debt score of ${technicalDebtScore}/100, which exceeds the threshold.`,
+                severity: 'warning',
+                priority: 'High',
+                relatedEntityId: analysisData.ID,
+                relatedEntityType: 'CleanCoreAnalysis',
+                actionUrl: `/solutionadvisor/webapp/index.html#/Analyses(${analysisData.ID})`,
+                actionText: 'View Analysis',
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+            });
+            
+            return { success: true, message: 'High technical debt notification sent' };
+        } catch (error) {
+            console.error('Failed to send high technical debt notification:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Send notification for low cloud readiness score
+     * @param {Object} analysisData - Analysis data with low cloud readiness
+     * @param {Object} userData - User information
+     * @returns {Promise<Object>} Notification result
+     */
+    async notifyLowCloudReadiness(analysisData, userData) {
+        await this.initialize();
+        
+        try {
+            const { UserNotifications } = cds.entities('sd');
+            const cloudReadinessScore = analysisData.cloudReadinessScore || 0;
+            
+            // Send to Alert Notification Service
+            if (this.alertNotificationClient) {
+                try {
+                    const event = {
+                        eventType: 'LOW_CLOUD_READINESS',
+                        severity: 'WARNING',
+                        category: 'ALERT',
+                        subject: `Low Cloud Readiness Detected: ${analysisData.ricefwId}`,
+                        body: `Analysis ${analysisData.ricefwId} has low cloud readiness score: ${cloudReadinessScore}%\n\nRecommendation: ${analysisData.finalRecommendation}\nObject: ${analysisData.objectName}`,
+                        tags: {
+                            ricefwId: analysisData.ricefwId,
+                            cloudReadinessScore: cloudReadinessScore.toString(),
+                            recommendedLevel: analysisData.finalRecommendation
+                        }
+                    };
+                    await this.alertNotificationClient.post('/cf/producer/v1/resource-events', event);
+                } catch (error) {
+                    console.error('Failed to send low cloud readiness alert:', error.message);
+                }
+            }
+            
+            // Store in-app notification
+            const notification = await INSERT.into(UserNotifications).entries({
+                userId: userData.id || userData.email,
+                tenant: userData.tenant || 'default',
+                notificationType: 'LOW_CLOUD_READINESS',
+                title: 'Low Cloud Readiness Alert',
+                description: `Analysis ${analysisData.ricefwId} has a cloud readiness score of ${cloudReadinessScore}%, which is below the threshold.`,
+                severity: 'warning',
+                priority: 'High',
+                relatedEntityId: analysisData.ID,
+                relatedEntityType: 'CleanCoreAnalysis',
+                actionUrl: `/solutionadvisor/webapp/index.html#/Analyses(${analysisData.ID})`,
+                actionText: 'View Analysis',
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+            });
+            
+            return { success: true, message: 'Low cloud readiness notification sent' };
+        } catch (error) {
+            console.error('Failed to send low cloud readiness notification:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
+     * Send notification when wizard session is saved
+     * @param {Object} sessionData - Wizard session data
+     * @param {Object} userData - User information
+     * @returns {Promise<Object>} Notification result
+     */
+    async notifySessionSaved(sessionData, userData) {
+        await this.initialize();
+        
+        try {
+            const { UserNotifications } = cds.entities('sd');
+            
+            // Send to Alert Notification Service
+            if (this.alertNotificationClient) {
+                try {
+                    const event = {
+                        eventType: 'WIZARD_SESSION_SAVED',
+                        severity: 'INFORMATION',
+                        category: 'NOTIFICATION',
+                        subject: `Wizard Session Saved: ${sessionData.sessionName || 'Unnamed Session'}`,
+                        body: `Your wizard session "${sessionData.sessionName}" has been saved successfully.\n\nYou can resume this session later.`,
+                        tags: {
+                            sessionId: sessionData.ID,
+                            sessionName: sessionData.sessionName || 'Unnamed'
+                        }
+                    };
+                    await this.alertNotificationClient.post('/cf/producer/v1/resource-events', event);
+                } catch (error) {
+                    console.error('Failed to send session saved alert:', error.message);
+                }
+            }
+            
+            // Store in-app notification
+            const notification = await INSERT.into(UserNotifications).entries({
+                userId: userData.id || userData.email,
+                tenant: userData.tenant || 'default',
+                notificationType: 'WIZARD_SESSION_SAVED',
+                title: 'Wizard Session Saved',
+                description: `Your wizard session "${sessionData.sessionName || 'Unnamed Session'}" has been saved. You can resume it anytime.`,
+                severity: 'info',
+                priority: 'Medium',
+                relatedEntityId: sessionData.ID,
+                relatedEntityType: 'WizardSession',
+                actionUrl: `/solutionadvisor/webapp/index.html#/wizard?sessionId=${sessionData.ID}`,
+                actionText: 'Resume Session',
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+            });
+            
+            return { success: true, message: 'Session saved notification sent' };
+        } catch (error) {
+            console.error('Failed to send session saved notification:', error);
+            return { success: false, error: error.message };
         }
     }
 

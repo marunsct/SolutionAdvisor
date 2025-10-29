@@ -366,3 +366,46 @@ entity AuditLog : cuid {
     // Severity
     severity                : String(20); // INFO, WARNING, ERROR, CRITICAL
 }
+
+// ===============================
+// Notification Entities for Fiori Launchpad Shell
+// ===============================
+
+/**
+ * UserNotifications - Store notifications for Fiori Launchpad shell
+ * Consumed by FLP Notification service
+ */
+entity UserNotifications : cuid, managed {
+    // User & Tenant
+    userId                  : String(255) not null; // User ID from authentication
+    tenant                  : String(36) not null; // Tenant UUID
+    
+    // Notification Content
+    notificationType        : String(50) not null; // ANALYSIS_COMPLETED, WIZARD_SESSION_SAVED, HIGH_TECHNICAL_DEBT, etc.
+    title                   : String(255) not null;
+    description             : LargeString;
+    
+    // Classification
+    severity                : String(20) not null default 'info'; // info, warning, error
+    priority                : String(20) default 'Medium'; // Low, Medium, High, Critical
+    
+    // State
+    isRead                  : Boolean default false;
+    readAt                  : DateTime;
+    
+    // Linking & Actions
+    relatedEntityId         : String(36); // ID of related CleanCoreAnalysis, WizardSession, etc.
+    relatedEntityType       : String(50); // CleanCoreAnalysis, WizardSession, RealWorldExample
+    actionUrl               : String(500); // Deep link URL for FLP navigation
+    actionText              : String(100) default 'View Details';
+    
+    // Metadata
+    expiresAt               : DateTime; // Auto-delete after this date
+    groupKey                : String(100); // For grouping related notifications
+    
+    // Index for performance
+    @cds.autoexpose
+    @assert.unique: {userId: [userId, createdAt]}
+    index_user_created      : Integer;
+}
+

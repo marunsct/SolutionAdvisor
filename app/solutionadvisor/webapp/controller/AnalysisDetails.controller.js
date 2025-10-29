@@ -178,6 +178,7 @@ sap.ui.define([
             const sObjectType = oAnalysis.objectType;
             const sDeploymentType = oAnalysis.projectConfig?.s4HanaFlavor || "Cloud Public";
             const aComplianceReq = oAnalysis.projectConfig?.complianceRequirements || [];
+            const sCleanCoreLevel = oAnalysis.recommendedLevel; // Filter by finalized clean core level
 
             if (!sObjectType) {
                 Log.warning("Cannot load constraints without object type in analysis details");
@@ -193,11 +194,19 @@ sap.ui.define([
             const aComplianceConstraints = this._getComplianceConstraints(aComplianceReq);
             oConstraintsModel.setProperty("/complianceConstraints", aComplianceConstraints);
 
-            // Performance thresholds from backend
+            // Performance thresholds from backend - filter by object type AND clean core level
             const aThresholdFilters = [
                 new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
                 new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
             ];
+
+            // Add clean core level filter if finalized analysis has a recommended level
+            if (sCleanCoreLevel) {
+                aThresholdFilters.push(
+                    new sap.ui.model.Filter("cleanCoreLevel", sap.ui.model.FilterOperator.EQ, sCleanCoreLevel)
+                );
+            }
+
             const oThresholdBinding = oModel.bindList("/PerformanceThresholds", null, null, aThresholdFilters);
 
             oThresholdBinding.requestContexts().then((aContexts) => {
@@ -275,6 +284,33 @@ sap.ui.define([
                 });
             }
             return constraints;
+        },
+
+        /**
+         * Show detailed information for a constraint
+         * @param {sap.ui.base.Event} oEvent - Press event from constraint list item
+         * @public
+         */
+        onShowConstraintDetails(oEvent) {
+            const oItem = oEvent.getSource();
+            const oCustomData = oItem.getCustomData();
+
+            let sGuidance = "";
+            let sAlternative = "";
+
+            oCustomData.forEach(data => {
+                if (data.getKey() === "guidance") {
+                    sGuidance = data.getValue();
+                } else if (data.getKey() === "alternative") {
+                    sAlternative = data.getValue();
+                }
+            });
+
+            const sMessage = `Guidance when exceeded:\n${sGuidance}\n\nAlternative solution:\n${sAlternative}`;
+            sap.m.MessageBox.information(sMessage, {
+                title: "Constraint Details",
+                contentWidth: "500px"
+            });
         },
 
         onRestartAnalysis() {
