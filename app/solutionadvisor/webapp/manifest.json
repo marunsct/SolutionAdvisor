@@ -190,7 +190,10 @@
         "settings": {
           "operationMode": "Server",
           "autoExpandSelect": true,
-          "earlyRequests": true
+          "earlyRequests": true,
+          "groupId": "$auto",
+          "updateGroupId": "$auto",
+          "synchronizationMode": "None"
         }
       }
     },

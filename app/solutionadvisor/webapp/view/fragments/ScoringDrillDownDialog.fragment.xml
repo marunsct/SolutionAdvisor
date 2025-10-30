@@ -281,7 +281,7 @@
         
         <buttons>
             <Button id="exportBreakdownButton" text="Export Breakdown" press="onExportBreakdown" icon="sap-icon://download"/>
-            <Button id="saveAnalysisButton" text="Save Analysis" press="onSaveAnalysis" type="Emphasized" icon="sap-icon://save"/>
+            <Button id="saveAnalysisButton" text="Save Analysis" press="onSaveAnalysisFromDialog" type="Emphasized" icon="sap-icon://save"/>
             <Button id="closeDrillDownButton" text="Close" press="onCloseDrillDown"/>
         </buttons>
   </Dialog>

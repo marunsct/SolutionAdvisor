@@ -74,6 +74,21 @@
         }
       },
       "[development]": {
+        "db": {
+          "kind": "hana",
+          "credentials": {
+            "host": "${env:HANA_HOST}",
+            "port": "${env:HANA_PORT}",
+            "user": "${env:HANA_USER}",
+            "password": "${env:HANA_PASSWORD}",
+            "schema": "${env:HANA_SCHEMA}",
+            "encrypt": true,
+            "sslValidateCertificate": false
+          }
+        },
+        "auth": {
+          "kind": "dummy"
+        },
         "mail": {
           "kind": "smtp",
           "host": "${env:SMTP_HOST}",

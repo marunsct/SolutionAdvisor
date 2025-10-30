@@ -479,7 +479,6 @@ entity UserNotifications : cuid, managed {
  * Optimized for dashboard KPIs and multi-dimensional reporting
  */
 @cds.persistence.skip: false
-@cds.persistence.table
 define view CV_ANALYSIS_AGGREGATES as
     select from CleanCoreAnalysis {
         // Dimensions (Primary Key)
@@ -536,7 +535,6 @@ define view CV_ANALYSIS_AGGREGATES as
  * Includes level breakdowns and score comparisons by type
  */
 @cds.persistence.skip: false
-@cds.persistence.table
 define view CV_RICEFW_DISTRIBUTION as
     select from CleanCoreAnalysis {
         // Dimensions (Primary Key)
@@ -583,11 +581,10 @@ define view CV_RICEFW_DISTRIBUTION as
         analysisDate;
 
 /**
- * CV_TREND_ANALYSIS - Time-series analysis with date hierarchy
+ * CV_TREND_ANALYSIS - Time-series trending of analyses over time
  * Supports trend analysis, moving averages, and temporal grouping
  */
 @cds.persistence.skip: false
-@cds.persistence.table
 define view CV_TREND_ANALYSIS as
     select from CleanCoreAnalysis {
         // Dimensions (Primary Key)
@@ -645,7 +642,6 @@ define view CV_TREND_ANALYSIS as
  * Combines projects, analyses, and wizard sessions for executive dashboards
  */
 @cds.persistence.skip: false
-@cds.persistence.table
 define view CV_PROJECT_DASHBOARD as
     select from ProjectConfiguration as projects
     left join CleanCoreAnalysis as analyses

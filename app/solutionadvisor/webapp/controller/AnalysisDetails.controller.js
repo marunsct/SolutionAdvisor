@@ -438,19 +438,35 @@ sap.ui.define([
          */
         _saveAnalysisPermanently(oAnalysis) {
             const oModel = this.getView().getModel();
+            const oContext = this.getView().getBindingContext();
+            
+            if (!oContext) {
+                sap.m.MessageBox.error("Cannot save analysis - binding context lost");
+                return;
+            }
+            
             this.getView().setBusy(true);
 
-            // Update status to Completed
-            const oContext = this.getView().getBindingContext();
+            // OData V4 Pattern: Update entity properties and submit changes
+            // Use setProperty to mark fields as modified
             oContext.setProperty("status", "Completed");
+            oContext.setProperty("modifiedAt", new Date().toISOString());
+            
+            // Check if there are pending changes before submitting
+            if (!oModel.hasPendingChanges()) {
+                this.getView().setBusy(false);
+                MessageToast.show("No changes to save");
+                return;
+            }
 
-            // Submit changes using OData V4 batch
-            oModel.submitBatch("updateGroup").then(() => {
+            // Submit all pending changes to the backend
+            // OData V4 auto-batches changes by default in $auto group
+            oModel.submitBatch(oModel.getUpdateGroupId()).then(() => {
                 this.getView().setBusy(false);
                 
                 MessageToast.show(`Analysis "${oAnalysis.ricefwId}" saved successfully!`);
                 
-                // Refresh binding to get updated data including notifications
+                // Refresh binding to get updated data from backend
                 const sAnalysisId = oAnalysis.ID;
                 this.getView().unbindElement();
                 this.getView().bindElement({
@@ -460,13 +476,16 @@ sap.ui.define([
                     }
                 });
 
-                // Optional: Navigate to analysis list
+                // Optional: Navigate to analysis list after save
                 // this.getOwnerComponent().getRouter().navTo("AnalysesList");
 
             }).catch((oError) => {
                 this.getView().setBusy(false);
                 Log.error("Failed to save analysis:", oError);
                 ErrorHandler.showServiceError(oError, "Failed to save analysis permanently");
+                
+                // Reset changes on error
+                oModel.resetChanges();
             });
         },
         
@@ -1066,12 +1085,16 @@ sap.ui.define([
 
         /**
          * Save analysis from drill-down dialog
+         * Delegates to main save handler and closes dialog
          */
-        onSaveAnalysis: function() {
+        onSaveAnalysisFromDialog: function() {
+            // Close the drill-down dialog first
             if (this._oScoringDialog) {
                 this._oScoringDialog.close();
             }
-            MessageToast.show("Analysis saved successfully");
+            
+            // Delegate to main save analysis handler
+            this.onSaveAnalysis();
         },
 
         /**
