@@ -208,7 +208,7 @@ entity QuestionFlow : cuid, managed {
 /**
  * CleanCoreLevels - Defines the four clean core levels
  */
-entity CleanCoreLevels : cuid {
+entity CleanCoreLevels : cuid, managed {
     level                   : String(10) not null; // Level A, Level B, Level C, Level D
     levelName               : String(50) not null; // Fully Clean Core, Enhanced Clean Core, etc.
     description             : String(500);
@@ -234,7 +234,7 @@ entity CleanCoreLevels : cuid {
 /**
  * ObjectTypes - RICEFW object types with metadata
  */
-entity ObjectTypes : cuid {
+entity ObjectTypes : cuid, managed {
     objectType              : String(50) not null; // Reports, Interfaces, etc.
     objectCode              : String(1) not null; // R, I, C, E, F, W
     displayName             : String(100);
@@ -249,7 +249,7 @@ entity ObjectTypes : cuid {
 /**
  * PerformanceThreshold - Performance thresholds and technical limitations
  */
-entity PerformanceThreshold : cuid {
+entity PerformanceThreshold : cuid, managed {
     category                : String(50) not null; // Integration, Reporting, Workflow, etc.
     method                  : String(100) not null; // OData API, Enhanced IDOC, etc.
 
@@ -314,7 +314,7 @@ entity RealWorldExample : cuid, managed {
 /**
  * ConstraintLog - Track which constraints were displayed during analysis
  */
-entity ConstraintLog : cuid {
+entity ConstraintLog : cuid, managed {
     analysis                : Association to CleanCoreAnalysis;
     constraintType          : String(50); // Performance, Regulatory, Technical
     constraintDescription   : String(500);
@@ -325,7 +325,7 @@ entity ConstraintLog : cuid {
 /**
  * ExampleLog - Track which real-world examples were viewed
  */
-entity ExampleLog : cuid {
+entity ExampleLog : cuid, managed {
     analysis                : Association to CleanCoreAnalysis;
     example                 : Association to RealWorldExample;
     viewedAt                : DateTime;
@@ -346,7 +346,7 @@ entity ExampleLog : cuid {
  * 
  * Retention: 7 years default (configurable per compliance framework)
  */
-entity AuditLog : cuid {
+entity AuditLog : cuid, managed {
     // Event Classification
     eventType               : String(50) not null @readonly; 
     // Types: AUTH, DATA_CHANGE, EXPORT, CONSTRAINT_VIOLATION, CONFIG_CHANGE, SECURITY,
@@ -469,4 +469,261 @@ entity UserNotifications : cuid, managed {
     @assert.unique: {userId: [userId, createdAt]}
     index_user_created      : Integer;
 }
+
+// ===============================
+// Analytical Views (HANA Calculation Views)
+// ===============================
+
+/**
+ * CV_ANALYSIS_AGGREGATES - Aggregated metrics for clean core analyses
+ * Optimized for dashboard KPIs and multi-dimensional reporting
+ */
+@cds.persistence.skip: false
+@cds.persistence.table
+define view CV_ANALYSIS_AGGREGATES as
+    select from CleanCoreAnalysis {
+        // Dimensions
+        tenant,
+        projectConfig.ID                             as project_ID,
+        objectType                                   as objectType_typeCode,
+        finalRecommendation                          as recommendedLevel,
+        analysisDate,
+        status,
+        createdAt,
+        createdBy,
+        riskAssessment                               as riskLevel,
+
+        // Measures - Aggregated Scores
+        avg(technicalDebtScore)                      as avgTechnicalDebt      : Integer,
+        avg(cloudReadinessScore)                     as avgCloudReadiness     : Integer,
+        avg(upgradeImpactScore)                      as avgUpgradeImpact      : Integer,
+        avg(compositeHealthScore)                    as avgCompositeHealth    : Integer,
+
+        // Measures - Counts
+        count(*)                                     as totalAnalyses         : Integer,
+        min(compositeHealthScore)                    as minCompositeHealth    : Integer,
+        max(compositeHealthScore)                    as maxCompositeHealth    : Integer,
+
+        // Health Distribution
+        sum(case when compositeHealthScore >= 80 then 1 else 0 end) 
+                                                     as countExcellent        : Integer,
+        sum(case when compositeHealthScore >= 60 and compositeHealthScore < 80 then 1 else 0 end)
+                                                     as countGood             : Integer,
+        sum(case when compositeHealthScore >= 40 and compositeHealthScore < 60 then 1 else 0 end)
+                                                     as countModerate         : Integer,
+        sum(case when compositeHealthScore < 40 then 1 else 0 end)
+                                                     as countPoor             : Integer,
+
+        // Risk Distribution
+        sum(case when riskAssessment = 'High' then 1 else 0 end)
+                                                     as countHighRisk         : Integer,
+        sum(case when riskAssessment = 'Critical' then 1 else 0 end)
+                                                     as countCriticalRisk     : Integer
+    }
+    group by
+        tenant,
+        projectConfig.ID,
+        objectType,
+        finalRecommendation,
+        analysisDate,
+        status,
+        createdAt,
+        createdBy,
+        riskAssessment;
+
+/**
+ * CV_RICEFW_DISTRIBUTION - Distribution analysis across RICEFW object types
+ * Includes level breakdowns and score comparisons by type
+ */
+@cds.persistence.skip: false
+@cds.persistence.table
+define view CV_RICEFW_DISTRIBUTION as
+    select from CleanCoreAnalysis {
+        // Dimensions
+        tenant,
+        objectType                                   as objectType_typeCode,
+        objectName                                   as typeName,
+        objectDescription                            as description,
+        finalRecommendation                          as recommendedLevel,
+        status,
+        projectConfig.ID                             as project_ID,
+        analysisDate,
+
+        // Measures - Counts
+        count(*)                                     as countByType           : Integer,
+
+        // Measures - Score Averages by Type
+        avg(technicalDebtScore)                      as avgTechnicalDebt      : Integer,
+        avg(cloudReadinessScore)                     as avgCloudReadiness     : Integer,
+        avg(upgradeImpactScore)                      as avgUpgradeImpact      : Integer,
+        avg(compositeHealthScore)                    as avgCompositeHealth    : Integer,
+
+        // Measures - Min/Max
+        min(compositeHealthScore)                    as minHealthScore        : Integer,
+        max(compositeHealthScore)                    as maxHealthScore        : Integer,
+
+        // Level Distribution within Type (extract from finalRecommendation)
+        sum(case when finalRecommendation like '%Level A%' then 1 else 0 end)
+                                                     as countLevelA           : Integer,
+        sum(case when finalRecommendation like '%Level B%' then 1 else 0 end)
+                                                     as countLevelB           : Integer,
+        sum(case when finalRecommendation like '%Level C%' then 1 else 0 end)
+                                                     as countLevelC           : Integer,
+        sum(case when finalRecommendation like '%Level D%' then 1 else 0 end)
+                                                     as countLevelD           : Integer
+    }
+    group by
+        tenant,
+        objectType,
+        objectName,
+        objectDescription,
+        finalRecommendation,
+        status,
+        projectConfig.ID,
+        analysisDate;
+
+/**
+ * CV_TREND_ANALYSIS - Time-series analysis with date hierarchy
+ * Supports trend analysis, moving averages, and temporal grouping
+ */
+@cds.persistence.skip: false
+@cds.persistence.table
+define view CV_TREND_ANALYSIS as
+    select from CleanCoreAnalysis {
+        // Dimensions
+        tenant,
+        projectConfig.ID                             as project_ID,
+        analysisDate,
+        
+        // Date Hierarchy (calculated in service layer for better compatibility)
+        cast(year(analysisDate) as Integer)          as year                  : Integer,
+        cast(month(analysisDate) as Integer)         as month                 : Integer,
+        
+        objectType                                   as objectType_typeCode,
+        finalRecommendation                          as recommendedLevel,
+        status,
+        riskAssessment                               as riskLevel,
+
+        // Measures - Counts
+        count(*)                                     as analysisCount         : Integer,
+
+        // Measures - Score Averages per Period
+        avg(technicalDebtScore)                      as avgTechnicalDebt      : Integer,
+        avg(cloudReadinessScore)                     as avgCloudReadiness     : Integer,
+        avg(upgradeImpactScore)                      as avgUpgradeImpact      : Integer,
+        avg(compositeHealthScore)                    as avgCompositeHealth    : Integer,
+
+        // Measures - Sums for Moving Average Calculation
+        sum(technicalDebtScore)                      as sumTechnicalDebt      : Integer,
+        sum(cloudReadinessScore)                     as sumCloudReadiness     : Integer,
+        sum(upgradeImpactScore)                      as sumUpgradeImpact      : Integer,
+        sum(compositeHealthScore)                    as sumCompositeHealth    : Integer,
+
+        // Measures - Min/Max per Period
+        min(compositeHealthScore)                    as minCompositeHealth    : Integer,
+        max(compositeHealthScore)                    as maxCompositeHealth    : Integer,
+
+        // Trend Indicators
+        sum(case when compositeHealthScore >= 70 then 1 else 0 end)
+                                                     as countImproving        : Integer,
+        sum(case when compositeHealthScore < 40 then 1 else 0 end)
+                                                     as countDeclining        : Integer,
+        sum(case when riskAssessment in ('High', 'Critical') then 1 else 0 end)
+                                                     as countHighRisk         : Integer
+    }
+    group by
+        tenant,
+        projectConfig.ID,
+        analysisDate,
+        objectType,
+        finalRecommendation,
+        status,
+        riskAssessment;
+
+/**
+ * CV_PROJECT_DASHBOARD - Comprehensive project-level KPIs
+ * Combines projects, analyses, and wizard sessions for executive dashboards
+ */
+@cds.persistence.skip: false
+@cds.persistence.table
+define view CV_PROJECT_DASHBOARD as
+    select from ProjectConfiguration as projects
+    left join CleanCoreAnalysis as analyses
+        on analyses.projectConfig.ID = projects.ID
+    left join WizardSession as sessions
+        on sessions.analysis.ID = analyses.ID
+    {
+        // Project Dimensions
+        projects.tenant,
+        projects.ID                                  as project_ID,
+        projects.projectName,
+        projects.clientName,
+        projects.s4HanaFlavor,
+        projects.businessCriticality,
+        projects.status                              as projectStatus,
+        projects.createdAt                           as projectCreatedAt,
+
+        // Analysis Dimensions
+        analyses.objectType                          as objectType_typeCode,
+        analyses.finalRecommendation                 as recommendedLevel,
+        analyses.status                              as analysisStatus,
+        analyses.riskAssessment                      as riskLevel,
+
+        // KPI Measures - Counts
+        count(distinct analyses.ID)                  as totalAnalyses         : Integer,
+        count(distinct sessions.ID)                  as totalSessions         : Integer,
+
+        // KPI Measures - Score Averages
+        avg(analyses.technicalDebtScore)             as projectAvgTechnicalDebt    : Integer,
+        avg(analyses.cloudReadinessScore)            as projectAvgCloudReadiness   : Integer,
+        avg(analyses.upgradeImpactScore)             as projectAvgUpgradeImpact    : Integer,
+        avg(analyses.compositeHealthScore)           as projectAvgHealth           : Integer,
+
+        // KPI Measures - Min/Max
+        min(analyses.compositeHealthScore)           as minHealthScore        : Integer,
+        max(analyses.compositeHealthScore)           as maxHealthScore        : Integer,
+
+        // Level Distribution (extract from finalRecommendation)
+        sum(case when analyses.finalRecommendation like '%Level A%' then 1 else 0 end)
+                                                     as countLevelA           : Integer,
+        sum(case when analyses.finalRecommendation like '%Level B%' then 1 else 0 end)
+                                                     as countLevelB           : Integer,
+        sum(case when analyses.finalRecommendation like '%Level C%' then 1 else 0 end)
+                                                     as countLevelC           : Integer,
+        sum(case when analyses.finalRecommendation like '%Level D%' then 1 else 0 end)
+                                                     as countLevelD           : Integer,
+
+        // Status Distribution
+        sum(case when analyses.status = 'Approved' then 1 else 0 end)
+                                                     as countApproved         : Integer,
+        sum(case when analyses.status = 'In Review' then 1 else 0 end)
+                                                     as countInReview         : Integer,
+        sum(case when analyses.status = 'Draft' then 1 else 0 end)
+                                                     as countDraft            : Integer,
+
+        // Risk Distribution
+        sum(case when analyses.riskAssessment = 'Critical' then 1 else 0 end)
+                                                     as countCriticalRisk     : Integer,
+        sum(case when analyses.riskAssessment = 'High' then 1 else 0 end)
+                                                     as countHighRisk         : Integer,
+
+        // Session Metrics
+        sum(case when sessions.sessionStatus = 'Completed' then 1 else 0 end)
+                                                     as countCompletedSessions : Integer,
+        sum(case when sessions.sessionStatus = 'Active' then 1 else 0 end)
+                                                     as countActiveSessions   : Integer
+    }
+    group by
+        projects.tenant,
+        projects.ID,
+        projects.projectName,
+        projects.clientName,
+        projects.s4HanaFlavor,
+        projects.businessCriticality,
+        projects.status,
+        projects.createdAt,
+        analyses.objectType,
+        analyses.finalRecommendation,
+        analyses.status,
+        analyses.riskAssessment;
 

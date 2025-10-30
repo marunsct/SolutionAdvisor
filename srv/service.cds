@@ -31,6 +31,7 @@ service solutionAdvisorService {
 
     // Analyses entity - draft-enabled for user workflow
     // ABAC enforcement for ownership is implemented in service.js handlers
+    @cds.redirection.target
     @odata.draft.enabled
     @restrict: [
         {
@@ -126,6 +127,38 @@ service solutionAdvisorService {
         to   : 'authenticated-user'
     }]
     entity ExampleLogs           as projection on my.ExampleLog;
+
+    // ===============================
+    // Analytical Views (Read-Only)
+    // ===============================
+
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+    }]
+    entity AnalysisAggregates    as projection on my.CV_ANALYSIS_AGGREGATES;
+
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+    }]
+    entity RicefwDistribution    as projection on my.CV_RICEFW_DISTRIBUTION;
+
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+    }]
+    entity TrendAnalysis         as projection on my.CV_TREND_ANALYSIS;
+
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+    }]
+    entity ProjectDashboard      as projection on my.CV_PROJECT_DASHBOARD;
 
     // ===============================
     // Notification Entities (FLP Shell Integration)
