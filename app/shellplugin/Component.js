@@ -235,11 +235,31 @@ sap.ui.define([
          * Subscribe to shell events
          */
         _subscribeToEvents: function () {
-            // Listen to navigation events
-            sap.ushell.Container.attachNavigatedEvent(this._onNavigated.bind(this));
+            // Listen to navigation and logout events if available on the current ushell implementation.
+            // Some sandbox/ushell variants (or when running outside a full FLP) do not expose these helpers,
+            // so guard the calls to avoid "is not a function" TypeErrors.
+            try {
+                if (sap && sap.ushell && sap.ushell.Container) {
+                    if (typeof sap.ushell.Container.attachNavigatedEvent === 'function') {
+                        sap.ushell.Container.attachNavigatedEvent(this._onNavigated.bind(this));
+                    } else {
+                        // Fallback: log and continue. In a real FLP environment you'd use the EventHub or ShellNavigation service.
+                        console.warn("sap.ushell.Container.attachNavigatedEvent is not available in this environment");
+                    }
 
-            // Listen to logout events
-            sap.ushell.Container.attachLogoutEvent(this._onLogout.bind(this));
+                    if (typeof sap.ushell.Container.attachLogoutEvent === 'function') {
+                        sap.ushell.Container.attachLogoutEvent(this._onLogout.bind(this));
+                    } else if (typeof sap.ushell.Container.attachLogout === 'function') {
+                        // older/newer variants might differ - try alternative name
+                        sap.ushell.Container.attachLogout(this._onLogout.bind(this));
+                    } else {
+                        console.warn("sap.ushell.Container.attachLogoutEvent/attachLogout is not available in this environment");
+                    }
+                }
+            } catch (e) {
+                // Defensive: don't break the whole plugin when running in environments without full ushell support
+                console.warn("Error while subscribing to ushell events:", e);
+            }
         },
 
         /**
@@ -607,7 +627,8 @@ sap.ui.define([
                 this._helpDialog.destroy();
             }
 
-            Component.prototype.destroy.apply(this, arguments);
+            // Call parent destroy
+            UIComponent.prototype.destroy.apply(this, arguments);
         }
     });
 });

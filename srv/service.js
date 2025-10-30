@@ -170,23 +170,16 @@ module.exports = cds.service.impl(async function () {
      * Optimize READ queries for large entities
      */
     this.before('READ', 'Analyses', (req) => {
-        // Apply default field selection if not specified
-        if (!req.query.SELECT.columns || req.query.SELECT.columns.includes('*')) {
-            req.query.SELECT.columns = [
-                'ID', 'ricefwId', 'objectType_typeCode', 'objectDescription',
-                'recommendedLevel_levelCode', 'technicalDebtScore', 'cloudReadinessScore',
-                'upgradeImpactScore', 'compositeHealthScore', 'status', 'analysisDate',
-                'createdAt', 'createdBy', 'modifiedAt', 'modifiedBy'
-            ];
-            LOG.debug('Applied optimized column selection for Analyses');
-        }
-        
-        // Limit page size
-        if (!req.query.SELECT.limit) {
-            req.query.SELECT.limit = { rows: { val: 50 } };
+        const sel = req.query?.SELECT;
+        if (!sel) return;
+
+        // Do not override columns for either entity or collection reads; let CAP infer
+        // Only enforce safe pagination defaults
+        if (!sel.limit) {
+            sel.limit = { rows: { val: 50 } };
             LOG.debug('Applied default pagination (50 rows) for Analyses');
-        } else if (req.query.SELECT.limit.rows.val > 1000) {
-            req.query.SELECT.limit.rows.val = 1000;
+        } else if (sel.limit?.rows?.val > 1000) {
+            sel.limit.rows.val = 1000;
             LOG.warn('Page size capped at 1000 for Analyses');
         }
     });
@@ -246,16 +239,18 @@ module.exports = cds.service.impl(async function () {
         // For SolutionArchitect and Developer roles, filter by ownership
         const currentUserId = req.user.id;
         
-        // Add ownership filter to the query
+        // Add ownership filter to the query using CQN array syntax
         if (req.query && req.query.SELECT) {
-            const { where } = req.query.SELECT;
-            const ownershipFilter = { createdBy: currentUserId };
-            
-            if (where) {
-                // Combine existing filters with ownership filter
-                req.query.SELECT.where = [where, 'and', ownershipFilter];
+            const sel = req.query.SELECT;
+            const own = [{ ref: ['createdBy'] }, '=', { val: currentUserId }];
+
+            if (Array.isArray(sel.where) && sel.where.length > 0) {
+                sel.where = ['(', ...sel.where, ')', 'and', ...own];
+            } else if (sel.where) {
+                // If where is not array (shouldn't happen), wrap it defensively
+                sel.where = ['(', sel.where, ')', 'and', ...own];
             } else {
-                req.query.SELECT.where = ownershipFilter;
+                sel.where = own;
             }
         }
     });

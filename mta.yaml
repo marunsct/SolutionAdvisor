@@ -18,6 +18,8 @@ modules:
   parameters:
     buildpack: nodejs_buildpack
     instances: 1
+    memory: 512M
+    disk-quota: 1024M
   build-parameters:
     builder: npm-ci
 - name: SolutionAdvisor-db-deployer
@@ -31,11 +33,26 @@ modules:
   type: approuter.nodejs
   path: app
   requires:
-  - name: SolutionAdvisor_html_repo_runtime
+  - name: srv-api
+    group: destinations
+    properties:
+      name: srv-api
+      url: ~{srv-url}
+      forwardAuthToken: true
   - name: SolutionAdvisor-auth
+  - name: SolutionAdvisor_html_repo_runtime
+  - name: SolutionAdvisor-dest
+    group: destinations
+    properties:
+      forwardAuthToken: false
+      name: ui5
+      url: https://ui5.sap.com
   parameters:
-    disk-quota: 1024M
-    memory: 1024M
+    buildpack: nodejs_buildpack
+    disk-quota: 512M
+    memory: 512M
+  build-parameters:
+    builder: npm-ci
 - name: SolutionAdvisor_ui_deployer
   type: com.sap.application.content
   path: .
@@ -43,6 +60,23 @@ modules:
   - name: SolutionAdvisor_html_repo_host
     parameters:
       content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - name: solutionadvisor
+      artifacts:
+      - solutionadvisor.zip
+      target-path: resources/
+- name: solutionadvisor
+  type: html5
+  path: app/solutionadvisor
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
 resources:
 - name: SolutionAdvisor-auth
   type: org.cloudfoundry.managed-service
@@ -72,13 +106,27 @@ resources:
   type: org.cloudfoundry.existing-service
   parameters:
     service-name: SolutionAdvisor-alerts
-- name: SolutionAdvisor-logging
+- name: SolutionAdvisor-dest
   type: org.cloudfoundry.managed-service
   parameters:
-    service: application-logs
-    service-plan: lite
     config:
-      retention-period: 7
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-plan: lite
+- name: SolutionAdvisor-logging
+  type: org.cloudfoundry.existing-service
+  parameters:
+    service-name: SolutionAdvisor-logging
 parameters:
   enable-parallel-deployments: true
 build-parameters:

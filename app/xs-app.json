@@ -1,12 +1,12 @@
 {
-  "welcomeFile": "/app/solutionadvisor/webapp/index.html",
+  "welcomeFile": "/solutionadvisor/index.html",
   "authenticationMethod": "route",
   "sessionTimeout": 60,
   "routes": [
     {
       "source": "^/service/(.*)$",
-      "target": "$1",
-      "destination": "solutionadvisor-backend",
+      "target": "/service/$1",
+      "destination": "srv-api",
       "authenticationType": "xsuaa",
       "csrfProtection": true
     },
@@ -23,27 +23,13 @@
       "service": "sap-approuter-userapi"
     },
     {
-      "source": "^/resources/(.*)$",
-      "target": "/resources/$1",
-      "authenticationType": "none",
-      "destination": "ui5"
-    },
-    {
-      "source": "^/test-resources/(.*)$",
-      "target": "/test-resources/$1",
-      "authenticationType": "none",
-      "destination": "ui5"
-    },
-    {
-      "source": "^(.*)$",
+      "source": "^/(.*)$",
       "target": "$1",
       "localDir": ".",
-      "authenticationType": "xsuaa",
-      "csrfProtection": false
+      "authenticationType": "xsuaa"
     }
   ],
   "logout": {
-    "logoutEndpoint": "/do/logout",
-    "logoutPage": "/app/solutionadvisor/index.html"
+    "logoutEndpoint": "/do/logout"
   }
 }

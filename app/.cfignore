@@ -1,0 +1,9 @@
+.git/
+.vscode/
+*.log
+*.md
+test/
+tests/
+coverage/
+.DS_Store
+package-lock.json

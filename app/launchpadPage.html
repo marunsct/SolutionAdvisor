@@ -12,9 +12,6 @@
                 "bootstrapPlugins": {
                     "ShellPlugin": {
                         "component": "sd.solutionadvisor.shellplugin"
-                    },
-                    "NotificationPlugin": {
-                        "component": "sap.ushell.plugins.notifications"
                     }
                 },
                 "renderers": {
@@ -46,92 +43,62 @@
                                     "tiles": [
                                         {
                                             "id": "wizard-tile",
-                                            "title": "Start New Analysis",
-                                            "subtitle": "Guided wizard for RICEFW analysis",
-                                            "icon": "sap-icon://action",
-                                            "info": "Quick Start",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
                                             "size": "1x1",
-                                            "keywords": ["wizard", "analysis", "ricefw"],
-                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
-                                            "componentName": "sd.solutionadvisor.tiles",
                                             "properties": {
-                                                "viewName": "WizardTile",
-                                                "target": {
-                                                    "semanticObject": "SolutionAdvisor",
-                                                    "action": "wizard"
-                                                }
+                                                "title": "Start New Analysis",
+                                                "subtitle": "Guided wizard for RICEFW analysis",
+                                                "icon": "sap-icon://action",
+                                                "info": "Quick Start",
+                                                "targetURL": "#SolutionAdvisor-wizard"
                                             }
                                         },
                                         {
                                             "id": "projects-tile",
-                                            "title": "My Projects",
-                                            "subtitle": "S/4HANA implementation projects",
-                                            "icon": "sap-icon://folder",
-                                            "info": "Manage",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
                                             "size": "1x1",
-                                            "keywords": ["projects", "s4hana"],
-                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
-                                            "componentName": "sd.solutionadvisor.tiles",
                                             "properties": {
-                                                "viewName": "ProjectsTile",
-                                                "target": {
-                                                    "semanticObject": "SolutionAdvisor",
-                                                    "action": "projects"
-                                                }
+                                                "title": "My Projects",
+                                                "subtitle": "S/4HANA implementation projects",
+                                                "icon": "sap-icon://folder",
+                                                "info": "Manage",
+                                                "targetURL": "#SolutionAdvisor-projects"
                                             }
                                         },
                                         {
                                             "id": "analytics-tile",
-                                            "title": "Analytics Dashboard",
-                                            "subtitle": "Clean core metrics and trends",
-                                            "icon": "sap-icon://bar-chart",
-                                            "info": "Dashboard",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
                                             "size": "1x2",
-                                            "keywords": ["analytics", "dashboard", "metrics"],
-                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
-                                            "componentName": "sd.solutionadvisor.tiles",
                                             "properties": {
-                                                "viewName": "AnalyticsTile",
-                                                "target": {
-                                                    "semanticObject": "SolutionAdvisor",
-                                                    "action": "analytics"
-                                                }
+                                                "title": "Analytics Dashboard",
+                                                "subtitle": "Clean core metrics and trends",
+                                                "icon": "sap-icon://bar-chart",
+                                                "info": "Dashboard",
+                                                "targetURL": "#SolutionAdvisor-analytics"
                                             }
                                         },
                                         {
                                             "id": "analyses-tile",
-                                            "title": "All Analyses",
-                                            "subtitle": "RICEFW object analyses",
-                                            "icon": "sap-icon://list",
-                                            "info": "Browse",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
                                             "size": "1x1",
-                                            "keywords": ["analyses", "ricefw", "list"],
-                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
-                                            "componentName": "sd.solutionadvisor.tiles",
                                             "properties": {
-                                                "viewName": "AnalysesTile",
-                                                "target": {
-                                                    "semanticObject": "SolutionAdvisor",
-                                                    "action": "analyses"
-                                                }
+                                                "title": "All Analyses",
+                                                "subtitle": "RICEFW object analyses",
+                                                "icon": "sap-icon://list",
+                                                "info": "Browse",
+                                                "targetURL": "#SolutionAdvisor-analyses"
                                             }
                                         },
                                         {
                                             "id": "admin-tile",
-                                            "title": "Administration",
-                                            "subtitle": "Master data and configuration",
-                                            "icon": "sap-icon://settings",
-                                            "info": "Configure",
+                                            "tileType": "sap.ushell.ui.tile.StaticTile",
                                             "size": "1x1",
-                                            "keywords": ["admin", "configuration"],
-                                            "serviceUrl": "/service/SolutionAdvisorSvcs/",
-                                            "componentName": "sd.solutionadvisor.tiles",
                                             "properties": {
-                                                "viewName": "AdminTile",
-                                                "target": {
-                                                    "semanticObject": "SolutionAdvisor",
-                                                    "action": "admin"
-                                                }
+                                                "title": "Administration",
+                                                "subtitle": "Master data and configuration",
+                                                "icon": "sap-icon://settings",
+                                                "info": "Configure",
+                                                "targetURL": "#SolutionAdvisor-admin"
                                             }
                                         }
                                     ]
@@ -272,7 +239,8 @@
                     },
                     "Notifications": {
                         "config": {
-                            "enabled": true,
+                            // Disabled while developing locally to avoid failed OData calls
+                            "enabled": false,
                             "serviceUrl": "/service/SolutionAdvisorSvcs/Notifications",
                             "pollingIntervalInSeconds": 30
                         }

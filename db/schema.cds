@@ -482,6 +482,7 @@ entity UserNotifications : cuid, managed {
 define view CV_ANALYSIS_AGGREGATES as
     select from CleanCoreAnalysis {
         // Dimensions (Primary Key)
+        key  ID,
         key tenant,
         key projectConfig.ID                             as project_ID,
         key objectType                                   as objectType_typeCode,
@@ -520,6 +521,7 @@ define view CV_ANALYSIS_AGGREGATES as
                                                      as countCriticalRisk     : Integer
     }
     group by
+        ID,
         tenant,
         projectConfig.ID,
         objectType,
@@ -537,6 +539,7 @@ define view CV_ANALYSIS_AGGREGATES as
 @cds.persistence.skip: false
 define view CV_RICEFW_DISTRIBUTION as
     select from CleanCoreAnalysis {
+        key  ID,
         // Dimensions (Primary Key)
         key tenant,
         key objectType                                   as objectType_typeCode,
@@ -571,6 +574,7 @@ define view CV_RICEFW_DISTRIBUTION as
                                                      as countLevelD           : Integer
     }
     group by
+        ID,
         tenant,
         objectType,
         objectName,
@@ -587,6 +591,7 @@ define view CV_RICEFW_DISTRIBUTION as
 @cds.persistence.skip: false
 define view CV_TREND_ANALYSIS as
     select from CleanCoreAnalysis {
+        key  ID,
         // Dimensions (Primary Key)
         key tenant,
         key projectConfig.ID                             as project_ID,
@@ -629,6 +634,7 @@ define view CV_TREND_ANALYSIS as
                                                      as countHighRisk         : Integer
     }
     group by
+        ID,
         tenant,
         projectConfig.ID,
         analysisDate,

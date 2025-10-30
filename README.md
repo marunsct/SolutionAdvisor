@@ -179,3 +179,5 @@ cf service-key SolutionAdvisor-auth local-key
 
 **Maintained by**: Solution Advisor Development Team  
 **Last Updated**: 2025-01-XX
+
+ "service": "html5-apps-repo-rt",
