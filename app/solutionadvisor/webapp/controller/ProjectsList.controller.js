@@ -46,17 +46,21 @@ sap.ui.define([
             });
             this.getView().setModel(oProjectModel, "projectModel");
             
-            // Load counts when model is available
-            const oModel = this.getView().getModel();
-            if (oModel) {
-                if (oModel.getMetadata && oModel.getMetadata()) {
-                    // Model metadata already loaded
-                    this._loadCounts();
-                } else {
-                    // Wait for metadata to load
-                    oModel.attachMetadataLoaded(() => {
-                        this._loadCounts();
-                    });
+            // Attach to route matched to ensure model is loaded and refresh counts
+            const oRouter = this.getOwnerComponent().getRouter();
+            oRouter.getRoute("ProjectsList").attachPatternMatched(this._onRouteMatched, this);
+        },
+        
+        _onRouteMatched() {
+            // Load counts when route is matched (model is guaranteed to be available)
+            this._loadCounts();
+            
+            // Refresh table binding to get latest data
+            const oTable = this.byId("projectsTable");
+            if (oTable) {
+                const oBinding = oTable.getBinding("items");
+                if (oBinding) {
+                    oBinding.refresh();
                 }
             }
         },

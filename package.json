@@ -67,7 +67,8 @@
     "test:db-benchmark": "node test/performance/db-benchmark.js",
     "test:load": "k6 run test/performance/load-test.js",
     "test:stress": "k6 run test/performance/stress-test.js",
-    "cflogin": "cf login -a https://api.cf.us10-001.hana.ondemand.com -u arun.muthukumarasamy@jp.ey.com -o 14ace10ftrial -s dev"
+    "cflogin": "cf login -a https://api.cf.us10-001.hana.ondemand.com -u arun.muthukumarasamy@jp.ey.com -o 14ace10ftrial -s dev",
+    "cftarget": "cf target -o 14ace10ftrial -s dev"
   },
   "private": true,
   "cds": {

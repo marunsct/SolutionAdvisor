@@ -46,6 +46,9 @@ sap.ui.define([
             
             // Initialize shell services (notifications, search, theme)
             this._initShellServices();
+            
+            // Set up automatic model refresh on navigation
+            this._setupModelRefresh();
         },
         
         /**
@@ -140,6 +143,71 @@ sap.ui.define([
          */
         getThemeService() {
             return this._oThemeService;
+        },
+        
+        /**
+         * Set up automatic model refresh on navigation and visibility changes
+         * @private
+         */
+        _setupModelRefresh() {
+            const oRouter = this.getRouter();
+            const oModel = this.getModel();
+            
+            if (!oModel) {
+                return;
+            }
+            
+            // Refresh model data on every route matched
+            oRouter.attachRouteMatched(() => {
+                this._refreshModel();
+            });
+            
+            // Refresh when browser tab becomes visible (user switches back to the tab)
+            document.addEventListener("visibilitychange", () => {
+                if (!document.hidden) {
+                    this._refreshModel();
+                }
+            });
+            
+            if (sap.base && sap.base.Log) {
+                sap.base.Log.info("Component: Automatic model refresh enabled");
+            }
+        },
+        
+        /**
+         * Refresh OData model by resetting cached data
+         * @private
+         */
+        _refreshModel() {
+            const oModel = this.getModel();
+            
+            if (!oModel) {
+                return;
+            }
+            
+            // For OData V4: refresh all bindings to force data reload
+            try {
+                // Method 1: Reset model changes (clears client-side cache)
+                if (oModel.resetChanges) {
+                    oModel.resetChanges();
+                }
+                
+                // Method 2: Refresh all active bindings
+                const aBindings = oModel.aBindings || [];
+                aBindings.forEach((oBinding) => {
+                    if (oBinding && oBinding.refresh && typeof oBinding.refresh === 'function') {
+                        oBinding.refresh();
+                    }
+                });
+                
+                if (sap.base && sap.base.Log) {
+                    sap.base.Log.debug("Component: Model refreshed - " + aBindings.length + " bindings updated");
+                }
+            } catch (error) {
+                if (sap.base && sap.base.Log) {
+                    sap.base.Log.warning("Component: Model refresh failed: " + error.message);
+                }
+            }
         }
     });
 });

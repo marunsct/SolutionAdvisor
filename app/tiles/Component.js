@@ -107,6 +107,9 @@ sap.ui.define([
                 this._loadMockData();
                 return;
             }
+            
+            // Force refresh of model bindings before loading data
+            this._refreshModelBindings();
 
             // Load all KPIs in parallel
             Promise.all([
@@ -121,6 +124,29 @@ sap.ui.define([
                 console.error("Failed to load KPI data:", oError);
                 this._loadMockData();
             });
+        },
+        
+        /**
+         * Force refresh of all model bindings to get fresh data
+         * @private
+         */
+        _refreshModelBindings: function () {
+            const oModel = this.getModel();
+            if (!oModel) {
+                return;
+            }
+            
+            try {
+                // For OData V4: refresh all bindings
+                const aBindings = oModel.aBindings || [];
+                aBindings.forEach((oBinding) => {
+                    if (oBinding && oBinding.refresh && typeof oBinding.refresh === 'function') {
+                        oBinding.refresh();
+                    }
+                });
+            } catch (error) {
+                console.warn("Failed to refresh model bindings:", error);
+            }
         },
 
         /**

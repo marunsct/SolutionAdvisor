@@ -2,6 +2,9 @@
 <html>
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{{appTitle}}</title>
@@ -11,7 +14,10 @@
                 "defaultRenderer": "fiori2",
                 "bootstrapPlugins": {
                     "ShellPlugin": {
-                        "component": "sd.solutionadvisor.shellplugin"
+                        "component": "sd.solutionadvisor.shellplugin",
+                        "config": {
+                            "appState": "lean"
+                        }
                     }
                 },
                 "renderers": {
@@ -44,7 +50,6 @@
                                         {
                                             "id": "wizard-tile",
                                             "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "size": "1x1",
                                             "properties": {
                                                 "title": "Start New Analysis",
                                                 "subtitle": "Guided wizard for RICEFW analysis",
@@ -56,7 +61,6 @@
                                         {
                                             "id": "projects-tile",
                                             "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "size": "1x1",
                                             "properties": {
                                                 "title": "My Projects",
                                                 "subtitle": "S/4HANA implementation projects",
@@ -68,7 +72,6 @@
                                         {
                                             "id": "analytics-tile",
                                             "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "size": "1x2",
                                             "properties": {
                                                 "title": "Analytics Dashboard",
                                                 "subtitle": "Clean core metrics and trends",
@@ -80,7 +83,6 @@
                                         {
                                             "id": "analyses-tile",
                                             "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "size": "1x1",
                                             "properties": {
                                                 "title": "All Analyses",
                                                 "subtitle": "RICEFW object analyses",
@@ -92,7 +94,6 @@
                                         {
                                             "id": "admin-tile",
                                             "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "size": "1x1",
                                             "properties": {
                                                 "title": "Administration",
                                                 "subtitle": "Master data and configuration",
@@ -110,22 +111,10 @@
                                     "isVisible": true,
                                     "isDefaultGroup": true,
                                     "tiles": [
-                                        {
-                                            "id": "wizard-tile",
-                                            "catalogId": "sd_solutionadvisor_catalog"
-                                        },
-                                        {
-                                            "id": "projects-tile",
-                                            "catalogId": "sd_solutionadvisor_catalog"
-                                        },
-                                        {
-                                            "id": "analytics-tile",
-                                            "catalogId": "sd_solutionadvisor_catalog"
-                                        },
-                                        {
-                                            "id": "analyses-tile",
-                                            "catalogId": "sd_solutionadvisor_catalog"
-                                        }
+                                        { "id": "wizard-tile", "catalogId": "sd_solutionadvisor_catalog" },
+                                        { "id": "projects-tile", "catalogId": "sd_solutionadvisor_catalog" },
+                                        { "id": "analytics-tile", "catalogId": "sd_solutionadvisor_catalog" },
+                                        { "id": "analyses-tile", "catalogId": "sd_solutionadvisor_catalog" }
                                     ]
                                 }, {
                                     "id": "sd_admin_group",
@@ -133,10 +122,7 @@
                                     "isPreset": false,
                                     "isVisible": true,
                                     "tiles": [
-                                        {
-                                            "id": "admin-tile",
-                                            "catalogId": "sd_solutionadvisor_catalog"
-                                        }
+                                        { "id": "admin-tile", "catalogId": "sd_solutionadvisor_catalog" }
                                     ]
                                 }]
                             }
@@ -267,7 +253,156 @@
         <script>
             sap.ui.getCore().attachInit(function() {
                 sap.ushell.Container.createRenderer("fiori2", true).then(function(oRenderer) {
-                  oRenderer.placeAt('content');
+                    oRenderer.placeAt('content');
+                    
+                    // Initialize user info and language from XSUAA token
+                    console.log("Initializing user context and language settings...");
+                    
+                    // Get user info from XSUAA (available after authentication)
+                    if (sap.ushell && sap.ushell.Container) {
+                        sap.ushell.Container.getServiceAsync("UserInfo").then(function(oUserInfoService) {
+                            var sUserName = oUserInfoService.getUser().getFullName() || "Default User";
+                            var sEmail = oUserInfoService.getUser().getEmail() || "";
+                            console.log("Logged in user:", sUserName, sEmail);
+                            
+                            // Store user info globally for access in shell plugin
+                            window.sapUshellUserContext = {
+                                name: sUserName,
+                                email: sEmail,
+                                roles: [] // Will be populated from token scopes
+                            };
+                        }).catch(function(e) {
+                            console.warn("UserInfo service not available:", e);
+                        });
+                    }
+                    
+                    // Set up language configuration
+                    var aSupportedLanguages = ['en', 'de', 'fr', 'es', 'it', 'pt', 'ja'];
+                    var sCurrentLanguage = sap.ui.getCore().getConfiguration().getLanguage();
+                    console.log("Current language:", sCurrentLanguage, "Supported:", aSupportedLanguages);
+                    
+                    // Debug: Check if tiles are being created
+                    setTimeout(function() {
+                        console.log("=== TILE DEBUG ===");
+                        var aTiles = document.querySelectorAll('.sapUshellTile');
+                        console.log("Found tiles:", aTiles.length);
+                        aTiles.forEach(function(tile, index) {
+                            console.log("Tile " + index + ":", tile.querySelector('.sapMGTTitle')?.textContent);
+                        });
+                        
+                        // Check if tiles have "No TileType defined!" error
+                        var aErrorTiles = Array.from(aTiles).filter(function(tile) {
+                            return tile.textContent.includes("No TileType defined!");
+                        });
+                        
+                        if (aErrorTiles.length > 0) {
+                            console.error("ERROR: " + aErrorTiles.length + " tiles failed to load!");
+                            console.log("Tile configuration issue detected. Attempting manual tile creation...");
+                            
+                            // Manual tile creation as fallback
+                            try {
+                                sap.ui.require([
+                                    "sap/m/GenericTile",
+                                    "sap/m/TileContent",
+                                    "sap/m/NumericContent",
+                                    "sap/m/library"
+                                ], function(GenericTile, TileContent, NumericContent, mobileLibrary) {
+                                    console.log("UI5 modules loaded successfully");
+                                    var FrameType = mobileLibrary.FrameType;
+                                    
+                                    var aTileConfigs = [
+                                        {
+                                            header: "Start New Analysis",
+                                            subheader: "Guided wizard for RICEFW analysis",
+                                            frameType: FrameType.OneByOne,
+                                            press: function() { window.location.hash = "SolutionAdvisor-wizard"; }
+                                        },
+                                        {
+                                            header: "My Projects",
+                                            subheader: "S/4HANA implementation projects",
+                                            frameType: FrameType.OneByOne,
+                                            press: function() { window.location.hash = "SolutionAdvisor-projects"; }
+                                        },
+                                        {
+                                            header: "Analytics Dashboard",
+                                            subheader: "Clean core metrics and trends",
+                                            frameType: FrameType.OneByOne,
+                                            press: function() { window.location.hash = "SolutionAdvisor-analytics"; }
+                                        },
+                                        {
+                                            header: "All Analyses",
+                                            subheader: "RICEFW object analyses",
+                                            frameType: FrameType.OneByOne,
+                                            press: function() { window.location.hash = "SolutionAdvisor-analyses"; }
+                                        },
+                                        {
+                                            header: "Administration",
+                                            subheader: "Master data and configuration",
+                                            frameType: FrameType.OneByOne,
+                                            press: function() { window.location.hash = "SolutionAdvisor-admin"; }
+                                        }
+                                    ];
+                                    
+                                    var aTileContainers = document.querySelectorAll('.sapUshellTilesContainer-sortable');
+                                    console.log("Tile containers found:", aTileContainers.length);
+                                    
+                                    if (aTileContainers.length > 0) {
+                                        // Clear all error tiles in all containers
+                                        aTileContainers.forEach(function(container) {
+                                            container.innerHTML = '';
+                                        });
+                                        console.log("Cleared error tiles in all containers");
+                                        
+                                        // Add first 4 tiles to "My Home" group
+                                        var oFirstContainer = aTileContainers[0];
+                                        for (var i = 0; i < 4; i++) {
+                                            var config = aTileConfigs[i];
+                                            console.log("Creating tile " + i + " in My Home:", config.header);
+                                            var oTile = new GenericTile({
+                                                header: config.header,
+                                                subheader: config.subheader,
+                                                frameType: config.frameType,
+                                                press: config.press
+                                            });
+                                            
+                                            var oLi = document.createElement('li');
+                                            oLi.className = 'sapUshellTile';
+                                            oFirstContainer.appendChild(oLi);
+                                            oTile.placeAt(oLi);
+                                        }
+                                        
+                                        // Add Admin tile to "Administration" group
+                                        if (aTileContainers.length > 1) {
+                                            var oAdminContainer = aTileContainers[1];
+                                            var adminConfig = aTileConfigs[4];
+                                            console.log("Creating Admin tile in Administration group");
+                                            var oAdminTile = new GenericTile({
+                                                header: adminConfig.header,
+                                                subheader: adminConfig.subheader,
+                                                frameType: adminConfig.frameType,
+                                                press: adminConfig.press
+                                            });
+                                            
+                                            var oAdminLi = document.createElement('li');
+                                            oAdminLi.className = 'sapUshellTile';
+                                            oAdminContainer.appendChild(oAdminLi);
+                                            oAdminTile.placeAt(oAdminLi);
+                                        }
+                                        
+                                        console.log("Manual tiles created successfully");
+                                    } else {
+                                        console.error("Tile containers not found!");
+                                    }
+                                }, function(oError) {
+                                    console.error("Failed to load UI5 modules:", oError);
+                                });
+                            } catch (e) {
+                                console.error("Exception during manual tile creation:", e);
+                            }
+                        } else {
+                            console.log("All tiles loaded successfully");
+                        }
+                    }, 2000);
                 });
             });
         </script>

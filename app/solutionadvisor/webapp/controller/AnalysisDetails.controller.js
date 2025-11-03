@@ -37,8 +37,9 @@ sap.ui.define([
         _onObjectMatched(oEvent) {
             const sAnalysisId = oEvent.getParameter("arguments").key;
             
-            // Reset flowchart generation flag on new analysis
+            // Reset flowchart generation flag and clear existing flowchart
             this._flowchartGenerated = false;
+            this._clearFlowchart();
             
             // Check if we're in mock mode and the ID starts with "mock-"
             if (this.getOwnerComponent().mockAnalysisService && sAnalysisId.startsWith("mock-")) {
@@ -55,15 +56,33 @@ sap.ui.define([
                     model: "mockAnalysis"
                 });
                 
-                // Don't auto-generate; wait for tab selection
+                // If flowchart tab is active, regenerate after data is loaded
+                setTimeout(() => {
+                    const oIconTabBar = this.byId("analysisDetails_IconTabBar");
+                    if (oIconTabBar && oIconTabBar.getSelectedKey() === "flowchart") {
+                        this._generateFlowchart();
+                        this._flowchartGenerated = true;
+                    }
+                }, 300);
             } else {
                 // Real backend data
                 this.getView().bindElement({
                     path: this._getAnalysisKeyPath(sAnalysisId),
                     parameters: {
                         $expand: "projectConfig,decisionPaths"
+                    },
+                    events: {
+                        dataReceived: () => {
+                            // Check if flowchart tab is active after data is loaded
+                            const oIconTabBar = this.byId("analysisDetails_IconTabBar");
+                            if (oIconTabBar && oIconTabBar.getSelectedKey() === "flowchart") {
+                                setTimeout(() => {
+                                    this._generateFlowchart();
+                                    this._flowchartGenerated = true;
+                                }, 300);
+                            }
+                        }
                     }
-                    // Don't auto-generate on dataReceived; container may not exist yet
                     // flowchart will be generated when the flowchart tab is selected
                 });
             }
@@ -140,9 +159,12 @@ sap.ui.define([
         
         _onTabSelect(oEvent) {
             const sKey = oEvent.getParameter("key");
-            if (sKey === "flowchart" && !this._flowchartGenerated) {
-                // Generate flowchart when tab is selected (container is now in DOM)
-                // Use longer timeout to ensure IconTabBar has rendered the tab content
+            if (sKey === "flowchart") {
+                // Always clear and regenerate flowchart when tab is selected
+                // This ensures fresh visualization when switching between analyses
+                this._clearFlowchart();
+                
+                // Use timeout to ensure IconTabBar has rendered the tab content
                 setTimeout(() => {
                     this._generateFlowchart();
                     this._flowchartGenerated = true;
@@ -487,6 +509,22 @@ sap.ui.define([
                 // Reset changes on error
                 oModel.resetChanges();
             });
+        },
+        
+        /**
+         * Clear the existing flowchart visualization
+         * @private
+         */
+        _clearFlowchart() {
+            const oContainer = document.getElementById("flowchartSvgContainer");
+            if (oContainer) {
+                // Remove all child elements (SVG, canvas, etc.)
+                while (oContainer.firstChild) {
+                    oContainer.removeChild(oContainer.firstChild);
+                }
+            }
+            // Clear reference to current SVG
+            this._currentSvg = null;
         },
         
         _generateFlowchart(oMockData) {

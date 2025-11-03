@@ -3,9 +3,12 @@ sap.ui.define([
     "sap/ui/core/IconPool",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/ui/model/json/JSONModel"
-], function (UIComponent, IconPool, MessageToast, MessageBox, JSONModel) {
+    "sap/ui/model/json/JSONModel",
+    "sap/base/Log"
+], function (UIComponent, IconPool, MessageToast, MessageBox, JSONModel, Log) {
     "use strict";
+
+    Log.info("Shell Plugin Component.js: Module loaded");
 
     /**
      * Shell Plugin Component for SAP Clean Core Solution Advisor
@@ -25,9 +28,11 @@ sap.ui.define([
          * Initialize the shell plugin
          */
         init: function () {
+            Log.info("Shell Plugin: init() called");
             // Call parent init - UIComponent handles manifest loading
             UIComponent.prototype.init.apply(this, arguments);
 
+            Log.info("Shell Plugin: Parent init complete, starting plugin initialization");
             // Get the shell renderer
             this.oRenderer = sap.ushell.Container.getRenderer("fiori2");
 
@@ -49,7 +54,159 @@ sap.ui.define([
             // Subscribe to shell events
             this._subscribeToEvents();
 
-            console.log("Shell Plugin initialized successfully");
+            Log.info("Shell Plugin initialized successfully");
+
+            // Register tiles programmatically to avoid catalog/loader mismatches in the sandbox
+            // This ensures tiles appear in the Home group regardless of catalog JSON format.
+            // Schedule tile registration asynchronously so init does not return a Promise
+            // and to avoid interfering with renderer/component lifecycle.
+            setTimeout(function () {
+                try {
+                    this._registerTiles();
+                } catch (e) {
+                    Log.warning("Failed to register tiles at init:", e);
+                }
+            }.bind(this), 0);
+            
+            // Explicitly return undefined to satisfy FLP lifecycle enforcement
+            return undefined;
+        },
+
+        /**
+         * Programmatically add tiles to the LaunchPage Home group
+         * Uses the LaunchPage service to add StaticTile entries so the sandbox renders them.
+         */
+        _registerTiles: function () {
+            Log.info("Shell Plugin: _registerTiles called");
+            // Skip LaunchPage insertion - it throws adapter errors in this sandbox variant.
+            // Instead, go directly to renderer fallback which uses standard UI5 controls.
+            var aTiles = [
+                {
+                    tileType: "sap.ushell.ui.tile.StaticTile",
+                    properties: {
+                        title: "Start New Analysis",
+                        subtitle: "Guided wizard for RICEFW analysis",
+                        icon: "sap-icon://action",
+                        info: "Quick Start",
+                        targetURL: "#SolutionAdvisor-wizard"
+                    }
+                },
+                {
+                    tileType: "sap.ushell.ui.tile.StaticTile",
+                    properties: {
+                        title: "My Projects",
+                        subtitle: "S/4HANA implementation projects",
+                        icon: "sap-icon://folder",
+                        info: "Manage",
+                        targetURL: "#SolutionAdvisor-projects"
+                    }
+                },
+                {
+                    tileType: "sap.ushell.ui.tile.StaticTile",
+                    properties: {
+                        title: "Analytics Dashboard",
+                        subtitle: "Clean core metrics and trends",
+                        icon: "sap-icon://bar-chart",
+                        info: "Dashboard",
+                        targetURL: "#SolutionAdvisor-analytics"
+                    }
+                },
+                {
+                    tileType: "sap.ushell.ui.tile.StaticTile",
+                    properties: {
+                        title: "All Analyses",
+                        subtitle: "RICEFW object analyses",
+                        icon: "sap-icon://list",
+                        info: "Browse",
+                        targetURL: "#SolutionAdvisor-analyses"
+                    }
+                },
+                {
+                    tileType: "sap.ushell.ui.tile.StaticTile",
+                    properties: {
+                        title: "Administration",
+                        subtitle: "Master data and configuration",
+                        icon: "sap-icon://settings",
+                        info: "Configure",
+                        targetURL: "#SolutionAdvisor-admin"
+                    }
+                }
+            ];
+
+            // Create renderer fallback tiles immediately
+            Log.info("Shell Plugin: Creating renderer fallback tiles, count:", aTiles.length);
+            this._createRendererFallback(aTiles);
+        },
+
+        /**
+         * Create a visual fallback by rendering a TileContainer with GenericTile items
+         * inside a DIV appended to the Launchpad content. This does not integrate with
+         * the LaunchPage model but provides a usable UI when adapter insertion fails.
+         */
+        _createRendererFallback: function (aTiles) {
+            Log.info("Shell Plugin: _createRendererFallback called with", aTiles.length, "tiles");
+            try {
+                // Avoid requiring heavy modules synchronously; use sap.ui.require
+                sap.ui.require(["sap/m/TileContainer", "sap/m/GenericTile", "sap/m/TileContent", "sap/m/NumericContent"], function (TileContainer, GenericTile, TileContent, NumericContent) {
+                    Log.info("Shell Plugin: UI5 controls loaded, creating tiles");
+                    try {
+                        // Create container div if not present
+                        var sDivId = "sd-custom-tiles";
+                        if (!document.getElementById(sDivId)) {
+                            var oDiv = document.createElement('div');
+                            oDiv.id = sDivId;
+                            // Insert at top of content area
+                            var oContent = document.getElementById('content') || document.body;
+                            oContent.insertBefore(oDiv, oContent.firstChild);
+                        }
+
+                        var oTileContainer = new TileContainer({
+                            width: "100%",
+                            tiles: aTiles.map(function (oTile) {
+                                var props = oTile.properties || {};
+                                return new GenericTile({
+                                    header: props.title || "",
+                                    subheader: props.subtitle || "",
+                                    headerImage: props.icon || "",
+                                    frameType: "OneByOne",
+                                    press: function () {
+                                        try {
+                                            // Navigate using CrossApplicationNavigation if available
+                                            if (sap && sap.ushell && sap.ushell.Container && sap.ushell.Container.getServiceAsync) {
+                                                sap.ushell.Container.getServiceAsync('CrossApplicationNavigation').then(function (oService) {
+                                                    if (props.targetURL) {
+                                                        // targetURL is a shell hash like #SolutionAdvisor-wizard
+                                                        oService.toExternal({ target: { shellHash: props.targetURL.replace(/^#/, '') } });
+                                                    }
+                                                });
+                                            }
+                                        } catch (e) {
+                                            Log.warning('Fallback tile navigation failed', e);
+                                        }
+                                    },
+                                    tileContent: [new TileContent({
+                                        footer: props.info || "",
+                                        content: new NumericContent({
+                                            value: "",
+                                            scale: "",
+                                            withMargin: false,
+                                            icon: props.icon || ""
+                                        })
+                                    })]
+                                });
+                            })
+                        });
+
+                        oTileContainer.placeAt(sDivId);
+                        Log.info("Shell Plugin: TileContainer created and placed in DOM, ID:", sDivId);
+                    } catch (e) {
+                        Log.warning('Failed to render renderer fallback tiles', e);
+                    }
+                });
+            } catch (e) {
+                // Log at debug level so we don't hide useful info while satisfying linters
+                Log.debug('Renderer fallback outer error', e);
+            }
         },
 
         /**
@@ -63,17 +220,64 @@ sap.ui.define([
                 },
                 user: {
                     name: "",
+                    email: "",
                     role: "",
+                    roles: [],
                     lastLogin: null
                 },
                 settings: {
-                    theme: "sap_fiori_3",
-                    language: "en",
+                    theme: "sap_horizon",
+                    language: sap.ui.getCore().getConfiguration().getLanguage() || "en",
                     compactMode: false,
                     autoSave: true
                 }
             });
             this.setModel(oModel, "plugin");
+            
+            // Load real user information from XSUAA
+            this._loadUserInfo();
+        },
+        
+        /**
+         * Load real user information from XSUAA token
+         */
+        _loadUserInfo: function () {
+            const that = this;
+            
+            if (sap.ushell && sap.ushell.Container) {
+                sap.ushell.Container.getServiceAsync("UserInfo").then(function(oUserInfoService) {
+                    const oUser = oUserInfoService.getUser();
+                    const sFullName = oUser.getFullName() || "Default User";
+                    const sEmail = oUser.getEmail() || "";
+                    
+                    // Get user roles/scopes from token
+                    const aScopes = window.sapUshellUserContext?.roles || [];
+                    
+                    that.getModel("plugin").setProperty("/user", {
+                        name: sFullName,
+                        email: sEmail,
+                        role: that._getPrimaryRole(aScopes),
+                        roles: aScopes,
+                        lastLogin: new Date()
+                    });
+                    
+                    Log.info("Shell Plugin: User info loaded:", sFullName, sEmail);
+                }).catch(function(e) {
+                    Log.warning("Shell Plugin: Could not load user info:", e);
+                    // Fallback to default user
+                    that.getModel("plugin").setProperty("/user/name", "Default User");
+                });
+            }
+        },
+        
+        /**
+         * Determine primary role from scopes
+         */
+        _getPrimaryRole: function (aScopes) {
+            if (aScopes.includes("TenantAdmin")) return "Administrator";
+            if (aScopes.includes("SolutionArchitect")) return "Solution Architect";
+            if (aScopes.includes("Developer")) return "Developer/Consultant";
+            return "User";
         },
 
         /**
@@ -244,7 +448,7 @@ sap.ui.define([
                         sap.ushell.Container.attachNavigatedEvent(this._onNavigated.bind(this));
                     } else {
                         // Fallback: log and continue. In a real FLP environment you'd use the EventHub or ShellNavigation service.
-                        console.warn("sap.ushell.Container.attachNavigatedEvent is not available in this environment");
+                        Log.warning("sap.ushell.Container.attachNavigatedEvent is not available in this environment");
                     }
 
                     if (typeof sap.ushell.Container.attachLogoutEvent === 'function') {
@@ -253,12 +457,12 @@ sap.ui.define([
                         // older/newer variants might differ - try alternative name
                         sap.ushell.Container.attachLogout(this._onLogout.bind(this));
                     } else {
-                        console.warn("sap.ushell.Container.attachLogoutEvent/attachLogout is not available in this environment");
+                        Log.warning("sap.ushell.Container.attachLogoutEvent/attachLogout is not available in this environment");
                     }
                 }
             } catch (e) {
                 // Defensive: don't break the whole plugin when running in environments without full ushell support
-                console.warn("Error while subscribing to ushell events:", e);
+                Log.warning("Error while subscribing to ushell events:", e);
             }
         },
 
@@ -473,10 +677,14 @@ sap.ui.define([
                         selectedKey: "{plugin>/settings/language}",
                         items: [
                             new sap.ui.core.Item({ key: "en", text: "English" }),
-                            new sap.ui.core.Item({ key: "de", text: "German" }),
-                            new sap.ui.core.Item({ key: "fr", text: "French" }),
-                            new sap.ui.core.Item({ key: "es", text: "Spanish" })
-                        ]
+                            new sap.ui.core.Item({ key: "de", text: "Deutsch (German)" }),
+                            new sap.ui.core.Item({ key: "fr", text: "Français (French)" }),
+                            new sap.ui.core.Item({ key: "es", text: "Español (Spanish)" }),
+                            new sap.ui.core.Item({ key: "it", text: "Italiano (Italian)" }),
+                            new sap.ui.core.Item({ key: "pt", text: "Português (Portuguese)" }),
+                            new sap.ui.core.Item({ key: "ja", text: "日本語 (Japanese)" })
+                        ],
+                        change: this._onLanguageChange.bind(this)
                     }),
                     new sap.m.CheckBox({
                         text: "Compact Mode",
@@ -523,6 +731,30 @@ sap.ui.define([
                     new sap.m.Text({ text: "© 2024 SAP SE or an SAP affiliate company. All rights reserved." })
                 ]
             });
+        },
+
+        /**
+         * Handle language change
+         */
+        _onLanguageChange: function (oEvent) {
+            const sLanguage = oEvent.getParameter("selectedItem").getKey();
+            const oConfig = sap.ui.getCore().getConfiguration();
+            
+            // Set new language
+            oConfig.setLanguage(sLanguage);
+            
+            // Reload the page to apply language changes
+            MessageBox.confirm(
+                "The application needs to reload to apply the language change. Reload now?",
+                {
+                    title: "Language Change",
+                    onClose: function(sAction) {
+                        if (sAction === MessageBox.Action.OK) {
+                            window.location.reload();
+                        }
+                    }
+                }
+            );
         },
 
         /**
@@ -596,7 +828,7 @@ sap.ui.define([
          * Handle navigation event
          */
         _onNavigated: function (oEvent) {
-            console.log("Navigation event:", oEvent.getParameters());
+            Log.debug("Navigation event:", oEvent.getParameters());
         },
 
         /**
@@ -607,7 +839,7 @@ sap.ui.define([
             if (this.notificationInterval) {
                 clearInterval(this.notificationInterval);
             }
-            console.log("User logged out, cleaning up shell plugin");
+            Log.info("User logged out, cleaning up shell plugin");
         },
 
         /**
