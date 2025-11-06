@@ -1,7 +1,12 @@
-sap.ui.define([], function() {
-  "use strict";
+sap.ui.define([
+    "sap/ui/core/mvc/Controller",
+    "sap/ui/model/json/JSONModel",
+    "sap/m/MessageToast",
+    "sap/base/Log"
+], (Controller, JSONModel, MessageToast, Log) => {
+    "use strict";
 
-  return sap.ui.controller("sd.solutionadvisor.controller.Admin", {
+    return Controller.extend("sd.solutionadvisor.controller.Admin", {
     
     /**
      * Controller initialization
@@ -9,7 +14,7 @@ sap.ui.define([], function() {
      */
     onInit: function() {
       // Initialize view model for admin tiles
-      const oViewModel = new sap.ui.model.json.JSONModel({
+      const oViewModel = new JSONModel({
         tiles: [
           {
             id: "questionFlow",
@@ -55,39 +60,59 @@ sap.ui.define([], function() {
       });
       this.getView().setModel(oViewModel, "adminModel");
       
+      // Attach to route matched to load counts when navigated
+      const oRouter = this.getOwnerComponent().getRouter();
+      oRouter.getRoute("Admin").attachPatternMatched(this._onRouteMatched, this);
+    },
+
+    /**
+     * Route matched handler - loads counts when page is displayed
+     * @private
+     */
+    _onRouteMatched: function() {
       // Load record counts for each entity
       this._loadRecordCounts();
     },
 
     /**
-     * Load record counts for all maintained entities
+     * Load record counts for all master data entities
      * @private
      */
     _loadRecordCounts: function() {
-      const oModel = this.getView().getModel();
-      const aTiles = this.getView().getModel("adminModel").getProperty("/tiles");
+      const oModel = this.getView().getModel("admin");
       
-      // Map tile IDs to entity names
-      const entityMap = {
+      if (!oModel) {
+        Log.warning("Admin OData model not available yet");
+        return;
+      }
+      
+      const oViewModel = this.getView().getModel("adminModel");
+      const entityMapping = {
         questionFlow: "QuestionFlow",
         thresholds: "PerformanceThreshold",
         examples: "RealWorldExample",
         levels: "CleanCoreLevels",
         objectTypes: "ObjectTypes"
       };
-      
+
       // Load counts for each entity
-      aTiles.forEach((tile, index) => {
-        const entityName = entityMap[tile.id];
-        if (entityName) {
-          const oBinding = oModel.bindList(`/${entityName}`);
-          oBinding.requestContexts(0, 0).then(() => {
-            const iCount = oBinding.getLength();
-            this.getView().getModel("adminModel").setProperty(`/tiles/${index}/recordCount`, iCount);
-          }).catch(() => {
-            // Error loading count - silently fail
-          });
-        }
+      Object.keys(entityMapping).forEach((key) => {
+        const entityName = entityMapping[key];
+        const oBinding = oModel.bindList(`/${entityName}`);
+        
+        oBinding.requestContexts(0, 0).then(() => {
+          const iCount = oBinding.getLength();
+          
+          // Update count in admin model
+          const aTiles = oViewModel.getProperty("/tiles");
+          const oTile = aTiles.find(tile => tile.id === key);
+          if (oTile) {
+            oTile.recordCount = iCount;
+            oViewModel.setProperty("/tiles", aTiles);
+          }
+        }).catch((oError) => {
+          Log.error(`Error loading count for ${entityName}:`, oError);
+        });
       });
     },
 
@@ -117,7 +142,7 @@ sap.ui.define([], function() {
      */
     onRefresh: function() {
       this._loadRecordCounts();
-      sap.m.MessageToast.show("Record counts refreshed");
+      MessageToast.show("Record counts refreshed");
     }
   });
 });

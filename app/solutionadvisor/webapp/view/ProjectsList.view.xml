@@ -15,6 +15,13 @@
                 icon="sap-icon://sales-quote"
                 press="onNavigateToAnalytics"
                 type="Emphasized"/>
+            <Button
+                id="adminButton"
+                text="Admin"
+                icon="sap-icon://settings"
+                press="onNavigateToAdmin"
+                tooltip="Master Data Maintenance"
+                visible="{viewModel>/isAdmin}"/>
         </headerContent>
         <content>
             <VBox id="projectsListVBox" class="sapUiSmallMargin">

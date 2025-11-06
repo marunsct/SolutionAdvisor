@@ -1,0 +1,132 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="editQuestionFlowDialog"
+        title="Edit Question Flow"
+        contentWidth="600px"
+        contentHeight="500px"
+        resizable="true"
+        draggable="true">
+
+        <content>
+            <VBox id="editQuestionVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="editQuestionForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="1"
+                    columnsL="1"
+                    columnsM="1"
+                    singleContainerFullSize="false">
+
+                    <form:content>
+
+                    <!-- Question ID (read-only) -->
+                    <Label id="questionIdEditLabel" text="Question ID"/>
+                    <Input
+                        id="questionIdEditInput"
+                        value="{editModel>/questionId}"
+                        editable="false"/>
+
+                    <!-- Object Type -->
+                    <Label id="questionObjectTypeEditLabel" text="Object Type"/>
+                    <ComboBox
+                        id="objectTypeComboEdit"
+                        selectedKey="{editModel>/objectType}">
+                        <items>
+                            <core:Item id="reportsItemEdit" key="Reports" text="Reports"/>
+                            <core:Item id="interfacesItemEdit" key="Interfaces" text="Interfaces"/>
+                            <core:Item id="conversionsItemEdit" key="Conversions" text="Conversions"/>
+                            <core:Item id="enhancementsItemEdit" key="Enhancements" text="Enhancements"/>
+                            <core:Item id="formsItemEdit" key="Forms" text="Forms"/>
+                            <core:Item id="workflowsItemEdit" key="Workflows" text="Workflows"/>
+                        </items>
+                    </ComboBox>
+
+                    <!-- Question Text -->
+                    <Label id="questionTextEditLabel" text="Question Text"/>
+                    <TextArea
+                        id="questionTextEditArea"
+                        value="{editModel>/questionText}"
+                        rows="3"
+                        placeholder="Enter the question to ask users..."/>
+
+                    <!-- Question Hint -->
+                    <Label id="questionHintEditLabel" text="Question Hint"/>
+                    <TextArea
+                        id="questionHintEditArea"
+                        value="{editModel>/questionHint}"
+                        rows="2"
+                        placeholder="Short hint shown near the question"/>
+
+                    <!-- Detailed Hint -->
+                    <Label id="detailedHintEditLabel" text="Detailed Hint"/>
+                    <TextArea
+                        id="detailedHintEditArea"
+                        value="{editModel>/detailedHint}"
+                        rows="2"
+                        placeholder="Provide additional context or guidance..."/>
+
+                    <!-- Answer Count -->
+                    <Label id="answerCountEditLabel" text="Answer Count"/>
+                    <Input
+                        id="answerCountEditInput"
+                        value="{editModel>/answerCount}"/>
+
+                    <!-- Answer Options (JSON) -->
+                    <Label id="answerOptionsEditLabel" text="Answer Options (JSON)"/>
+                    <TextArea
+                        id="answerOptionsEditTextArea"
+                        value="{editModel>/answerOptions}"
+                        rows="4"
+                            placeholder=''/>
+
+                    <!-- Navigation Rules (JSON) -->
+                    <Label id="navigationRulesEditLabel" text="Navigation Rules (JSON)"/>
+                    <TextArea
+                        id="navigationRulesEditTextArea"
+                        value="{editModel>/navigationRules}"
+                        rows="4"
+                            placeholder=''/>
+
+                    <!-- Active -->
+                    <Label id="activeEditLabel" text="Active"/>
+                    <Switch
+                        id="activeEditSwitch"
+                        state="{editModel>/isActive}"
+                        customTextOn="Yes"
+                        customTextOff="No"/>
+
+                </form:content>
+            </form:SimpleForm>
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="editQuestionConfirmButton"
+                text="Save"
+                type="Emphasized"
+                press="onEditConfirm"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="editQuestionCancelButton"
+                text="Cancel"
+                press="onEditCancel"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

@@ -34,19 +34,19 @@
                 
                 <form:content>
                     
-                    <!-- Question Key -->
-                    <Label id="questionKeyLabel" text="Question Key" required="true"/>
+                    <!-- Question ID -->
+                    <Label id="questionIdLabel" text="Question ID" required="true"/>
                     <Input
-                        id="questionKeyInput"
-                        value="{createModel>/questionKey}"
+                        id="questionIdInput"
+                        value="{createModel>/questionId}"
                         placeholder="e.g., Q-INT-001"
                         required="true"
                         valueStateText="Format: Q-XXX-NNN"/>
                     
                     <!-- Object Type -->
                     <Label id="questionObjectTypeLabel" text="Object Type" required="true"/>
-                    <Select
-                        id="objectTypeSelect"
+                    <ComboBox
+                        id="objectTypeComboCreate"
                         selectedKey="{createModel>/objectType}"
                         required="true">
                         <items>
@@ -57,7 +57,7 @@
                             <core:Item id="formsItem" key="F" text="Forms"/>
                             <core:Item id="workflowsItem" key="W" text="Workflows"/>
                         </items>
-                    </Select>
+                    </ComboBox>
                     
                     <!-- Question Text -->
                     <Label id="questionTextLabel" text="Question Text" required="true"/>
@@ -68,48 +68,34 @@
                         placeholder="Enter the question to ask users..."
                         required="true"/>
                     
-                    <!-- Question Category -->
-                    <Label id="categoryLabel" text="Category"/>
-                    <Input
-                        id="categoryInput"
-                        value="{createModel>/questionCategory}"
-                        placeholder="e.g., Volume, Complexity, Integration"/>
-                    
-                    <!-- Answer Type -->
-                    <Label id="answerTypeLabel" text="Answer Type" required="true"/>
-                    <Select
-                        id="answerTypeSelect"
-                        selectedKey="{createModel>/answerType}"
-                        required="true">
-                        <items>
-                            <core:Item id="singleChoiceItem" key="SingleChoice" text="Single Choice"/>
-                            <core:Item id="multiChoiceItem" key="MultiChoice" text="Multiple Choice"/>
-                            <core:Item id="textInputItem" key="Text" text="Text Input"/>
-                            <core:Item id="numberInputItem" key="Number" text="Number Input"/>
-                            <core:Item id="yesNoItem" key="YesNo" text="Yes/No"/>
-                        </items>
-                    </Select>
-                    
-                    <!-- Answers (JSON) -->
-                    <Label id="answersLabel" text="Answers (JSON)"/>
+                    <!-- Question Hint -->
+                    <Label id="questionHintLabel" text="Question Hint"/>
                     <TextArea
-                        id="answersTextArea"
-                        value="{createModel>/answers}"
-                        rows="4"
-                        placeholder='[{"key": "LOW", "text": "Low volume"}, {"key": "HIGH", "text": "High volume"}]'/>
+                        id="questionHintArea"
+                        value="{createModel>/questionHint}"
+                        rows="2"
+                        placeholder="Short hint shown near the question"/>
                     
-                    <!-- Navigation Logic (JSON) -->
-                    <Label id="navigationLogicLabel" text="Navigation Logic (JSON)"/>
+                    <!-- Answer Options (JSON) -->
+                    <Label id="answerOptionsLabel" text="Answer Options (JSON)"/>
                     <TextArea
-                        id="navigationLogicTextArea"
-                        value="{createModel>/navigationLogic}"
+                        id="answerOptionsTextArea"
+                        value="{createModel>/answerOptions}"
                         rows="4"
-                        placeholder='{"LOW": {"nextQuestion": "Q-INT-002", "finalAnswer": null}}'/>
+                        placeholder='[&#123;"key":"LOW","text":"Low volume"&#125;, &#123;"key":"HIGH","text":"High volume"&#125;]'/>
+                    
+                    <!-- Navigation Rules (JSON) -->
+                    <Label id="navigationRulesLabel" text="Navigation Rules (JSON)"/>
+                    <TextArea
+                        id="navigationRulesTextArea"
+                        value="{createModel>/navigationRules}"
+                        rows="4"
+                        placeholder='&#123;"LOW": &#123; "nextQuestion": "Q-INT-002", "finalAnswer": null &#125; &#125;'/>
                     
                     <!-- Detailed Hint -->
-                    <Label id="questionHintLabel" text="Detailed Hint"/>
+                    <Label id="detailedHintLabel" text="Detailed Hint"/>
                     <TextArea
-                        id="hintTextArea"
+                        id="detailedHintTextArea"
                         value="{createModel>/detailedHint}"
                         rows="2"
                         placeholder="Provide additional context or guidance..."/>

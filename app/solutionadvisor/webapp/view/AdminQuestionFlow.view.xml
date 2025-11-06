@@ -4,6 +4,7 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:layout="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
     xmlns:unified="sap.ui.unified"
     displayBlock="true"
 >
@@ -12,7 +13,6 @@
         title="Question Flow Maintenance"
         showNavButton="true"
         navButtonPress="onNavBack"
-        class="sapUiResponsiveContentPadding"
     >
         <headerContent>
             <Button
@@ -21,21 +21,18 @@
                 icon="sap-icon://create"
                 type="Emphasized"
                 press="onCreate"
-                tooltip="Create new question flow"
             />
             <Button
                 id="downloadTemplateButton"
                 text="Download Template"
                 icon="sap-icon://download"
                 press="onDownloadTemplate"
-                tooltip="Download Excel template for mass upload"
             />
             <Button
                 id="exportButton"
                 text="Export"
                 icon="sap-icon://excel-attachment"
                 press="onExport"
-                tooltip="Export all question flows to Excel"
             />
             <unified:FileUploader
                 id="fileUploader"
@@ -46,198 +43,211 @@
                 change="onMassUpload"
                 fileType="xlsx"
                 mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                tooltip="Upload Excel file with question flows"
-            />
-            <SearchField
-                id="adminQuestionFlowSearchField"
-                width="300px"
-                search="onSearch"
-                placeholder="Search questions..."
             />
         </headerContent>
 
         <content>
-            <VBox
-                id="adminQuestionFlowContentVBox"
-                class="sapUiSmallMargin"
-            >
+            <VBox id="qfContentVBox" class="sapUiSmallMargin">
                 <!-- Info Panel -->
                 <MessageStrip
-                    id="adminQuestionFlowInfoMessage"
+                    id="qfInfoStrip"
                     text="Use Download Template to get the correct format. Upload Excel files with Mass Upload. Click Export to download existing data."
                     type="Information"
                     showIcon="true"
                     class="sapUiSmallMarginBottom"
                 />
 
-                <!-- Record Count -->
-                <FlexBox
-                    id="adminQuestionFlowHeaderFlexBox"
-                    justifyContent="SpaceBetween"
-                    alignItems="Center"
+                <!-- Filter Bar -->
+                <Panel
+                    id="qfFilterPanel"
+                    headerText="Filters"
+                    expandable="true"
+                    expanded="{viewModel>/filtersExpanded}"
                     class="sapUiSmallMarginBottom"
                 >
+                    <content>
+                        <f:SimpleForm
+                            id="qfFilterForm"
+                            editable="true"
+                            layout="ResponsiveGridLayout"
+                            labelSpanXL="3"
+                            labelSpanL="3"
+                            labelSpanM="4"
+                            labelSpanS="12"
+                            emptySpanXL="0"
+                            emptySpanL="0"
+                            emptySpanM="0"
+                            emptySpanS="0"
+                            columnsXL="2"
+                            columnsL="2"
+                            columnsM="1"
+                        >
+                            <f:content>
+                                <Label id="qfSearchLabel" text="Search" />
+                                <SearchField
+                                    id="qfSearchField"
+                                    width="100%"
+                                    search="onSearch"
+                                    liveChange="onSearch"
+                                    placeholder="Search by key, text, or category..."
+                                />
+
+                                <Label id="qfObjTypeLabel" text="Object Type" />
+                                <ComboBox
+                                    id="qfObjectTypeFilter"
+                                    selectedKey="{viewModel>/filters/objectType}"
+                                    change="onFilterChange"
+                                    placeholder="All Object Types"
+                                >
+                                    <items>
+                                        <core:Item id="qfObjAllItem" key="" text="All" />
+                                        <core:Item id="qfObjRItem" key="Reports" text="Reports" />
+                                        <core:Item id="qfObjIItem" key="Interfaces" text="Interfaces" />
+                                        <core:Item id="qfObjCItem" key="Conversions" text="Conversions" />
+                                        <core:Item id="qfObjEItem" key="Enhancements" text="Enhancements" />
+                                        <core:Item id="qfObjFItem" key="Forms" text="Forms" />
+                                        <core:Item id="qfObjWItem" key="Workflows" text="Workflows" />
+                                    </items>
+                                </ComboBox>
+
+                                <Label id="qfActiveLabel" text="Active Status" />
+                                <ComboBox
+                                    id="qfActiveFilter"
+                                    width="100%"
+                                    selectedKey="{viewModel>/filters/isActive}"
+                                    change="onFilterChange"
+                                    placeholder="All"
+                                >
+                                    <items>
+                                        <core:Item id="qfActiveAll" key="" text="All" />
+                                        <core:Item id="qfActiveTrue" key="true" text="Active Only" />
+                                        <core:Item id="qfActiveFalse" key="false" text="Inactive Only" />
+                                    </items>
+                                </ComboBox>
+                            </f:content>
+                        </f:SimpleForm>
+                    </content>
+                </Panel>
+                
+                <Toolbar id="qfFilterToolbar">
+                    <ToolbarSpacer id="qfFilterToolbarSpacer" />
+                    <Button
+                        id="qfClearFiltersButton"
+                        text="Clear Filters"
+                        icon="sap-icon://clear-filter"
+                        press="onClearFilters"
+                    />
+                    <Button
+                        id="qfApplyFiltersButton"
+                        text="Apply Filters"
+                        icon="sap-icon://filter"
+                        type="Emphasized"
+                        press="onApplyFilters"
+                    />
+                </Toolbar>
+
+                <!-- Record Count and Actions -->
+                <Toolbar id="qfRecordCountToolbar">
                     <Title
-                        id="adminQuestionFlowTitle"
-                        text="Question Flows"
-                        level="H3"
+                        id="qfRecordTitle"
+                        text="Question Flows ({viewModel>/recordCount})"
+                        level="H4"
                     />
-                    <Text
-                        id="adminQuestionFlowRecordCount"
-                        text="{viewModel>/recordCount} records"
+                    <ToolbarSpacer id="qfRecordSpacer" />
+                    <Text id="qfSelectedText" text="{viewModel>/selectedCount} selected" />
+                    <Button
+                        id="qfRefreshButton"
+                        icon="sap-icon://refresh"
+                        press="onRefresh"
+                        tooltip="Refresh data"
                     />
-                </FlexBox>
+                </Toolbar>
 
                 <!-- Question Flow Table -->
                 <Table
                     id="questionFlowTable"
-                    items="{/QuestionFlow}"
+                    items="{
+                        path: 'admin>/QuestionFlow',
+                        sorter: {
+                            path: 'questionId'
+                        }
+                    }"
                     mode="MultiSelect"
                     growing="true"
                     growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
                     busy="{viewModel>/busy}"
                     noDataText="No question flows found. Click Create to add new questions."
+                    selectionChange="onSelectionChange"
                 >
                     <columns>
                         <Column
-                            id="questionKeyColumn"
-                            width="12%"
+                            id="qfColQuestionId"
+                            width="12em"
+                            demandPopin="true"
+                            minScreenWidth="Tablet"
                         >
-                            <Text
-                                id="questionKeyHeader"
-                                text="Question Key"
-                            />
+                            <Text id="qfColQuestionIdHdr" text="Question ID" />
                         </Column>
                         <Column
-                            id="objectTypeColumn"
-                            width="8%"
+                            id="qfColType"
+                            width="6em"
+                            demandPopin="true"
+                            minScreenWidth="Desktop"
                         >
-                            <Text
-                                id="objectTypeHeader"
-                                text="Object Type"
-                            />
+                            <Text id="qfColTypeHdr" text="Type" />
                         </Column>
                         <Column
-                            id="questionTextColumn"
-                            width="30%"
+                            id="qfColText"
+                            width="auto"
+                            demandPopin="false"
                         >
-                            <Text
-                                id="questionTextHeader"
-                                text="Question Text"
-                            />
+                            <Text id="qfColTextHdr" text="Question Text" />
                         </Column>
                         <Column
-                            id="categoryColumn"
-                            width="12%"
+                            id="qfColActive"
+                            width="6em"
+                            demandPopin="true"
+                            minScreenWidth="Tablet"
+                            hAlign="Center"
                         >
-                            <Text
-                                id="categoryHeader"
-                                text="Category"
-                            />
+                            <Text id="qfColActiveHdr" text="Active" />
                         </Column>
                         <Column
-                            id="answerTypeColumn"
-                            width="10%"
+                            id="qfColModified"
+                            width="12em"
+                            demandPopin="true"
+                            minScreenWidth="Desktop"
                         >
-                            <Text
-                                id="answerTypeHeader"
-                                text="Answer Type"
-                            />
+                            <Text id="qfColModifiedHdr" text="Modified" />
                         </Column>
                         <Column
-                            id="activeColumn"
-                            width="8%"
-                        >
-                            <Text
-                                id="activeHeader"
-                                text="Active"
-                            />
-                        </Column>
-                        <Column
-                            id="modifiedColumn"
-                            width="10%"
-                        >
-                            <Text
-                                id="modifiedHeader"
-                                text="Modified"
-                            />
-                        </Column>
-                        <Column
-                            id="actionsColumn"
-                            width="10%"
+                            id="qfColActions"
+                            width="8em"
                             hAlign="End"
+                            demandPopin="false"
                         >
-                            <Text
-                                id="actionsHeader"
-                                text="Actions"
-                            />
+                            <Text id="qfColActionsHdr" text="Actions" />
                         </Column>
                     </columns>
 
                     <items>
-                        <ColumnListItem
-                            id="questionFlowItem"
-                            type="Navigation"
-                        >
+                        <ColumnListItem id="qfListItem" type="Navigation">
                             <cells>
-                                <ObjectIdentifier
-                                    id="questionKeyIdentifier"
-                                    title="{questionKey}"
-                                    text="{objectType_objectType}"
-                                />
-                                <Text
-                                    id="objectTypeText"
-                                    text="{objectType_objectType}"
-                                />
-                                <VBox id="questionTextVBox">
-                                    <Text
-                                        id="questionTextValue"
-                                        text="{questionText}"
-                                        class="sapUiTinyMarginBottom"
-                                    />
-                                    <Text
-                                        id="detailedHintText"
-                                        text="{detailedHint}"
-                                        class="sapUiSmallText"
-                                    />
+                                <ObjectIdentifier id="qfObjId" title="{admin>questionId}" />
+                                <ObjectStatus id="qfObjType" text="{admin>objectType}" state="Information" />
+                                <VBox id="qfTextBox">
+                                    <Text id="qfQuestionText" text="{admin>questionText}" class="sapUiTinyMarginBottom" />
+                                    <Text id="qfHintText" text="{admin>detailedHint}" class="sapUiTinyText sapUiTextDimmed" maxLines="2" />
                                 </VBox>
-                                <Text
-                                    id="categoryText"
-                                    text="{questionCategory}"
-                                />
-                                <Text
-                                    id="answerTypeText"
-                                    text="{answerType}"
-                                />
-                                <Switch
-                                    id="questionActiveSwitch"
-                                    state="{isActive}"
-                                    enabled="false"
-                                    customTextOn="Yes"
-                                    customTextOff="No"
-                                />
-                                <Text
-                                    id="modifiedAtText"
-                                    text="{ path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: { pattern: 'yyyy-MM-dd HH:mm' } }"
-                                />
-                                <HBox
-                                    id="actionsHBox"
-                                    justifyContent="End"
-                                >
-                                    <Button
-                                        id="editQuestionButton"
-                                        icon="sap-icon://edit"
-                                        type="Transparent"
-                                        press="onEdit"
-                                        tooltip="Edit question flow"
-                                    />
-                                    <Button
-                                        id="deleteQuestionButton"
-                                        icon="sap-icon://delete"
-                                        type="Transparent"
-                                        press="onDelete"
-                                        tooltip="Delete question flow"
-                                    />
+                                <HBox id="qfActiveBox" justifyContent="Center">
+                                    <core:Icon id="qfActiveIcon" src="{= ${admin>isActive} ? 'sap-icon://accept' : 'sap-icon://decline' }" color="{= ${admin>isActive} ? 'green' : 'red' }" />
+                                </HBox>
+                                <Text id="qfModifiedText" text="{ path: 'admin>modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: { pattern: 'yyyy-MM-dd HH:mm' } }" />
+                                <HBox id="qfActionsBox" justifyContent="End">
+                                    <Button id="qfEditBtn" icon="sap-icon://edit" type="Transparent" press="onEdit" tooltip="Edit" />
+                                    <Button id="qfDeleteBtn" icon="sap-icon://delete" type="Transparent" press="onDelete" tooltip="Delete" />
                                 </HBox>
                             </cells>
                         </ColumnListItem>
@@ -245,17 +255,5 @@
                 </Table>
             </VBox>
         </content>
-
-        <footer>
-            <OverflowToolbar id="adminQuestionFlowFooterToolbar">
-                <ToolbarSpacer id="adminQuestionFlowFooterSpacer" />
-                <Button
-                    id="refreshQuestionFlowButton"
-                    text="Refresh"
-                    icon="sap-icon://refresh"
-                    press="_loadData"
-                />
-            </OverflowToolbar>
-        </footer>
     </Page>
 </mvc:View>

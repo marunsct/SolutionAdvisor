@@ -38,7 +38,7 @@
   },
   "scripts": {
     "start": "cds-serve",
-    "ui": "cd app && npm run start",
+    "ui": "cd app && npm run startui",
     "start-local": "npm run generate-entry-point && npm run cds-watch",
     "cds-watch": "cds watch",
     "generate-entry-point": "dev-cap-tools gen-entrypoint",

@@ -4,8 +4,9 @@ sap.ui.define([
   "sap/ui/model/Filter",
   "sap/ui/model/FilterOperator",
   "sap/m/MessageToast",
-  "sap/m/MessageBox"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) => {
+  "sap/m/MessageBox",
+  "sap/base/Log"
+], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Log) => {
   "use strict";
 
   return Controller.extend("sd.solutionadvisor.controller.AdminCleanCoreLevels", {
@@ -16,12 +17,24 @@ sap.ui.define([
         busy: false
       });
       this.getView().setModel(oViewModel, "viewModel");
+      
+      // Attach to route matched to ensure model is ready
+      const oRouter = this.getOwnerComponent().getRouter();
+      oRouter.getRoute("AdminCleanCoreLevels").attachPatternMatched(this._onRouteMatched, this);
+    },
+    
+    _onRouteMatched: function() {
       this._loadData();
     },
 
     _loadData: function() {
-      const oModel = this.getView().getModel();
+      const oModel = this.getView().getModel("admin");
       const oViewModel = this.getView().getModel("viewModel");
+      
+      if (!oModel) {
+        Log.error("Admin model not available");
+        return;
+      }
       
       oViewModel.setProperty("/busy", true);
       
@@ -47,12 +60,12 @@ sap.ui.define([
 
     onEdit: function(oEvent) {
       const oItem = oEvent.getSource().getParent().getParent();
-      const oContext = oItem.getBindingContext();
+      const oContext = oItem.getBindingContext("admin");
       const oData = oContext.getObject();
       MessageBox.information(`Edit level: ${oData.levelName}\n\nThis will open a dialog to modify scoring multipliers.`);
     },
 
-    onDelete: function(oEvent) {
+    onDelete: function() {
       MessageBox.warning("Delete is disabled for Clean Core Levels as they are system-critical master data.");
     },
 

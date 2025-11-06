@@ -2,237 +2,33 @@
 <html>
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="0">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{{appTitle}}</title>
 
         <script>
             window["sap-ushell-config"] = {
-                "defaultRenderer": "fiori2",
-                "bootstrapPlugins": {
-                    "ShellPlugin": {
-                        "component": "sd.solutionadvisor.shellplugin",
-                        "config": {
-                            "appState": "lean"
-                        }
-                    }
-                },
-                "renderers": {
-                    "fiori2": {
-                        "componentData": {
-                            "config": {
-                                "enableSearch": true,
-                                "enablePersonalization": true,
-                                "enableHelp": true,
-                                "enableUserDefaultParameters": true,
-                                "enableNotifications": true,
-                                "enableRecentActivity": true,
-                                "enableTileActionsIcon": false,
-                                "applications": {
-                                    "Shell-home": {}
-                                },
-                                "rootIntent": "Shell-home"
-                            }
-                        }
-                    }
-                },
-                "services": {
-                    "LaunchPage": {
-                        "adapter": {
-                            "config": {
-                                "catalogs": [{
-                                    "id": "sd_solutionadvisor_catalog",
-                                    "title": "Solution Advisor",
-                                    "tiles": [
-                                        {
-                                            "id": "wizard-tile",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "properties": {
-                                                "title": "Start New Analysis",
-                                                "subtitle": "Guided wizard for RICEFW analysis",
-                                                "icon": "sap-icon://action",
-                                                "info": "Quick Start",
-                                                "targetURL": "#SolutionAdvisor-wizard"
-                                            }
-                                        },
-                                        {
-                                            "id": "projects-tile",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "properties": {
-                                                "title": "My Projects",
-                                                "subtitle": "S/4HANA implementation projects",
-                                                "icon": "sap-icon://folder",
-                                                "info": "Manage",
-                                                "targetURL": "#SolutionAdvisor-projects"
-                                            }
-                                        },
-                                        {
-                                            "id": "analytics-tile",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "properties": {
-                                                "title": "Analytics Dashboard",
-                                                "subtitle": "Clean core metrics and trends",
-                                                "icon": "sap-icon://bar-chart",
-                                                "info": "Dashboard",
-                                                "targetURL": "#SolutionAdvisor-analytics"
-                                            }
-                                        },
-                                        {
-                                            "id": "analyses-tile",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "properties": {
-                                                "title": "All Analyses",
-                                                "subtitle": "RICEFW object analyses",
-                                                "icon": "sap-icon://list",
-                                                "info": "Browse",
-                                                "targetURL": "#SolutionAdvisor-analyses"
-                                            }
-                                        },
-                                        {
-                                            "id": "admin-tile",
-                                            "tileType": "sap.ushell.ui.tile.StaticTile",
-                                            "properties": {
-                                                "title": "Administration",
-                                                "subtitle": "Master data and configuration",
-                                                "icon": "sap-icon://settings",
-                                                "info": "Configure",
-                                                "targetURL": "#SolutionAdvisor-admin"
-                                            }
-                                        }
-                                    ]
-                                }],
-                                "groups": [{
-                                    "id": "sd_home_group",
-                                    "title": "Clean Core Analysis",
-                                    "isPreset": true,
-                                    "isVisible": true,
-                                    "isDefaultGroup": true,
-                                    "tiles": [
-                                        { "id": "wizard-tile", "catalogId": "sd_solutionadvisor_catalog" },
-                                        { "id": "projects-tile", "catalogId": "sd_solutionadvisor_catalog" },
-                                        { "id": "analytics-tile", "catalogId": "sd_solutionadvisor_catalog" },
-                                        { "id": "analyses-tile", "catalogId": "sd_solutionadvisor_catalog" }
-                                    ]
-                                }, {
-                                    "id": "sd_admin_group",
-                                    "title": "Administration",
-                                    "isPreset": false,
-                                    "isVisible": true,
-                                    "tiles": [
-                                        { "id": "admin-tile", "catalogId": "sd_solutionadvisor_catalog" }
-                                    ]
-                                }]
-                            }
-                        }
-                    },
-                    "NavTargetResolution": {
-                        "config": {
-                            "enableClientSideTargetResolution": true
-                        }
-                    },
-                    "ClientSideTargetResolution": {
-                        "adapter": {
-                            "config": {
-                                "inbounds": {
-                                    "SolutionAdvisor-wizard": {
-                                        "semanticObject": "SolutionAdvisor",
-                                        "action": "wizard",
-                                        "title": "Start New Analysis",
-                                        "signature": {
-                                            "parameters": {
-                                                "projectId": {
-                                                    "defaultValue": {
-                                                        "value": ""
-                                                    }
-                                                }
-                                            },
-                                            "additionalParameters": "allowed"
-                                        },
-                                        "resolutionResult": {
-                                            "applicationType": "SAPUI5",
-                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
-                                            "url": "./solutionadvisor/webapp"
-                                        }
-                                    },
-                                    "SolutionAdvisor-projects": {
-                                        "semanticObject": "SolutionAdvisor",
-                                        "action": "projects",
-                                        "title": "My Projects",
-                                        "signature": {
-                                            "parameters": {},
-                                            "additionalParameters": "allowed"
-                                        },
-                                        "resolutionResult": {
-                                            "applicationType": "SAPUI5",
-                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
-                                            "url": "./solutionadvisor/webapp"
-                                        }
-                                    },
-                                    "SolutionAdvisor-analytics": {
-                                        "semanticObject": "SolutionAdvisor",
-                                        "action": "analytics",
-                                        "title": "Analytics Dashboard",
-                                        "signature": {
-                                            "parameters": {},
-                                            "additionalParameters": "allowed"
-                                        },
-                                        "resolutionResult": {
-                                            "applicationType": "SAPUI5",
-                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
-                                            "url": "./solutionadvisor/webapp"
-                                        }
-                                    },
-                                    "SolutionAdvisor-analyses": {
-                                        "semanticObject": "SolutionAdvisor",
-                                        "action": "analyses",
-                                        "title": "All Analyses",
-                                        "signature": {
-                                            "parameters": {
-                                                "projectId": {
-                                                    "defaultValue": {
-                                                        "value": ""
-                                                    }
-                                                }
-                                            },
-                                            "additionalParameters": "allowed"
-                                        },
-                                        "resolutionResult": {
-                                            "applicationType": "SAPUI5",
-                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
-                                            "url": "./solutionadvisor/webapp"
-                                        }
-                                    },
-                                    "SolutionAdvisor-admin": {
-                                        "semanticObject": "SolutionAdvisor",
-                                        "action": "admin",
-                                        "title": "Administration",
-                                        "signature": {
-                                            "parameters": {},
-                                            "additionalParameters": "allowed"
-                                        },
-                                        "resolutionResult": {
-                                            "applicationType": "SAPUI5",
-                                            "additionalInformation": "SAPUI5.Component=sd.solutionadvisor",
-                                            "url": "./solutionadvisor/webapp"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "Notifications": {
-                        "config": {
-                            // Disabled while developing locally to avoid failed OData calls
-                            "enabled": false,
-                            "serviceUrl": "/service/SolutionAdvisorSvcs/Notifications",
-                            "pollingIntervalInSeconds": 30
-                        }
-                    }
-                }
-            };
+  "defaultRenderer": "fiori2",
+  "renderers": {
+    "fiori2": {
+      "componentData": {
+        "config": {
+          "enableSearch": false
+        }
+      }
+    }
+  },
+  "applications": {
+    "SolutionAdvisor-admin": {
+      "title": "SAP Clean Core Solution Advisor",
+      "description": "Decision support tool for SAP Clean Core implementation strategies",
+      "applicationType": "URL",
+      "navigationMode": "newWindowThenEmbedded",
+      "url": "./solutionadvisor/webapp",
+      "additionalInformation": "SAPUI5.Component=sd.solutionadvisor"
+    }
+  }
+};
         </script>
         <link rel="stylesheet" href="assets/launchpad.css">
         <script src="https://ui5.sap.com/1.129.2/test-resources/sap/ushell/bootstrap/sandbox.js"></script>
@@ -244,165 +40,11 @@
             data-sap-ui-frameOptions="allow"
             data-sap-ui-bindingSyntax="complex"
             data-sap-ui-xx-viewCache="false"
-            data-sap-ui-resourceroots='{
-                "sd.solutionadvisor": "./solutionadvisor/webapp",
-                "sd.solutionadvisor.tiles": "./tiles",
-                "sd.solutionadvisor.shellplugin": "./shellplugin"
-            }'
         ></script>
         <script>
             sap.ui.getCore().attachInit(function() {
                 sap.ushell.Container.createRenderer("fiori2", true).then(function(oRenderer) {
-                    oRenderer.placeAt('content');
-                    
-                    // Initialize user info and language from XSUAA token
-                    console.log("Initializing user context and language settings...");
-                    
-                    // Get user info from XSUAA (available after authentication)
-                    if (sap.ushell && sap.ushell.Container) {
-                        sap.ushell.Container.getServiceAsync("UserInfo").then(function(oUserInfoService) {
-                            var sUserName = oUserInfoService.getUser().getFullName() || "Default User";
-                            var sEmail = oUserInfoService.getUser().getEmail() || "";
-                            console.log("Logged in user:", sUserName, sEmail);
-                            
-                            // Store user info globally for access in shell plugin
-                            window.sapUshellUserContext = {
-                                name: sUserName,
-                                email: sEmail,
-                                roles: [] // Will be populated from token scopes
-                            };
-                        }).catch(function(e) {
-                            console.warn("UserInfo service not available:", e);
-                        });
-                    }
-                    
-                    // Set up language configuration
-                    var aSupportedLanguages = ['en', 'de', 'fr', 'es', 'it', 'pt', 'ja'];
-                    var sCurrentLanguage = sap.ui.getCore().getConfiguration().getLanguage();
-                    console.log("Current language:", sCurrentLanguage, "Supported:", aSupportedLanguages);
-                    
-                    // Debug: Check if tiles are being created
-                    setTimeout(function() {
-                        console.log("=== TILE DEBUG ===");
-                        var aTiles = document.querySelectorAll('.sapUshellTile');
-                        console.log("Found tiles:", aTiles.length);
-                        aTiles.forEach(function(tile, index) {
-                            console.log("Tile " + index + ":", tile.querySelector('.sapMGTTitle')?.textContent);
-                        });
-                        
-                        // Check if tiles have "No TileType defined!" error
-                        var aErrorTiles = Array.from(aTiles).filter(function(tile) {
-                            return tile.textContent.includes("No TileType defined!");
-                        });
-                        
-                        if (aErrorTiles.length > 0) {
-                            console.error("ERROR: " + aErrorTiles.length + " tiles failed to load!");
-                            console.log("Tile configuration issue detected. Attempting manual tile creation...");
-                            
-                            // Manual tile creation as fallback
-                            try {
-                                sap.ui.require([
-                                    "sap/m/GenericTile",
-                                    "sap/m/TileContent",
-                                    "sap/m/NumericContent",
-                                    "sap/m/library"
-                                ], function(GenericTile, TileContent, NumericContent, mobileLibrary) {
-                                    console.log("UI5 modules loaded successfully");
-                                    var FrameType = mobileLibrary.FrameType;
-                                    
-                                    var aTileConfigs = [
-                                        {
-                                            header: "Start New Analysis",
-                                            subheader: "Guided wizard for RICEFW analysis",
-                                            frameType: FrameType.OneByOne,
-                                            press: function() { window.location.hash = "SolutionAdvisor-wizard"; }
-                                        },
-                                        {
-                                            header: "My Projects",
-                                            subheader: "S/4HANA implementation projects",
-                                            frameType: FrameType.OneByOne,
-                                            press: function() { window.location.hash = "SolutionAdvisor-projects"; }
-                                        },
-                                        {
-                                            header: "Analytics Dashboard",
-                                            subheader: "Clean core metrics and trends",
-                                            frameType: FrameType.OneByOne,
-                                            press: function() { window.location.hash = "SolutionAdvisor-analytics"; }
-                                        },
-                                        {
-                                            header: "All Analyses",
-                                            subheader: "RICEFW object analyses",
-                                            frameType: FrameType.OneByOne,
-                                            press: function() { window.location.hash = "SolutionAdvisor-analyses"; }
-                                        },
-                                        {
-                                            header: "Administration",
-                                            subheader: "Master data and configuration",
-                                            frameType: FrameType.OneByOne,
-                                            press: function() { window.location.hash = "SolutionAdvisor-admin"; }
-                                        }
-                                    ];
-                                    
-                                    var aTileContainers = document.querySelectorAll('.sapUshellTilesContainer-sortable');
-                                    console.log("Tile containers found:", aTileContainers.length);
-                                    
-                                    if (aTileContainers.length > 0) {
-                                        // Clear all error tiles in all containers
-                                        aTileContainers.forEach(function(container) {
-                                            container.innerHTML = '';
-                                        });
-                                        console.log("Cleared error tiles in all containers");
-                                        
-                                        // Add first 4 tiles to "My Home" group
-                                        var oFirstContainer = aTileContainers[0];
-                                        for (var i = 0; i < 4; i++) {
-                                            var config = aTileConfigs[i];
-                                            console.log("Creating tile " + i + " in My Home:", config.header);
-                                            var oTile = new GenericTile({
-                                                header: config.header,
-                                                subheader: config.subheader,
-                                                frameType: config.frameType,
-                                                press: config.press
-                                            });
-                                            
-                                            var oLi = document.createElement('li');
-                                            oLi.className = 'sapUshellTile';
-                                            oFirstContainer.appendChild(oLi);
-                                            oTile.placeAt(oLi);
-                                        }
-                                        
-                                        // Add Admin tile to "Administration" group
-                                        if (aTileContainers.length > 1) {
-                                            var oAdminContainer = aTileContainers[1];
-                                            var adminConfig = aTileConfigs[4];
-                                            console.log("Creating Admin tile in Administration group");
-                                            var oAdminTile = new GenericTile({
-                                                header: adminConfig.header,
-                                                subheader: adminConfig.subheader,
-                                                frameType: adminConfig.frameType,
-                                                press: adminConfig.press
-                                            });
-                                            
-                                            var oAdminLi = document.createElement('li');
-                                            oAdminLi.className = 'sapUshellTile';
-                                            oAdminContainer.appendChild(oAdminLi);
-                                            oAdminTile.placeAt(oAdminLi);
-                                        }
-                                        
-                                        console.log("Manual tiles created successfully");
-                                    } else {
-                                        console.error("Tile containers not found!");
-                                    }
-                                }, function(oError) {
-                                    console.error("Failed to load UI5 modules:", oError);
-                                });
-                            } catch (e) {
-                                console.error("Exception during manual tile creation:", e);
-                            }
-                        } else {
-                            console.log("All tiles loaded successfully");
-                        }
-                    }, 2000);
+                  oRenderer.placeAt('content');
                 });
             });
         </script>

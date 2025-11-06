@@ -101,10 +101,10 @@ class DecisionEngine {
   async getNextQuestion(sessionId, answerId) {
     const session = await this.getSession(sessionId);
     const currentQuestion = session.currentQuestion;
-    const navigationLogic = JSON.parse(currentQuestion.navigationLogic);
+    const navigationRules = JSON.parse(currentQuestion.navigationRules);
     
-    // navigationLogic structure: { "AnswerKey": { nextQuestion: "Q5", finalAnswer: null } }
-    const nextStep = navigationLogic[answerId];
+    // navigationRules structure: { "AnswerKey": { nextQuestion: "Q5", finalAnswer: null } }
+    const nextStep = navigationRules[answerId];
     
     if (nextStep.finalAnswer) {
       return this.generateFinalRecommendation(session);
@@ -215,6 +215,14 @@ sap.ui.define([
 ```
 
 ### Wizard Progress Display
+### UI5 Control IDs and Binding Hygiene
+
+- Always assign stable, unique id attributes to every UI5 control you create (Views, Fragments, columns, buttons, labels, inputs, list/table items, icons, etc.). This app is flex-enabled and missing IDs produce runtime warnings and hinder adaptation projects.
+- Align all property bindings to the actual CDS field names exposed by the corresponding OData V4 service projections. Do not guess association paths (e.g., use `objectType` if the projection flattens it; avoid `objectType_objectType` unless the metadata shows that path).
+- For JSON fields in `QuestionFlow`, use `answerOptions` and `navigationRules` (not `answers` or `navigationLogic`).
+- Prefer explicit `$orderby` keys that exist in the entity (e.g., `questionId`).
+- If auto-$expand/$select warnings appear, check binding paths first; only as a last resort consider turning off `autoExpandSelect` on the model for specific admin pages.
+
 ```xml
 <!-- Use sap.m.Wizard with dynamic steps based on question flow -->
 <Wizard id="cleanCoreWizard" complete="onWizardComplete">
@@ -336,7 +344,7 @@ class ApiHubService {
 
 3. **Wizard State Management:** Always persist wizard progress to `WizardSession` entity to support save/resume. Don't rely on client-side storage.
 
-4. **Decision Tree Navigation:** Validate JSON structure in `QuestionFlow.navigationLogic` on insert/update. Malformed JSON breaks wizard flow.
+4. **Decision Tree Navigation:** Validate JSON structure in `QuestionFlow.navigationRules` on insert/update. Malformed JSON breaks wizard flow.
 
 5. **Scoring Calculation:** Cache `CleanCoreLevels` scoring multipliers in memory. Don't query database for every score calculation.
 

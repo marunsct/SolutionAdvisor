@@ -89,7 +89,8 @@ class BatchOptimizer {
      */
     async _executeBatch(entity, batch, batchIndex) {
         const updates = batch.map(update => {
-            return UPDATE(entity)
+            // Use cds.update for internal operations (bypasses draft automatically)
+            return cds.update(entity)
                 .set(update.set)
                 .where(update.where);
         });

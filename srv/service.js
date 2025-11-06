@@ -60,7 +60,7 @@ module.exports = cds.service.impl(async function () {
     const examplesService = new ExamplesService(this);
     const analyticsService = new AnalyticsService();
     const auditService = new AuditService();
-    
+
     // Initialize audit service
     await auditService.init();
 
@@ -71,7 +71,7 @@ module.exports = cds.service.impl(async function () {
     this.before('*', (req) => {
         // Apply rate limiting to all requests
         const result = rateLimiter.checkLimit(req);
-        
+
         if (!result.allowed) {
             req.reject(429, result.reason || 'Rate limit exceeded', 'RATE_LIMIT_EXCEEDED');
         }
@@ -120,7 +120,7 @@ module.exports = cds.service.impl(async function () {
     this.before('READ', 'CleanCoreLevels', async (req) => {
         const cacheKey = 'all';
         const cached = cacheService.get('CleanCoreLevels', cacheKey, 'master');
-        
+
         if (cached) {
             LOG.debug('Returning cached CleanCoreLevels');
             req.results = cached;
@@ -136,7 +136,7 @@ module.exports = cds.service.impl(async function () {
 
     this.before('READ', 'ObjectTypes', async (req) => {
         const cached = cacheService.get('ObjectTypes', 'all', 'master');
-        
+
         if (cached) {
             LOG.debug('Returning cached ObjectTypes');
             req.results = cached;
@@ -152,7 +152,7 @@ module.exports = cds.service.impl(async function () {
 
     this.before('READ', 'PerformanceThresholds', async (req) => {
         const cached = cacheService.get('PerformanceThreshold', 'all', 'master');
-        
+
         if (cached) {
             LOG.debug('Returning cached PerformanceThresholds');
             req.results = cached;
@@ -195,28 +195,28 @@ module.exports = cds.service.impl(async function () {
     this.before(['UPDATE', 'DELETE'], 'Analyses', async (req) => {
         // Check if user has admin privileges
         const isAdmin = req.user.is('Admin') || req.user.is('TenantAdmin');
-        
+
         if (isAdmin) {
             return; // Admins bypass ownership checks
         }
 
         // Get the analysis ID from request
         const analysisID = req.data.ID || req.params[0]?.ID;
-        
+
         if (!analysisID) {
             return req.error(400, 'Analysis ID is required');
         }
 
         // Fetch the analysis to check ownership
         const analysis = await SELECT.one.from(Analyses).where({ ID: analysisID });
-        
+
         if (!analysis) {
             return req.error(404, 'Analysis not found');
         }
 
         // Check if user is the owner (createdBy matches user ID)
         const currentUserId = req.user.id;
-        
+
         if (analysis.createdBy !== currentUserId) {
             return req.error(403, 'You can only edit or delete your own analyses');
         }
@@ -227,18 +227,18 @@ module.exports = cds.service.impl(async function () {
      */
     this.before('READ', 'Analyses', async (req) => {
         // Check if user has admin/viewer privileges (can see all)
-        const canViewAll = req.user.is('Admin') || 
-                          req.user.is('TenantAdmin') || 
-                          req.user.is('Viewer') ||
-                          req.user.is('ServiceProviderAdmin');
-        
+        const canViewAll = req.user.is('Admin') ||
+            req.user.is('TenantAdmin') ||
+            req.user.is('Viewer') ||
+            req.user.is('ServiceProviderAdmin');
+
         if (canViewAll) {
             return; // No filtering needed
         }
 
         // For SolutionArchitect and Developer roles, filter by ownership
         const currentUserId = req.user.id;
-        
+
         // Add ownership filter to the query using CQN array syntax
         if (req.query && req.query.SELECT) {
             const sel = req.query.SELECT;
@@ -269,20 +269,20 @@ module.exports = cds.service.impl(async function () {
      */
     this.before(['UPDATE', 'DELETE'], 'Projects', async (req) => {
         const isGlobalAdmin = req.user.is('Admin') || req.user.is('TenantAdmin');
-        
+
         if (isGlobalAdmin) {
             return; // Global admins bypass project restrictions
         }
 
         const isProjectAdmin = req.user.is('ProjectAdmin');
-        
+
         if (!isProjectAdmin) {
             return req.error(403, 'Insufficient permissions to modify projects');
         }
 
         // Get project ID
         const projectID = req.data.ID || req.params[0]?.ID;
-        
+
         if (!projectID) {
             return req.error(400, 'Project ID is required');
         }
@@ -290,7 +290,7 @@ module.exports = cds.service.impl(async function () {
         // Check if user is assigned to this project via attributes
         const userProjectIds = req.user.attr.projectId || [];
         const allowedProjects = Array.isArray(userProjectIds) ? userProjectIds : [userProjectIds];
-        
+
         if (!allowedProjects.includes(projectID)) {
             return req.error(403, 'You can only modify projects you are assigned to');
         }
@@ -483,15 +483,22 @@ module.exports = cds.service.impl(async function () {
             });
 
             if (nextStep.isComplete) {
-                // Wizard complete - calculate scores
-                const scores = await scoringService.calculateScores(session.analysis_ID);
-
-                // Update analysis with final results
-                await UPDATE(Analyses)
+                // Wizard complete - update analysis with recommendation FIRST
+                // Use direct CDS UPDATE (bypasses draft automatically for internal operations)
+                await cds.update(Analyses)
                     .set({
                         finalRecommendation: nextStep.recommendation,
                         finalReasoning: nextStep.reasoning,
-                        status: 'Completed',
+                        status: 'Completed'
+                    })
+                    .where({ ID: session.analysis_ID });
+
+                // Now calculate scores (will read the updated finalRecommendation)
+                const scores = await scoringService.calculateScores(session.analysis_ID);
+
+                // Update analysis with calculated scores
+                await cds.update(Analyses)
+                    .set({
                         technicalDebtScore: scores.technicalDebt,
                         cloudReadinessScore: scores.cloudReadiness,
                         upgradeImpactScore: scores.upgradeImpact,
@@ -567,7 +574,7 @@ module.exports = cds.service.impl(async function () {
                         email: req.user?.id || req.user?.email || 'user@example.com',
                         tenant: req.user?.tenant || 'default'
                     };
-                    notificationService.notifySessionSaved(sessionData, userData).catch(err => 
+                    notificationService.notifySessionSaved(sessionData, userData).catch(err =>
                         LOG.warn('Failed to send session saved notification:', err)
                     );
                 } catch (err) {
@@ -661,8 +668,8 @@ module.exports = cds.service.impl(async function () {
             // Calculate fresh scores
             const scores = await scoringService.calculateScores(analysisID);
 
-            // Update analysis with new scores
-            await UPDATE(Analyses)
+            // Update analysis with new scores (cds.update bypasses draft for internal operations)
+            await cds.update(Analyses)
                 .set({
                     technicalDebtScore: scores.technicalDebt,
                     cloudReadinessScore: scores.cloudReadiness,
@@ -673,9 +680,9 @@ module.exports = cds.service.impl(async function () {
 
             // Audit log the recalculation
             await auditService.logDataChange(
-                req, 
-                'UPDATE', 
-                'CleanCoreAnalysis', 
+                req,
+                'UPDATE',
+                'CleanCoreAnalysis',
                 analysisID,
                 {
                     technicalDebtScore: analysis.technicalDebtScore,
@@ -738,7 +745,7 @@ module.exports = cds.service.impl(async function () {
 
             // Fetch all analyses in batch
             const analyses = await batchOptimizer.batchRead(
-                Analyses, 
+                Analyses,
                 analysisIDs,
                 { columns: ['ID', 'ricefwId', 'finalRecommendation', 'technicalDebtScore', 'cloudReadinessScore', 'upgradeImpactScore', 'compositeHealthScore'] }
             );
@@ -750,10 +757,10 @@ module.exports = cds.service.impl(async function () {
             const maxParallel = 5;
             for (let i = 0; i < analysisIDs.length; i += maxParallel) {
                 const batch = analysisIDs.slice(i, i + maxParallel);
-                
+
                 const batchPromises = batch.map(async (analysisID) => {
                     const analysis = analysisMap.get(analysisID);
-                    
+
                     if (!analysis) {
                         return {
                             analysisID,
@@ -804,7 +811,7 @@ module.exports = cds.service.impl(async function () {
                 });
 
                 const batchResults = await Promise.allSettled(batchPromises);
-                
+
                 // Aggregate results
                 batchResults.forEach(result => {
                     if (result.status === 'fulfilled') {
@@ -860,7 +867,7 @@ module.exports = cds.service.impl(async function () {
 
             results.durationMs = Date.now() - startTime;
             results.success = results.failedCount === 0;
-            results.message = results.success 
+            results.message = results.success
                 ? `Successfully recalculated scores for ${results.successCount} analyses`
                 : `Recalculated ${results.successCount} analyses, ${results.failedCount} failed`;
 
@@ -1209,7 +1216,7 @@ module.exports = cds.service.impl(async function () {
                 cleanCoreLevels: req.data.cleanCoreLevels ? JSON.parse(req.data.cleanCoreLevels) : null,
                 projectId: req.data.projectId
             };
-            
+
             const analyticsData = await analyticsService.getAnalyticsData(filters);
             return analyticsData;
         } catch (error) {
@@ -1259,18 +1266,18 @@ module.exports = cds.service.impl(async function () {
     this.on('getRateLimitStatus', async (req) => {
         try {
             const { userId, tenantId } = req.data;
-            
+
             // Use current user if not specified (non-admins can only check their own status)
             const targetUserId = userId || req.user.id;
             const targetTenantId = tenantId || req.user.tenant;
-            
+
             // Admins can check any user's status, others only their own
             if (!req.user.is('Admin') && !req.user.is('TenantAdmin')) {
                 if (targetUserId !== req.user.id) {
                     return req.error(403, 'You can only check your own rate limit status');
                 }
             }
-            
+
             const status = rateLimiter.getStatus(targetUserId, targetTenantId);
             return status;
         } catch (error) {
@@ -1285,28 +1292,28 @@ module.exports = cds.service.impl(async function () {
     this.on('resetUserRateLimit', async (req) => {
         try {
             const { userId } = req.data;
-            
+
             if (!userId) {
                 return { success: false, message: 'User ID is required' };
             }
-            
+
             rateLimiter.resetUser(userId);
-            
+
             // Audit log
             await auditService.logSecurityEvent(req, 'RATE_LIMIT_RESET', 'User', userId, {
                 resetBy: req.user.id,
                 reason: 'Manual reset by administrator'
             });
-            
-            return { 
-                success: true, 
-                message: `Rate limit reset successfully for user ${userId}` 
+
+            return {
+                success: true,
+                message: `Rate limit reset successfully for user ${userId}`
             };
         } catch (error) {
             LOG.error('Error resetting user rate limit:', error);
-            return { 
-                success: false, 
-                message: `Failed to reset rate limit: ${error.message}` 
+            return {
+                success: false,
+                message: `Failed to reset rate limit: ${error.message}`
             };
         }
     });
@@ -1317,28 +1324,28 @@ module.exports = cds.service.impl(async function () {
     this.on('resetTenantRateLimit', async (req) => {
         try {
             const { tenantId } = req.data;
-            
+
             if (!tenantId) {
                 return { success: false, message: 'Tenant ID is required' };
             }
-            
+
             rateLimiter.resetTenant(tenantId);
-            
+
             // Audit log
             await auditService.logSecurityEvent(req, 'RATE_LIMIT_RESET', 'Tenant', tenantId, {
                 resetBy: req.user.id,
                 reason: 'Manual reset by administrator'
             });
-            
-            return { 
-                success: true, 
-                message: `Rate limit reset successfully for tenant ${tenantId}` 
+
+            return {
+                success: true,
+                message: `Rate limit reset successfully for tenant ${tenantId}`
             };
         } catch (error) {
             LOG.error('Error resetting tenant rate limit:', error);
-            return { 
-                success: false, 
-                message: `Failed to reset rate limit: ${error.message}` 
+            return {
+                success: false,
+                message: `Failed to reset rate limit: ${error.message}`
             };
         }
     });
@@ -1455,18 +1462,18 @@ module.exports = cds.service.impl(async function () {
     this.on('getRateLimitStatus', async (req) => {
         try {
             const { userId, tenantId } = req.data;
-            
+
             // Use current user if not specified (non-admins can only check their own status)
             const targetUserId = userId || req.user.id;
             const targetTenantId = tenantId || req.user.tenant;
-            
+
             // Admins can check any user's status, others only their own
             if (!req.user.is('Admin') && !req.user.is('TenantAdmin') && !req.user.is('ServiceProviderAdmin')) {
                 if (targetUserId !== req.user.id) {
                     return req.error(403, 'You can only check your own rate limit status');
                 }
             }
-            
+
             const status = rateLimiter.getStatus(targetUserId, targetTenantId);
             return status;
         } catch (error) {
@@ -1481,28 +1488,28 @@ module.exports = cds.service.impl(async function () {
     this.on('resetUserRateLimit', async (req) => {
         try {
             const { userId } = req.data;
-            
+
             if (!userId) {
                 return { success: false, message: 'User ID is required' };
             }
-            
+
             rateLimiter.resetUser(userId);
-            
+
             // Audit log
             await auditService.logSecurityEvent(req, 'RATE_LIMIT_RESET', 'User', userId, {
                 resetBy: req.user.id,
                 reason: 'Manual reset by administrator'
             });
-            
-            return { 
-                success: true, 
-                message: `Rate limit reset successfully for user ${userId}` 
+
+            return {
+                success: true,
+                message: `Rate limit reset successfully for user ${userId}`
             };
         } catch (error) {
             LOG.error('Error resetting user rate limit:', error);
-            return { 
-                success: false, 
-                message: `Failed to reset rate limit: ${error.message}` 
+            return {
+                success: false,
+                message: `Failed to reset rate limit: ${error.message}`
             };
         }
     });
@@ -1513,28 +1520,28 @@ module.exports = cds.service.impl(async function () {
     this.on('resetTenantRateLimit', async (req) => {
         try {
             const { tenantId } = req.data;
-            
+
             if (!tenantId) {
                 return { success: false, message: 'Tenant ID is required' };
             }
-            
+
             rateLimiter.resetTenant(tenantId);
-            
+
             // Audit log
             await auditService.logSecurityEvent(req, 'RATE_LIMIT_RESET', 'Tenant', tenantId, {
                 resetBy: req.user.id,
                 reason: 'Manual reset by administrator'
             });
-            
-            return { 
-                success: true, 
-                message: `Rate limit reset successfully for tenant ${tenantId}` 
+
+            return {
+                success: true,
+                message: `Rate limit reset successfully for tenant ${tenantId}`
             };
         } catch (error) {
             LOG.error('Error resetting tenant rate limit:', error);
-            return { 
-                success: false, 
-                message: `Failed to reset rate limit: ${error.message}` 
+            return {
+                success: false,
+                message: `Failed to reset rate limit: ${error.message}`
             };
         }
     });

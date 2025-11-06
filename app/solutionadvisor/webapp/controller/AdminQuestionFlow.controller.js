@@ -3,11 +3,15 @@ sap.ui.define([
   "sap/ui/model/json/JSONModel",
   "sap/ui/model/Filter",
   "sap/ui/model/FilterOperator",
+  "sap/ui/model/FilterType",
   "sap/m/MessageToast",
   "sap/m/MessageBox",
   "sap/ui/core/Fragment"
-], (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Fragment) => {
+], (Controller, JSONModel, Filter, FilterOperator, FilterType, MessageToast, MessageBox, Fragment) => {
   "use strict";
+
+  /* global XLSX, FileReader */
+  /* eslint-disable no-console */
 
   return Controller.extend("sd.solutionadvisor.controller.AdminQuestionFlow", {
     
@@ -20,11 +24,26 @@ sap.ui.define([
       const oViewModel = new JSONModel({
         recordCount: 0,
         selectedCount: 0,
-        busy: false
+        busy: false,
+        filtersExpanded: true,
+        filters: {
+          objectType: "",
+          isActive: ""
+        }
       });
       this.getView().setModel(oViewModel, "viewModel");
       
-      // Load data
+      // Attach to route matched to ensure model is ready
+      const oRouter = this.getOwnerComponent().getRouter();
+      oRouter.getRoute("AdminQuestionFlow").attachPatternMatched(this._onRouteMatched, this);
+    },
+    
+    /**
+     * Route matched handler - loads data when page is displayed
+     * @private
+     */
+    _onRouteMatched: function() {
+      // Load data on route match (model should be ready by now)
       this._loadData();
     },
 
@@ -33,23 +52,124 @@ sap.ui.define([
      * @private
      */
     _loadData: function() {
-      const oModel = this.getView().getModel();
+      const oModel = this.getView().getModel("admin");
       const oViewModel = this.getView().getModel("viewModel");
+      const oTable = this.byId("questionFlowTable");
+      
+      if (!oModel) {
+        console.error("Admin model not available");
+        MessageBox.error("Admin service not available. Please refresh the page.");
+        return;
+      }
       
       oViewModel.setProperty("/busy", true);
       
-      const oBinding = oModel.bindList("/QuestionFlow");
-      oBinding.requestContexts().then((aContexts) => {
-        const iCount = aContexts.length;
+      const oBinding = oModel.bindList("/QuestionFlow", null, null, null, {
+        $count: true,
+        $orderby: "questionId"
+      });
+      
+      oBinding.requestContexts(0, 100).then(() => {
+        const iCount = oBinding.getLength();
         oViewModel.setProperty("/recordCount", iCount);
         oViewModel.setProperty("/busy", false);
+        
+        // Refresh table binding
+        if (oTable) {
+          oTable.getBinding("items").refresh();
+        }
         
         MessageToast.show(`Loaded ${iCount} question flow records`);
       }).catch((error) => {
         console.error("Error loading data:", error);
         oViewModel.setProperty("/busy", false);
-        MessageBox.error("Failed to load question flow data");
+        oViewModel.setProperty("/recordCount", 0);
+        MessageBox.error("Failed to load question flow data: " + (error.message || "Unknown error"));
       });
+    },
+    
+    /**
+     * Handle selection change in table
+     * @param {sap.ui.base.Event} oEvent - Selection change event
+     */
+    onSelectionChange: function(oEvent) {
+      const oViewModel = this.getView().getModel("viewModel");
+      const oTable = oEvent.getSource();
+      const aSelectedItems = oTable.getSelectedItems();
+      oViewModel.setProperty("/selectedCount", aSelectedItems.length);
+    },
+    
+    /**
+     * Handle filter change
+     */
+    onFilterChange: function() {
+      // Filters will be applied when user clicks "Apply Filters" button
+    },
+    
+    /**
+     * Apply filters to the table
+     */
+    onApplyFilters: function() {
+      const oViewModel = this.getView().getModel("viewModel");
+      const oFilters = oViewModel.getProperty("/filters");
+      const oTable = this.byId("questionFlowTable");
+      const oBinding = oTable.getBinding("items");
+      
+      const aFilters = [];
+      
+      // Object Type filter
+      if (oFilters.objectType) {
+        aFilters.push(new Filter("objectType", FilterOperator.EQ, oFilters.objectType));
+      }
+      
+      // Active status filter
+      if (oFilters.isActive !== "") {
+        const bActive = oFilters.isActive === "true";
+        aFilters.push(new Filter("isActive", FilterOperator.EQ, bActive));
+      }
+      
+      oBinding.filter(aFilters, FilterType.Application);
+      
+      // Update count after filtering
+      setTimeout(() => {
+        const iCount = oBinding.getLength();
+        oViewModel.setProperty("/recordCount", iCount);
+      }, 100);
+      
+      MessageToast.show("Filters applied");
+    },
+    
+    /**
+     * Clear all filters
+     */
+    onClearFilters: function() {
+      const oViewModel = this.getView().getModel("viewModel");
+      oViewModel.setProperty("/filters", { objectType: "", isActive: "" });
+      
+      const oTable = this.byId("questionFlowTable");
+      const oBinding = oTable.getBinding("items");
+      oBinding.filter([], FilterType.Application);
+      
+      // Update count
+      setTimeout(() => {
+        const iCount = oBinding.getLength();
+        oViewModel.setProperty("/recordCount", iCount);
+      }, 100);
+      
+      // Clear search field
+      const oSearchField = this.byId("qfSearchField");
+      if (oSearchField) {
+        oSearchField.setValue("");
+      }
+      
+      MessageToast.show("Filters cleared");
+    },
+    
+    /**
+     * Refresh data
+     */
+    onRefresh: function() {
+      this._loadData();
     },
 
     /**
@@ -66,14 +186,13 @@ sap.ui.define([
       if (!this._oCreateDialog) {
         // Initialize create model
         const oCreateModel = new JSONModel({
-          questionKey: "",
+          questionId: "",
           objectType: "I",
           questionText: "",
-          questionCategory: "",
-          answerType: "SingleChoice",
-          answers: "",
-          navigationLogic: "",
-          detailedHint: "",
+          questionHint: "",
+          answerCount: 0,
+          answerOptions: "",
+          navigationRules: "",
           isActive: true
         });
         this.getView().setModel(oCreateModel, "createModel");
@@ -90,14 +209,13 @@ sap.ui.define([
       } else {
         // Reset model
         this.getView().getModel("createModel").setData({
-          questionKey: "",
+          questionId: "",
           objectType: "I",
           questionText: "",
-          questionCategory: "",
-          answerType: "SingleChoice",
-          answers: "",
-          navigationLogic: "",
-          detailedHint: "",
+          questionHint: "",
+          answerCount: 0,
+          answerOptions: "",
+          navigationRules: "",
           isActive: true
         });
         this._oCreateDialog.open();
@@ -108,27 +226,36 @@ sap.ui.define([
      * Handle create dialog confirm
      */
     onCreateConfirm: function() {
-      const oModel = this.getView().getModel();
+      const oModel = this.getView().getModel("admin");
       const oCreateModel = this.getView().getModel("createModel");
       const oData = oCreateModel.getData();
       
       // Validate required fields
-      if (!oData.questionKey || !oData.questionText) {
+      if (!oData.questionId || !oData.questionText) {
         MessageBox.error("Please fill in all required fields");
         return;
       }
       
-      // Parse JSON fields if provided
+      // Validate JSON fields if provided (keep as strings to match Edm.String)
       try {
-        if (oData.answers) {
-          oData.answers = JSON.parse(oData.answers);
-        }
-        if (oData.navigationLogic) {
-          oData.navigationLogic = JSON.parse(oData.navigationLogic);
-        }
-      } catch (error) {
-        MessageBox.error("Invalid JSON format in Answers or Navigation Logic");
+        if (oData.answerOptions) { JSON.parse(oData.answerOptions); }
+        if (oData.navigationRules) { JSON.parse(oData.navigationRules); }
+      } catch {
+        MessageBox.error("Invalid JSON format in Answer Options or Navigation Rules");
         return;
+      }
+
+      // Coerce primitive types
+      if (oData.answerCount !== undefined) {
+        const n = parseInt(oData.answerCount, 10);
+        if (Number.isNaN(n)) {
+          MessageBox.error("Answer Count must be a number");
+          return;
+        }
+        oData.answerCount = n;
+      }
+      if (typeof oData.isActive === 'string') {
+        oData.isActive = oData.isActive === 'true';
       }
       
       // Create new record using OData V4
@@ -158,10 +285,160 @@ sap.ui.define([
      */
     onEdit: function(oEvent) {
       const oItem = oEvent.getSource().getParent();
-      const oContext = oItem.getBindingContext();
+      const oContext = oItem.getBindingContext("admin");
       
       // Open edit dialog with selected item
       this._openEditDialog(oContext);
+    },
+
+    /**
+     * Open Edit Dialog with the selected context
+     * @param {sap.ui.model.Context} oContext
+     * @private
+     */
+    _openEditDialog: function(oContext) {
+      const oModel = this.getView().getModel("admin");
+      // Explicitly request ALL properties needed for editing to avoid auto $select omissions
+      const sSelect = [
+        "ID","questionId","objectType","questionText","questionHint","detailedHint",
+        "answerCount","answerOptions","navigationRules","performanceContext","displayOrder",
+        "isActive","createdAt","createdBy","modifiedAt","modifiedBy","tenant"
+      ].join(",");
+
+      // Bind a context with a full $select to guarantee complete data
+      const oCtxBinding = oModel.bindContext(oContext.getPath(), null, { $select: sSelect });
+
+      let oData = oContext.getObject();
+      try {
+        const oFull = oCtxBinding ? (oCtxBinding.getBoundContext() ? oCtxBinding.getBoundContext().getObject() : null) : null;
+        if (!oFull || Object.keys(oFull || {}).length < 2) {
+          // Fallback: request object to ensure data is loaded
+          oData = oCtxBinding.requestObject ? oCtxBinding.requestObject() : oData;
+        } else {
+          oData = oFull;
+        }
+      } catch (e) {
+        // As a safe fallback keep existing lightweight object
+        void e;
+      }
+      // If requestObject returned a Promise, await it via then
+      const _open = (fullData) => {
+        const data = fullData && typeof fullData === 'object' ? fullData : (oData || {});
+
+        // Stringify JSON fields for editing
+        if (data.answerOptions && typeof data.answerOptions !== "string") {
+          try { data.answerOptions = JSON.stringify(data.answerOptions, null, 2); } catch (e) { void e; }
+        }
+        if (data.navigationRules && typeof data.navigationRules !== "string") {
+          try { data.navigationRules = JSON.stringify(data.navigationRules, null, 2); } catch (e) { void e; }
+        }
+
+        this._oEditContext = oContext;
+
+        if (!this._oEditDialog) {
+          Fragment.load({
+            id: this.getView().getId(),
+            name: "sd.solutionadvisor.view.fragments.EditQuestionFlowDialog",
+            controller: this
+          }).then((oDialog) => {
+            this._oEditDialog = oDialog;
+            // Create and set the model BEFORE adding as dependent to avoid premature OData bindings
+            const oEditModel = new JSONModel(data);
+            oDialog.setModel(oEditModel, "editModel");
+            // Do not set a default unnamed model here; keep only the named JSON model to avoid unintended bindings
+
+            this.getView().addDependent(oDialog);
+            oDialog.open();
+          });
+        } else {
+          // Update existing model
+          const oEditModel = this._oEditDialog.getModel("editModel");
+          if (oEditModel) {
+            oEditModel.setData(data);
+          } else {
+            this._oEditDialog.setModel(new JSONModel(data), "editModel");
+          }
+          this._oEditDialog.open();
+        }
+      };
+
+      if (oData && typeof oData.then === 'function') {
+        // requestObject returned a Promise
+        oData.then(_open).catch(() => _open(oContext.getObject()));
+      } else {
+        _open(oData);
+      }
+    },
+
+    /** Save changes from edit dialog */
+    onEditConfirm: function() {
+      const oModel = this.getView().getModel("admin");
+      const oEditModel = this._oEditDialog && this._oEditDialog.getModel("editModel");
+      if (!oEditModel) { MessageBox.error("Edit model not found"); return; }
+      const oData = oEditModel.getData();
+      const oCtx = this._oEditContext;
+
+      if (!oCtx) { MessageBox.error("No record selected"); return; }
+
+      // Validate
+      if (!oData.questionId || !oData.questionText) {
+        MessageBox.error("Please fill in all required fields");
+        return;
+      }
+
+      // Validate JSON fields but keep them as strings (backend expects Edm.String)
+      try {
+        if (typeof oData.answerOptions === "string" && oData.answerOptions.trim()) {
+          JSON.parse(oData.answerOptions);
+        }
+        if (typeof oData.navigationRules === "string" && oData.navigationRules.trim()) {
+          JSON.parse(oData.navigationRules);
+        }
+      } catch (e) {
+        void e;
+        MessageBox.error("Invalid JSON format in Answer Options or Navigation Rules");
+        return;
+      }
+
+      // Coerce primitive types
+      if (Object.prototype.hasOwnProperty.call(oData, 'answerCount')) {
+        const n = parseInt(oData.answerCount, 10);
+        if (Number.isNaN(n)) {
+          MessageBox.error("Answer Count must be a number");
+          return;
+        }
+        oData.answerCount = n;
+      }
+      if (Object.prototype.hasOwnProperty.call(oData, 'isActive') && typeof oData.isActive === 'string') {
+        oData.isActive = oData.isActive === 'true';
+      }
+
+      // Update fields via context
+      const fields = [
+        "objectType","questionText","questionHint","detailedHint",
+        "answerCount","answerOptions","navigationRules","isActive"
+      ];
+      fields.forEach((f) => {
+        if (Object.prototype.hasOwnProperty.call(oData, f)) {
+          oCtx.setProperty(f, oData[f]);
+        }
+      });
+
+      oModel.submitBatch("$auto").then(() => {
+        MessageToast.show("Saved successfully");
+        if (this._oEditDialog) { this._oEditDialog.close(); }
+        this._loadData();
+      }).catch((error) => {
+        // Revert pending changes on error
+        oModel.resetChanges("$auto");
+        console.error("Save failed", error);
+        MessageBox.error("Failed to save changes");
+      });
+    },
+
+    onEditCancel: function() {
+      if (this._oEditDialog) { this._oEditDialog.close(); }
+      this._oEditContext = null;
     },
 
     /**
@@ -170,7 +447,7 @@ sap.ui.define([
      */
     onDelete: function(oEvent) {
       const oItem = oEvent.getSource().getParent();
-      const oContext = oItem.getBindingContext();
+      const oContext = oItem.getBindingContext("admin");
       const oData = oContext.getObject();
       
       MessageBox.warning(
@@ -218,22 +495,22 @@ sap.ui.define([
         // Create template with headers and sample data
         const templateData = [
           {
-            questionKey: "Q-INT-001",
+            questionId: "Q-INT-001",
             objectType: "I",
             questionText: "What is the data volume?",
-            questionCategory: "Volume",
-            answerType: "SingleChoice",
-            answers: JSON.stringify([
+            questionHint: "",
+            detailedHint: "Consider the peak volume, not average",
+            answerCount: 3,
+            answerOptions: JSON.stringify([
               { key: "LOW", text: "< 1000 records/day" },
               { key: "MEDIUM", text: "1000-10000 records/day" },
               { key: "HIGH", text: "> 10000 records/day" }
             ]),
-            navigationLogic: JSON.stringify({
+            navigationRules: JSON.stringify({
               "LOW": { nextQuestion: "Q-INT-002", finalAnswer: null },
               "MEDIUM": { nextQuestion: "Q-INT-003", finalAnswer: null },
               "HIGH": { nextQuestion: null, finalAnswer: "Level B" }
             }),
-            detailedHint: "Consider the peak volume, not average",
             isActive: true
           }
         ];
@@ -274,7 +551,7 @@ sap.ui.define([
         return;
       }
 
-      const reader = new FileReader();
+  const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target.result);
@@ -304,8 +581,8 @@ sap.ui.define([
      * @private
      */
     _processMassUpload: function(aData) {
-      const oModel = this.getView().getModel();
-      const oListBinding = oModel.bindList("/QuestionFlow");
+      const oModel = this.getView().getModel("admin");
+  const oListBinding = oModel.bindList("/QuestionFlow");
       
       let successCount = 0;
       let errorCount = 0;
@@ -315,16 +592,16 @@ sap.ui.define([
       aData.forEach((record, index) => {
         try {
           // Validate required fields
-          if (!record.questionKey || !record.questionText) {
-            throw new Error(`Row ${index + 2}: questionKey and questionText are required`);
+          if (!record.questionId || !record.questionText) {
+            throw new Error(`Row ${index + 2}: questionId and questionText are required`);
           }
           
           // Parse JSON fields
-          if (typeof record.answers === 'string') {
-            record.answers = JSON.parse(record.answers);
+          if (typeof record.answerOptions === 'string') {
+            record.answerOptions = JSON.parse(record.answerOptions);
           }
-          if (typeof record.navigationLogic === 'string') {
-            record.navigationLogic = JSON.parse(record.navigationLogic);
+          if (typeof record.navigationRules === 'string') {
+            record.navigationRules = JSON.parse(record.navigationRules);
           }
           
           // Create record
@@ -387,7 +664,7 @@ sap.ui.define([
      * Exports all current records to Excel file
      */
     onExport: function() {
-      const oModel = this.getView().getModel();
+      const oModel = this.getView().getModel("admin");
       
       // Check if XLSX library is available
       if (typeof XLSX === 'undefined') {
@@ -396,14 +673,15 @@ sap.ui.define([
       }
 
       const oBinding = oModel.bindList("/QuestionFlow");
-      oBinding.requestContexts().then((aContexts) => {
+      // Request all contexts (0, Infinity) to get all records
+      oBinding.requestContexts(0, Infinity).then((aContexts) => {
         const aData = aContexts.map(ctx => ctx.getObject());
         
         // Convert JSON fields to strings for Excel
         const exportData = aData.map(item => ({
           ...item,
-          answers: typeof item.answers === 'object' ? JSON.stringify(item.answers) : item.answers,
-          navigationLogic: typeof item.navigationLogic === 'object' ? JSON.stringify(item.navigationLogic) : item.navigationLogic
+          answerOptions: typeof item.answerOptions === 'object' ? JSON.stringify(item.answerOptions) : item.answerOptions,
+          navigationRules: typeof item.navigationRules === 'object' ? JSON.stringify(item.navigationRules) : item.navigationRules
         }));
         
         // Create workbook
@@ -428,23 +706,44 @@ sap.ui.define([
      * @param {sap.ui.base.Event} oEvent - Search field event
      */
     onSearch: function(oEvent) {
-      const sQuery = oEvent.getParameter("query") || oEvent.getParameter("newValue");
+      const sQuery = oEvent.getParameter("query") || oEvent.getParameter("newValue") || "";
       const oTable = this.byId("questionFlowTable");
       const oBinding = oTable.getBinding("items");
+      const oViewModel = this.getView().getModel("viewModel");
+      const oFilters = oViewModel.getProperty("/filters");
       
       const aFilters = [];
+      
+      // Add search filter
       if (sQuery) {
         aFilters.push(new Filter({
           filters: [
-            new Filter("questionKey", FilterOperator.Contains, sQuery),
+            new Filter("questionId", FilterOperator.Contains, sQuery),
             new Filter("questionText", FilterOperator.Contains, sQuery),
-            new Filter("questionCategory", FilterOperator.Contains, sQuery)
+            new Filter("detailedHint", FilterOperator.Contains, sQuery)
           ],
           and: false
         }));
       }
       
+      // Add other filters
+      if (oFilters.objectType) {
+        aFilters.push(new Filter("objectType", FilterOperator.EQ, oFilters.objectType));
+      }
+      
+      if (oFilters.isActive !== "") {
+        const bActive = oFilters.isActive === "true";
+        aFilters.push(new Filter("isActive", FilterOperator.EQ, bActive));
+      }
+      
+      // Apply all filters
       oBinding.filter(aFilters);
+      
+      // Update count
+      setTimeout(() => {
+        const iCount = oBinding.getLength();
+        oViewModel.setProperty("/recordCount", iCount);
+      }, 100);
     }
   });
 });

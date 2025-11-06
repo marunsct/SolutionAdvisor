@@ -51,7 +51,7 @@
                 <!-- Object Types Table -->
                 <Table
                     id="objectTypesTable"
-                    items="{/ObjectTypes}"
+                    items="{admin>/ObjectTypes}"
                     mode="SingleSelectMaster"
                     busy="{viewModel>/busy}"
                     noDataText="No object types found.">

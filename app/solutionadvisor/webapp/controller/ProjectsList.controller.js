@@ -12,19 +12,17 @@ sap.ui.define([
 
     return Controller.extend("sd.solutionadvisor.controller.ProjectsList", {
         onInit() {
-            // Initialize user model for role-based visibility
-            const oUserModel = new JSONModel({
-                isAdmin: true // TODO: Get from actual authentication/authorization
-            });
-            this.getView().setModel(oUserModel, "user");
-            
             // Initialize view model for counts
             const oViewModel = new JSONModel({
                 projectsCount: 0,
                 activeProjectsCount: 0,
-                hasSelection: false
+                hasSelection: false,
+                isAdmin: false // Will be set after checking user roles
             });
             this.getView().setModel(oViewModel, "viewModel");
+            
+            // Check user roles for admin access
+            this._checkUserRoles();
             
             // Initialize project model for create dialog
             const oProjectModel = new JSONModel({
@@ -51,18 +49,74 @@ sap.ui.define([
             oRouter.getRoute("ProjectsList").attachPatternMatched(this._onRouteMatched, this);
         },
         
+        /**
+         * Check if current user has Admin or TenantAdmin role
+         * @private
+         */
+        _checkUserRoles() {
+            const oViewModel = this.getView().getModel("viewModel");
+            
+            // Get user info from Shell services if available
+            if (sap.ushell && sap.ushell.Container) {
+                const oUser = sap.ushell.Container.getService("UserInfo");
+                if (oUser) {
+                    oUser.getUser().then((oUserData) => {
+                        // Check if user has Admin or TenantAdmin scope
+                        const aScopes = oUserData.getScopes ? oUserData.getScopes() : [];
+                        const bIsAdmin = aScopes.some(scope => 
+                            scope.includes("Admin") || scope.includes("TenantAdmin")
+                        );
+                        oViewModel.setProperty("/isAdmin", bIsAdmin);
+                    }).catch((error) => {
+                        Log.error("Error checking user roles:", error);
+                        // Default to false for security
+                        oViewModel.setProperty("/isAdmin", false);
+                    });
+                } else {
+                    // Fallback: In development/local mode, check via OData service
+                    this._checkRolesViaService();
+                }
+            } else {
+                // Fallback: In development/local mode, check via OData service
+                this._checkRolesViaService();
+            }
+        },
+        
+        /**
+         * Fallback method to check roles via backend service
+         * @private
+         */
+        _checkRolesViaService() {
+            const oViewModel = this.getView().getModel("viewModel");
+            
+            // In local development without authentication, default to true
+            if (window.location.hostname === "localhost") {
+                oViewModel.setProperty("/isAdmin", true);
+                return;
+            }
+            
+            // Call backend to get user roles (requires implementation in service.js)
+            // For now, set to false for security
+            oViewModel.setProperty("/isAdmin", false);
+        },
+        
         _onRouteMatched() {
             // Load counts when route is matched (model is guaranteed to be available)
             this._loadCounts();
             
-            // Refresh table binding to get latest data
-            const oTable = this.byId("projectsTable");
-            if (oTable) {
-                const oBinding = oTable.getBinding("items");
-                if (oBinding) {
-                    oBinding.refresh();
+            // Refresh table binding to get latest data (with delay to avoid cache conflicts)
+            setTimeout(() => {
+                const oTable = this.byId("projectsTable");
+                if (oTable) {
+                    const oBinding = oTable.getBinding("items");
+                    if (oBinding && oBinding.isA("sap.ui.model.odata.v4.ODataListBinding")) {
+                        // Only refresh if binding is not already loading
+                        if (!oBinding.isSuspended()) {
+                            oBinding.refresh();
+                        }
+                    }
                 }
-            }
+            }, 100);
         },
         
         onSelectionChange() {
@@ -377,6 +431,11 @@ sap.ui.define([
         onNavigateToAnalytics() {
             // Navigate to analytics dashboard
             this.getOwnerComponent().getRouter().navTo("AnalyticsDashboard");
+        },
+
+        onNavigateToAdmin() {
+            // Navigate to admin page
+            this.getOwnerComponent().getRouter().navTo("Admin");
         }
     });
 });

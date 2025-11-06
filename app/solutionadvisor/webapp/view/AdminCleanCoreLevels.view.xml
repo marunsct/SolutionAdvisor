@@ -51,7 +51,7 @@
                 <!-- Levels Table -->
                 <Table
                     id="levelsTable"
-                    items="{/CleanCoreLevels}"
+                    items="{admin>/CleanCoreLevels}"
                     mode="SingleSelectMaster"
                     busy="{viewModel>/busy}"
                     noDataText="No levels found. Click Create to add new levels.">

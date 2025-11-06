@@ -113,7 +113,7 @@
                 <!-- Example Table -->
                 <Table
                     id="exampleTable"
-                    items="{/RealWorldExample}"
+                    items="{admin>/RealWorldExample}"
                     mode="MultiSelect"
                     growing="true"
                     growingThreshold="20"

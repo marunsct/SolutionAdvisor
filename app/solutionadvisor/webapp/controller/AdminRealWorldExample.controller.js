@@ -6,8 +6,9 @@ sap.ui.define(
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
+    "sap/base/Log"
   ],
-  (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) => {
+  (Controller, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Log) => {
     "use strict";
 
     return Controller.extend(
@@ -20,12 +21,24 @@ sap.ui.define(
             busy: false,
           });
           this.getView().setModel(oViewModel, "viewModel");
+          
+          // Attach to route matched to ensure model is ready
+          const oRouter = this.getOwnerComponent().getRouter();
+          oRouter.getRoute("AdminRealWorldExample").attachPatternMatched(this._onRouteMatched, this);
+        },
+        
+        _onRouteMatched: function() {
           this._loadData();
         },
 
         _loadData: function () {
-          const oModel = this.getView().getModel();
+          const oModel = this.getView().getModel("admin");
           const oViewModel = this.getView().getModel("viewModel");
+
+          if (!oModel) {
+            Log.error("Admin model not available");
+            return;
+          }
 
           oViewModel.setProperty("/busy", true);
 
@@ -54,14 +67,14 @@ sap.ui.define(
 
         onEdit: function (oEvent) {
           const oItem = oEvent.getSource().getParent().getParent();
-          const oContext = oItem.getBindingContext();
+          const oContext = oItem.getBindingContext("admin");
           const oData = oContext.getObject();
           MessageBox.information(`Edit example: ${oData.exampleTitle}`);
         },
 
         onDelete: function (oEvent) {
           const oItem = oEvent.getSource().getParent().getParent();
-          const oContext = oItem.getBindingContext();
+          const oContext = oItem.getBindingContext("admin");
           const oData = oContext.getObject();
 
           MessageBox.confirm(`Delete example "${oData.exampleTitle}"?`, {

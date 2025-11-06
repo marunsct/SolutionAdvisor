@@ -106,7 +106,7 @@
                 <!-- Threshold Table -->
                 <Table
                     id="thresholdTable"
-                    items="{/PerformanceThreshold}"
+                    items="{admin>/PerformanceThreshold}"
                     mode="MultiSelect"
                     growing="true"
                     growingThreshold="20"

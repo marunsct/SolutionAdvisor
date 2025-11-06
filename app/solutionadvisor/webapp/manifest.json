@@ -23,6 +23,14 @@
           "annotations": [],
           "odataVersion": "4.0"
         }
+      },
+      "adminService": {
+        "uri": "/service/AdminSvcs/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
       }
     },
     "crossNavigation": {
@@ -191,6 +199,17 @@
           "operationMode": "Server",
           "autoExpandSelect": true,
           "earlyRequests": true,
+          "groupId": "$auto",
+          "updateGroupId": "$auto",
+          "synchronizationMode": "None"
+        }
+      },
+      "admin": {
+        "dataSource": "adminService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
           "groupId": "$auto",
           "updateGroupId": "$auto",
           "synchronizationMode": "None"
