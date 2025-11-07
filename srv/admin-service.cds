@@ -63,6 +63,17 @@ service AdminService {
     }]
     entity RealWorldExample      as projection on my.RealWorldExample;
 
+    /**
+     * Audit Log - Read-only access to audit trail
+     * Immutable compliance and security audit records
+     */
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'TenantAdmin']
+    }]
+    entity AuditLog              as projection on my.AuditLog;
+
     // ===============================
     // Administrative Actions
     // ===============================

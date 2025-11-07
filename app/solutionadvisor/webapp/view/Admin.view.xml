@@ -11,6 +11,8 @@
         showNavButton="true"
         navButtonPress="onNavBack"
         class="sapUiResponsiveContentPadding"
+        busy="{adminModel>/busy}"
+        busyIndicatorDelay="0"
     >
         <headerContent>
             <Button
@@ -97,12 +99,21 @@
                     expandable="true"
                     expanded="false"
                     class="sapUiSmallMarginTop"
+                    expand="onRecentChangesPanelExpand"
                 >
                     <content>
                         <Table
                             id="recentChangesTable"
-                            noDataText="No recent changes"
+                            noDataText="No recent changes recorded. Audit logging will begin tracking changes once the database is deployed."
                             mode="None"
+                            items="{
+                                path: 'admin>/AuditLog',
+                                sorter: {
+                                    path: 'timestamp',
+                                    descending: true
+                                }
+                            }"
+                            busy="{adminModel>/recentChangesBusy}"
                         >
                             <columns>
                                 <Column
@@ -152,28 +163,34 @@
                                 </Column>
                             </columns>
                             <items>
-                                <!-- Will be populated with audit trail data -->
                                 <ColumnListItem id="recentChangesItemTemplate">
                                     <cells>
                                         <Text
                                             id="recentChangesDateCell"
-                                            text="2025-10-22 19:45"
+                                            text="{
+                                                path: 'admin>timestamp',
+                                                type: 'sap.ui.model.type.DateTime',
+                                                formatOptions: {
+                                                    pattern: 'yyyy-MM-dd HH:mm'
+                                                }
+                                            }"
                                         />
                                         <Text
                                             id="recentChangesTableCell"
-                                            text="QuestionFlow"
+                                            text="{admin>entityType}"
                                         />
-                                        <Text
-                                            id="recentChangesActionCell"
-                                            text="CREATE"
+                                        <ObjectStatus
+                                            id="recentChangesActionStatus"
+                                            text="{admin>action}"
+                                            state="{= ${admin>action} === 'CREATE' ? 'Success' : ${admin>action} === 'DELETE' ? 'Error' : 'Information' }"
                                         />
                                         <Text
                                             id="recentChangesRecordCell"
-                                            text="Q-INT-001"
+                                            text="{= ${admin>entityKey} || ${admin>entityId} }"
                                         />
                                         <Text
                                             id="recentChangesUserCell"
-                                            text="admin@company.com"
+                                            text="{= ${admin>userEmail} || ${admin>userId} }"
                                         />
                                     </cells>
                                 </ColumnListItem>

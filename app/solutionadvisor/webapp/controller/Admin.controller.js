@@ -2,8 +2,9 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "sap/base/Log"
-], (Controller, JSONModel, MessageToast, Log) => {
+], (Controller, JSONModel, MessageToast, MessageBox, Log) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.Admin", {
@@ -15,6 +16,8 @@ sap.ui.define([
     onInit: function() {
       // Initialize view model for admin tiles
       const oViewModel = new JSONModel({
+        busy: false,
+        recentChangesBusy: false,
         tiles: [
           {
             id: "questionFlow",
@@ -70,23 +73,91 @@ sap.ui.define([
      * @private
      */
     _onRouteMatched: function() {
-      // Load record counts for each entity
-      this._loadRecordCounts();
+      const oAdminModel = this.getView().getModel("admin");
+      const oViewModel = this.getView().getModel("adminModel");
+      
+      if (!oAdminModel) {
+        Log.error("Admin OData model not available");
+        MessageBox.error("Admin service is not configured. Please check manifest.json");
+        return;
+      }
+      
+      // Show busy indicator
+      oViewModel.setProperty("/busy", true);
+      
+      // Directly load record counts with error handling
+      // The model will automatically handle metadata loading internally
+      this._loadRecordCounts().then(() => {
+        oViewModel.setProperty("/busy", false);
+      }).catch((oError) => {
+        oViewModel.setProperty("/busy", false);
+        Log.error("Failed to load admin data:", oError);
+        
+        // Handle specific error types
+        if (oError.status === 403 || oError.statusCode === 403) {
+          MessageBox.error(
+            "You do not have permission to access the Administration Panel. " +
+            "Please contact your system administrator to request the 'Admin' or 'TenantAdmin' role.",
+            { title: "Access Denied" }
+          );
+        } else if (oError.message && oError.message.includes("x-csrf-token")) {
+          MessageBox.error(
+            "Security token validation failed. Please refresh the page.",
+            { title: "Authentication Error" }
+          );
+        } else {
+          MessageBox.error("Failed to load admin data: " + (oError.message || "Unknown error"));
+        }
+      });
+    },
+    
+    /**
+     * Ensures the OData V4 model has a valid CSRF token before making requests
+     * @param {sap.ui.model.odata.v4.ODataModel} oModel - The OData V4 model
+     * @returns {Promise} Promise that resolves when token is fetched
+     * @private
+     */
+    _ensureSecurityToken: function(oModel) {
+      return new Promise((resolve, reject) => {
+        // OData V4 models fetch CSRF tokens automatically on the first modifying request
+        // For read-only batch requests, we need to explicitly fetch it via HEAD request
+        const sServiceUrl = oModel.getServiceUrl();
+        
+        // Make HEAD request to trigger CSRF token fetch
+        fetch(sServiceUrl, {
+          method: "HEAD",
+          headers: {
+            "x-csrf-token": "fetch",
+            "Accept": "application/json"
+          },
+          credentials: "same-origin"
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error(`HEAD request failed: ${response.status} ${response.statusText}`);
+          }
+          // Token is now cached in the model
+          resolve();
+        }).catch(error => {
+          Log.error("Failed to fetch CSRF token:", error);
+          reject(error);
+        });
+      });
     },
 
     /**
      * Load record counts for all master data entities
+     * @returns {Promise} Promise that resolves when all counts are loaded
      * @private
      */
     _loadRecordCounts: function() {
       const oModel = this.getView().getModel("admin");
+      const oViewModel = this.getView().getModel("adminModel");
       
       if (!oModel) {
         Log.warning("Admin OData model not available yet");
-        return;
+        return Promise.reject(new Error("Admin model not available"));
       }
       
-      const oViewModel = this.getView().getModel("adminModel");
       const entityMapping = {
         questionFlow: "QuestionFlow",
         thresholds: "PerformanceThreshold",
@@ -95,14 +166,10 @@ sap.ui.define([
         objectTypes: "ObjectTypes"
       };
 
-      // Load counts for each entity
-      Object.keys(entityMapping).forEach((key) => {
+      // Load counts for each entity using Promise.allSettled to handle partial failures
+      const aPromises = Object.keys(entityMapping).map((key) => {
         const entityName = entityMapping[key];
-        const oBinding = oModel.bindList(`/${entityName}`);
-        
-        oBinding.requestContexts(0, 0).then(() => {
-          const iCount = oBinding.getLength();
-          
+        return this._loadEntityCount(oModel, entityName).then((iCount) => {
           // Update count in admin model
           const aTiles = oViewModel.getProperty("/tiles");
           const oTile = aTiles.find(tile => tile.id === key);
@@ -110,8 +177,42 @@ sap.ui.define([
             oTile.recordCount = iCount;
             oViewModel.setProperty("/tiles", aTiles);
           }
+          Log.info(`Loaded count for ${entityName}: ${iCount}`);
+          return { entity: entityName, count: iCount };
         }).catch((oError) => {
           Log.error(`Error loading count for ${entityName}:`, oError);
+          return { entity: entityName, error: oError };
+        });
+      });
+      
+      return Promise.allSettled(aPromises).then((results) => {
+        const failures = results.filter(r => r.status === "rejected" || r.value?.error);
+        if (failures.length > 0) {
+          Log.warning("Some entity counts failed to load:", failures);
+          MessageToast.show("Some data could not be loaded");
+        }
+        return results;
+      });
+    },
+    
+    /**
+     * Load count for a single entity set using OData V4 list binding
+     * @param {sap.ui.model.odata.v4.ODataModel} oModel - The OData V4 model
+     * @param {string} sEntityName - Entity name (e.g., "QuestionFlow")
+     * @returns {Promise<number>} Promise resolving to entity count
+     * @private
+     */
+    _loadEntityCount: function(oModel, sEntityName) {
+      return new Promise((resolve, reject) => {
+        const oBinding = oModel.bindList(`/${sEntityName}`);
+        
+        // Request contexts to trigger the query and get count
+        oBinding.requestContexts(0, 0).then(() => {
+          const iCount = oBinding.getLength();
+          resolve(iCount);
+        }).catch((oError) => {
+          Log.error(`Failed to load count for ${sEntityName}:`, oError);
+          reject(oError);
         });
       });
     },
@@ -141,8 +242,61 @@ sap.ui.define([
      * Refresh all tile counts
      */
     onRefresh: function() {
-      this._loadRecordCounts();
-      MessageToast.show("Record counts refreshed");
+      const oViewModel = this.getView().getModel("adminModel");
+      
+      oViewModel.setProperty("/busy", true);
+      
+      // Reload data directly
+      this._loadRecordCounts().then(() => {
+        oViewModel.setProperty("/busy", false);
+        MessageToast.show("Record counts refreshed");
+      }).catch((oError) => {
+        oViewModel.setProperty("/busy", false);
+        Log.error("Refresh failed:", oError);
+        MessageBox.error("Failed to refresh data: " + (oError.message || "Unknown error"));
+      });
+    },
+    
+    /**
+     * Handler for Recent Changes panel expand
+     * Loads audit log data when panel is expanded
+     * @param {sap.ui.base.Event} oEvent - Panel expand event
+     */
+    onRecentChangesPanelExpand: function(oEvent) {
+      const bExpanded = oEvent.getParameter("expand");
+      const oViewModel = this.getView().getModel("adminModel");
+      
+      // Only load data when expanding (not when collapsing)
+      if (!bExpanded) {
+        return;
+      }
+      
+      // Check if data is already loaded
+      const oTable = this.byId("recentChangesTable");
+      const oBinding = oTable.getBinding("items");
+      
+      if (!oBinding) {
+        return;
+      }
+      
+      // Show busy indicator while loading
+      oViewModel.setProperty("/recentChangesBusy", true);
+      
+      // Request only the first 20 items
+      oBinding.requestContexts(0, 20).then(() => {
+        oViewModel.setProperty("/recentChangesBusy", false);
+      }).catch((oError) => {
+        oViewModel.setProperty("/recentChangesBusy", false);
+        
+        // Handle specific errors
+        if (oError.message && oError.message.includes("Could not find table")) {
+          Log.warning("AuditLog table not yet deployed to database");
+          MessageToast.show("Audit log feature not yet available. Database deployment required.");
+        } else {
+          Log.error("Failed to load recent changes:", oError);
+          MessageToast.show("Unable to load recent changes");
+        }
+      });
     }
   });
 });

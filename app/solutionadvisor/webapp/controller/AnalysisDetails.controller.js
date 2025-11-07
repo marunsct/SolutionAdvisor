@@ -3,12 +3,13 @@ sap.ui.define([
     "sap/ui/core/routing/History",
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "sd/solutionadvisor/utils/ErrorHandler",
     "sap/base/Log",
     "sap/viz/ui5/data/FlattenedDataset",
     "sap/viz/ui5/controls/common/feeds/FeedItem",
     "sap/ui/core/Fragment"
-], (Controller, History, JSONModel, MessageToast, ErrorHandler, Log, FlattenedDataset, FeedItem, Fragment) => {
+], (Controller, History, JSONModel, MessageToast, MessageBox, ErrorHandler, Log, FlattenedDataset, FeedItem, Fragment) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysisDetails", {
@@ -427,14 +428,20 @@ sap.ui.define([
 
             const oAnalysis = oContext.getObject();
             
+            // Check if data is loaded
+            if (!oAnalysis || !oAnalysis.ID) {
+                MessageToast.show("Analysis data is still loading. Please wait...");
+                return;
+            }
+            
             // Validation: Check if analysis has required data
             if (!oAnalysis.finalRecommendation) {
-                sap.m.MessageBox.error("Cannot save incomplete analysis. Please complete the wizard first.");
+                MessageBox.error("Cannot save incomplete analysis. Please complete the wizard first.");
                 return;
             }
 
             // Confirmation dialog
-            sap.m.MessageBox.confirm(
+            MessageBox.confirm(
                 `Save analysis "${oAnalysis.ricefwId}" permanently?\n\n` +
                 `Recommended Level: ${oAnalysis.finalRecommendation}\n` +
                 `Technical Debt: ${oAnalysis.technicalDebtScore || 'N/A'}\n` +
@@ -442,10 +449,10 @@ sap.ui.define([
                 `This will create a permanent record and cannot be undone.`,
                 {
                     title: "Confirm Save Analysis",
-                    actions: [sap.m.MessageBox.Action.OK, sap.m.MessageBox.Action.CANCEL],
-                    emphasizedAction: sap.m.MessageBox.Action.OK,
+                    actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                    emphasizedAction: MessageBox.Action.OK,
                     onClose: (oAction) => {
-                        if (oAction === sap.m.MessageBox.Action.OK) {
+                        if (oAction === MessageBox.Action.OK) {
                             this._saveAnalysisPermanently(oAnalysis);
                         }
                     }
@@ -455,34 +462,28 @@ sap.ui.define([
 
         /**
          * Save analysis permanently to database
+         * For CAP draft-enabled entities, simply update the status field
+         * CAP automatically handles draft activation on save
          * @param {object} oAnalysis - Analysis object to save
          * @private
          */
         _saveAnalysisPermanently(oAnalysis) {
-            const oModel = this.getView().getModel();
             const oContext = this.getView().getBindingContext();
             
             if (!oContext) {
-                sap.m.MessageBox.error("Cannot save analysis - binding context lost");
+                MessageBox.error("Cannot save analysis - binding context lost");
                 return;
             }
             
+            const oModel = this.getView().getModel();
             this.getView().setBusy(true);
 
-            // OData V4 Pattern: Update entity properties and submit changes
-            // Use setProperty to mark fields as modified
+            // For CAP draft-enabled entities, simply set properties and submit
+            // CAP handles draft lifecycle automatically
             oContext.setProperty("status", "Completed");
             oContext.setProperty("modifiedAt", new Date().toISOString());
             
-            // Check if there are pending changes before submitting
-            if (!oModel.hasPendingChanges()) {
-                this.getView().setBusy(false);
-                MessageToast.show("No changes to save");
-                return;
-            }
-
-            // Submit all pending changes to the backend
-            // OData V4 auto-batches changes by default in $auto group
+            // Submit changes using the default update group
             oModel.submitBatch(oModel.getUpdateGroupId()).then(() => {
                 this.getView().setBusy(false);
                 
@@ -498,16 +499,10 @@ sap.ui.define([
                     }
                 });
 
-                // Optional: Navigate to analysis list after save
-                // this.getOwnerComponent().getRouter().navTo("AnalysesList");
-
             }).catch((oError) => {
                 this.getView().setBusy(false);
                 Log.error("Failed to save analysis:", oError);
                 ErrorHandler.showServiceError(oError, "Failed to save analysis permanently");
-                
-                // Reset changes on error
-                oModel.resetChanges();
             });
         },
         

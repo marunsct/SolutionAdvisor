@@ -33,6 +33,7 @@ service solutionAdvisorService {
     // ABAC enforcement for ownership is implemented in service.js handlers
     @cds.redirection.target
     @odata.draft.enabled
+    @odata.draft.bypass  // Allow direct modifications of active instances (e.g., saving completed analysis)
     @restrict: [
         {
             grant: '*',
