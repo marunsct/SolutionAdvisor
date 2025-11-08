@@ -124,7 +124,7 @@ module.exports = cds.service.impl(async function () {
         if (cached) {
             LOG.debug('Returning cached CleanCoreLevels');
             req.results = cached;
-            req.reject(200); // Skip database query
+            return; // Return cached data without calling database
         }
     });
 
@@ -140,7 +140,7 @@ module.exports = cds.service.impl(async function () {
         if (cached) {
             LOG.debug('Returning cached ObjectTypes');
             req.results = cached;
-            req.reject(200);
+            return; // Return cached data without calling database
         }
     });
 
@@ -156,7 +156,7 @@ module.exports = cds.service.impl(async function () {
         if (cached) {
             LOG.debug('Returning cached PerformanceThresholds');
             req.results = cached;
-            req.reject(200);
+            return; // Return cached data without calling database
         }
     });
 
@@ -1208,20 +1208,41 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('getAnalyticsData', async (req) => {
         try {
-            // Extract filter parameters from request
+            LOG.debug('getAnalyticsData called with params:', req.data);
+            
+            // Extract filter parameters from request - handle both null and string inputs safely
             const filters = {
-                dateFrom: req.data.dateFrom,
-                dateTo: req.data.dateTo,
-                ricefwTypes: req.data.ricefwTypes ? JSON.parse(req.data.ricefwTypes) : null,
-                cleanCoreLevels: req.data.cleanCoreLevels ? JSON.parse(req.data.cleanCoreLevels) : null,
-                projectId: req.data.projectId
+                dateFrom: req.data?.dateFrom || null,
+                dateTo: req.data?.dateTo || null,
+                ricefwTypes: null,
+                cleanCoreLevels: null,
+                projectId: req.data?.projectId || null
             };
 
+            // Parse JSON strings safely
+            if (req.data?.ricefwTypes && typeof req.data.ricefwTypes === 'string') {
+                try {
+                    filters.ricefwTypes = JSON.parse(req.data.ricefwTypes);
+                } catch {
+                    LOG.warning('Failed to parse ricefwTypes, ignoring filter');
+                }
+            }
+
+            if (req.data?.cleanCoreLevels && typeof req.data.cleanCoreLevels === 'string') {
+                try {
+                    filters.cleanCoreLevels = JSON.parse(req.data.cleanCoreLevels);
+                } catch {
+                    LOG.warning('Failed to parse cleanCoreLevels, ignoring filter');
+                }
+            }
+
+            LOG.debug('Resolved filters:', filters);
             const analyticsData = await analyticsService.getAnalyticsData(filters);
+            LOG.debug('Analytics data retrieved:', analyticsData ? 'success' : 'empty');
             return analyticsData;
         } catch (error) {
             LOG.error('Error getting analytics data:', error);
-            return req.error(500, req.t('error.getAnalyticsDataFailed', [error.message]));
+            return req.error(500, `Failed to get analytics data: ${error.message}`);
         }
     });
 

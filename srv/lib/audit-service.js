@@ -66,6 +66,7 @@ class AuditService {
         try {
             const entry = {
                 eventType: 'DATA_CHANGE',
+                eventCategory: 'DATA_CHANGE',
                 entityType: entityType,
                 entityId: entityId,
                 userId: req.user?.id || 'SYSTEM',

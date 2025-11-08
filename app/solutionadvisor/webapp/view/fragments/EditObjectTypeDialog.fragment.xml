@@ -1,0 +1,96 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="editObjectTypeDialog"
+        title="{editModel>/dialogTitle}"
+        contentWidth="500px"
+        contentHeight="400px"
+        resizable="true"
+        draggable="true">
+
+        <content>
+            <VBox id="editObjectTypeVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="editObjectTypeForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="1"
+                    columnsL="1"
+                    columnsM="1"
+                    singleContainerFullSize="false">
+
+                    <form:content>
+
+                    <!-- Object Code (readonly) -->
+                    <Label id="typeCodeEditLabel" text="Object Code"/>
+                    <Input
+                        id="typeCodeEditInput"
+                        value="{editModel>/objectCode}"
+                        editable="false"/>
+
+                    <!-- Display Name -->
+                    <Label id="typeNameEditLabel" text="Display Name *" required="true"/>
+                    <Input
+                        id="typeNameEditInput"
+                        value="{editModel>/displayName}"
+                        editable="{editModel>/editable}"
+                        placeholder="Enter type name"/>
+
+                    <!-- Description -->
+                    <Label id="typeDescriptionEditLabel" text="Description *" required="true"/>
+                    <TextArea
+                        id="typeDescriptionEditArea"
+                        value="{editModel>/description}"
+                        editable="{editModel>/editable}"
+                        rows="3"
+                        placeholder="Enter type description"/>
+
+                    <!-- Icon Name -->
+                    <Label id="typeIconEditLabel" text="Icon Name"/>
+                    <Input
+                        id="typeIconEditInput"
+                        value="{editModel>/iconName}"
+                        editable="{editModel>/editable}"
+                        placeholder="sap-icon://..."/>
+
+                    <!-- Is Active -->
+                    <Label id="typeActiveEditLabel" text="Active"/>
+                    <Switch
+                        id="typeActiveEditSwitch"
+                        state="{editModel>/isActive}"
+                        enabled="{editModel>/editable}"/>
+
+                    </form:content>
+                </form:SimpleForm>
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="saveObjectTypeButton"
+                text="Save"
+                type="Emphasized"
+                press="onEditConfirm"
+                visible="{editModel>/editable}"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="cancelObjectTypeButton"
+                text="{= ${editModel>/editable} ? 'Cancel' : 'Close' }"
+                press="onEditCancel"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

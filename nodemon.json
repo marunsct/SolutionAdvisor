@@ -1,0 +1,27 @@
+{
+  "watch": [
+    "app/solutionadvisor/webapp/**/*",
+    "app/tiles/**/*",
+    "app/shells/**/*",
+    "app/shellplugin/**/*"
+  ],
+  "ext": "js,xml,json,css,html,properties",
+  "ignore": [
+    "app/solutionadvisor/webapp/test/**",
+    "app/**/node_modules/**",
+    "**/*.log",
+    "**/dist/**",
+    "**/gen/**"
+  ],
+  "exec": "cd app && npm run startui",
+  "delay": 1000,
+  "verbose": true,
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo '\n🔄 Restarting UI server due to file changes...\n'",
+    "crash": "echo '\n❌ UI server crashed - waiting for file changes...\n'"
+  }
+}

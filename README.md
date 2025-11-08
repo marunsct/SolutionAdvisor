@@ -55,9 +55,33 @@ File or Folder | Purpose
    # OR use VS Code task: Terminal > Run Task > cds watch
    ```
 
-4. **Access application**:
+4. **Start UI with auto-reload** (recommended for UI development):
+   ```bash
+   npm run ui:watch
+   # OR use VS Code task: Terminal > Run Task > UI Watch (Auto-Restart)
+   # Automatically restarts when you change .js, .xml, .json, .css, .html files
+   ```
+
+5. **Access application**:
    - App: http://localhost:4004
+   - UI Approuter (with watch): http://localhost:5001
    - OData Service: http://localhost:4004/service/SolutionAdvisorSvcs
+
+### UI Development Workflow
+
+The `ui:watch` command uses nodemon to automatically restart the UI server when you modify UI files:
+
+- **Watched folders**: `app/solutionadvisor/webapp`, `app/tiles`, `app/shells`, `app/shellplugin`
+- **Watched extensions**: `.js`, `.xml`, `.json`, `.css`, `.html`, `.properties`
+- **Auto-restart delay**: 1 second after file changes
+- **Manual restart**: Type `rs` in the terminal and press Enter
+
+**Example workflow**:
+1. Run `npm run ui:watch` in one terminal
+2. Run `npm run start-local` in another terminal (backend)
+3. Edit UI files in `app/solutionadvisor/webapp/`
+4. UI server restarts automatically on save
+5. Refresh browser to see changes
 
 ### Running Tests
 

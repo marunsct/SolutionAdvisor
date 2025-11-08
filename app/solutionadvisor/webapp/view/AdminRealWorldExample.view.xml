@@ -113,7 +113,12 @@
                 <!-- Example Table -->
                 <Table
                     id="exampleTable"
-                    items="{admin>/RealWorldExample}"
+                    items="{
+                        path: 'admin>/RealWorldExample',
+                        parameters: {
+                            $count: true
+                        }
+                    }"
                     mode="MultiSelect"
                     growing="true"
                     growingThreshold="20"
@@ -148,18 +153,18 @@
                     </columns>
                     
                     <items>
-                        <ColumnListItem id="exampleItem">
+                        <ColumnListItem id="exampleItem" type="Active" press="onItemPress">
                             <cells>
-                                <Text id="exampleTitleText" text="{exampleTitle}"/>
-                                <Text id="exampleObjectTypeText" text="{objectType}"/>
-                                <Text id="exampleIndustryText" text="{industry}"/>
+                                <Text id="exampleTitleText" text="{admin>title}"/>
+                                <Text id="exampleObjectTypeText" text="{admin>objectType}"/>
+                                <Text id="exampleIndustryText" text="{admin>industry}"/>
                                 <ObjectStatus
                                     id="exampleLevelStatus"
-                                    text="{cleanCoreLevel}"
-                                    state="{= ${cleanCoreLevel} === 'A' ? 'Success' : ${cleanCoreLevel} === 'B' ? 'Information' : ${cleanCoreLevel} === 'C' ? 'Warning' : 'Error' }"/>
-                                <Text id="exampleDescriptionText" text="{description}" maxLines="2"/>
-                                <Text id="exampleTechnologiesText" text="{technologies}" maxLines="1"/>
-                                <Text id="exampleModifiedAtText" text="{path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"/>
+                                    text="{admin>cleanCoreLevel}"
+                                    state="{= ${admin>cleanCoreLevel} === 'A' ? 'Success' : ${admin>cleanCoreLevel} === 'B' ? 'Information' : ${admin>cleanCoreLevel} === 'C' ? 'Warning' : 'Error' }"/>
+                                <Text id="exampleDescriptionText" text="{admin>solutionDescription}" maxLines="2"/>
+                                <Text id="exampleTechnologiesText" text="{admin>technologiesUsed}" maxLines="1"/>
+                                <Text id="exampleModifiedAtText" text="{path: 'admin>modifiedAt', formatter: '.formatTimestamp'}"/>
                                 <HBox id="exampleActionsHBox">
                                     <Button
                                         id="editExampleButton"

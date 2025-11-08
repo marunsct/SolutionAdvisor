@@ -106,7 +106,12 @@
                 <!-- Threshold Table -->
                 <Table
                     id="thresholdTable"
-                    items="{admin>/PerformanceThreshold}"
+                    items="{
+                        path: 'admin>/PerformanceThreshold',
+                        parameters: {
+                            $count: true
+                        }
+                    }"
                     mode="MultiSelect"
                     growing="true"
                     growingThreshold="20"
@@ -114,25 +119,28 @@
                     noDataText="No thresholds found. Click Create to add new thresholds.">
                     
                     <columns>
-                        <Column id="thresholdNameColumn" width="20%">
-                            <Text id="thresholdNameHeader" text="Threshold Name"/>
-                        </Column>
-                        <Column id="thresholdCategoryColumn" width="15%">
+                        <Column id="thresholdCategoryColumn" width="12%">
                             <Text id="thresholdCategoryHeader" text="Category"/>
                         </Column>
-                        <Column id="thresholdValueColumn" width="10%">
-                            <Text id="thresholdValueHeader" text="Value"/>
+                        <Column id="thresholdMethodColumn" width="12%">
+                            <Text id="thresholdMethodHeader" text="Method"/>
                         </Column>
-                        <Column id="thresholdUnitColumn" width="8%">
-                            <Text id="thresholdUnitHeader" text="Unit"/>
+                        <Column id="thresholdVolumeLimitColumn" width="12%">
+                            <Text id="thresholdVolumeLimitHeader" text="Volume Limit"/>
                         </Column>
-                        <Column id="thresholdObjectTypesColumn" width="15%">
+                        <Column id="thresholdRespTimeColumn" width="12%">
+                            <Text id="thresholdRespTimeHeader" text="Response Time"/>
+                        </Column>
+                        <Column id="thresholdConcurrencyColumn" width="12%">
+                            <Text id="thresholdConcurrencyHeader" text="Concurrency"/>
+                        </Column>
+                        <Column id="thresholdCleanCoreLevelColumn" width="10%">
+                            <Text id="thresholdCleanCoreLevelHeader" text="Level"/>
+                        </Column>
+                        <Column id="thresholdObjectTypesColumn" width="18%">
                             <Text id="thresholdObjectTypesHeader" text="Object Types"/>
                         </Column>
-                        <Column id="thresholdSeverityColumn" width="8%">
-                            <Text id="thresholdSeverityHeader" text="Severity"/>
-                        </Column>
-                        <Column id="thresholdActiveColumn" width="8%">
+                        <Column id="thresholdActiveColumn" width="6%">
                             <Text id="thresholdActiveHeader" text="Active"/>
                         </Column>
                         <Column id="thresholdModifiedColumn" width="10%">
@@ -144,22 +152,21 @@
                     </columns>
                     
                     <items>
-                        <ColumnListItem id="thresholdItem">
+                        <ColumnListItem id="thresholdItem" type="Active" press="onItemPress">
                             <cells>
-                                <Text id="thresholdNameText" text="{name}"/>
-                                <Text id="thresholdCategoryText" text="{category}"/>
-                                <Text id="thresholdValueText" text="{value}"/>
-                                <Text id="thresholdUnitText" text="{unit}"/>
-                                <Text id="thresholdObjectTypesText" text="{applicableObjectTypes}"/>
-                                <ObjectStatus
-                                    id="thresholdSeverityStatus"
-                                    text="{severity}"
-                                    state="{= ${severity} === 'Critical' ? 'Error' : ${severity} === 'Warning' ? 'Warning' : 'Success' }"/>
+                                <Text id="thresholdCategoryText" text="{admin>category}"/>
+                                <Text id="thresholdMethodText" text="{admin>method}"/>
+                                <Text id="thresholdVolumeLimitText" text="{admin>volumeLimit}"/>
+                                <Text id="thresholdRespTimeText" text="{admin>responseTimeTarget}"/>
+                                <Text id="thresholdConcurrencyText" text="{admin>concurrencyLimit}"/>
+                                <ObjectStatus id="thresholdLevelStatus" text="{admin>cleanCoreLevel}"
+                                    state="{= ${admin>cleanCoreLevel} === 'A' ? 'Success' : ${admin>cleanCoreLevel} === 'B' ? 'Information' : ${admin>cleanCoreLevel} === 'C' ? 'Warning' : 'Error' }"/>
+                                <Text id="thresholdObjectTypesText" text="{admin>applicableObjectTypes}"/>
                                 <Switch
                                     id="thresholdActiveSwitch"
-                                    state="{isActive}"
+                                    state="{admin>isActive}"
                                     enabled="false"/>
-                                <Text id="thresholdModifiedAtText" text="{path: 'modifiedAt', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"/>
+                                <Text id="thresholdModifiedAtText" text="{path: 'admin>modifiedAt', formatter: '.formatTimestamp'}"/>
                                 <HBox id="thresholdActionsHBox">
                                     <Button
                                         id="editThresholdButton"

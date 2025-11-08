@@ -3,11 +3,40 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/base/Log"
-], (Controller, JSONModel, MessageToast, MessageBox, Log) => {
+    "sap/base/Log",
+    "sap/ui/core/format/DateFormat",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator"
+], (Controller, JSONModel, MessageToast, MessageBox, Log, DateFormat, Filter, FilterOperator) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.Admin", {
+    
+    /**
+     * Formatter for timestamp display
+     * Safely formats date or returns dash if invalid
+     */
+    formatTimestamp: function(sTimestamp) {
+      if (!sTimestamp) {
+        return "-";
+      }
+      
+      try {
+        const oDateFormat = DateFormat.getDateTimeInstance({
+          pattern: "yyyy-MM-dd HH:mm"
+        });
+        const oDate = new Date(sTimestamp);
+        
+        if (isNaN(oDate.getTime())) {
+          return "-";
+        }
+        
+        return oDateFormat.format(oDate);
+      } catch (_e) {
+        // Intentionally ignore exception - return dash for any formatting errors
+        return "-";
+      }
+    },
     
     /**
      * Controller initialization
@@ -260,6 +289,7 @@ sap.ui.define([
     /**
      * Handler for Recent Changes panel expand
      * Loads audit log data when panel is expanded
+     * Filters to show only changes for admin-maintained entities
      * @param {sap.ui.base.Event} oEvent - Panel expand event
      */
     onRecentChangesPanelExpand: function(oEvent) {
@@ -278,6 +308,28 @@ sap.ui.define([
       if (!oBinding) {
         return;
       }
+      
+      // Apply filters to show only admin-maintained entities
+      const aAdminEntities = [
+        "QuestionFlow",
+        "PerformanceThreshold", 
+        "RealWorldExample",
+        "CleanCoreLevels",
+        "ObjectTypes"
+      ];
+      
+      // Create OR filter for entity types
+      const aEntityFilters = aAdminEntities.map(sEntity => 
+        new Filter("entityType", FilterOperator.EQ, sEntity)
+      );
+      
+      const oEntityFilter = new Filter({
+        filters: aEntityFilters,
+        and: false  // OR condition
+      });
+      
+      // Apply the filter
+      oBinding.filter(oEntityFilter);
       
       // Show busy indicator while loading
       oViewModel.setProperty("/recentChangesBusy", true);

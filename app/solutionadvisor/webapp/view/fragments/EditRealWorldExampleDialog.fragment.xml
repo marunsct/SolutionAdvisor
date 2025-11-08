@@ -1,0 +1,121 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="editRealWorldExampleDialog"
+        title="{editModel>/dialogTitle}"
+        contentWidth="600px"
+        contentHeight="600px"
+        resizable="true"
+        draggable="true">
+
+        <content>
+            <VBox id="editExampleVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="editExampleForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="1"
+                    columnsL="1"
+                    columnsM="1"
+                    singleContainerFullSize="false">
+
+                    <form:content>
+
+                    <!-- Title -->
+                    <Label id="exampleTitleEditLabel" text="Title *" required="true"/>
+                    <Input
+                        id="exampleTitleEditInput"
+                        value="{editModel>/title}"
+                        editable="{editModel>/editable}"
+                        placeholder="Enter title"/>
+
+                    <!-- Object Type -->
+                    <Label id="exampleObjectTypeEditLabel" text="Object Type *" required="true"/>
+                    <ComboBox
+                        id="exampleObjectTypeComboEdit"
+                        selectedKey="{editModel>/objectType}"
+                        editable="{editModel>/editable}">
+                        <items>
+                            <core:Item id="reportsExampleItemEdit" key="Reports" text="Reports"/>
+                            <core:Item id="interfacesExampleItemEdit" key="Interfaces" text="Interfaces"/>
+                            <core:Item id="conversionsExampleItemEdit" key="Conversions" text="Conversions"/>
+                            <core:Item id="enhancementsExampleItemEdit" key="Enhancements" text="Enhancements"/>
+                            <core:Item id="formsExampleItemEdit" key="Forms" text="Forms"/>
+                            <core:Item id="workflowsExampleItemEdit" key="Workflows" text="Workflows"/>
+                        </items>
+                    </ComboBox>
+
+                    <!-- Industry -->
+                    <Label id="exampleIndustryEditLabel" text="Industry"/>
+                    <Input
+                        id="exampleIndustryEditInput"
+                        value="{editModel>/industry}"
+                        editable="{editModel>/editable}"
+                        placeholder="e.g., Manufacturing, Retail"/>
+
+                    <!-- Clean Core Level -->
+                    <Label id="exampleCleanCoreLevelEditLabel" text="Clean Core Level *" required="true"/>
+                    <ComboBox
+                        id="exampleCleanCoreLevelComboEdit"
+                        selectedKey="{editModel>/cleanCoreLevel}"
+                        editable="{editModel>/editable}">
+                        <items>
+                            <core:Item id="levelAItemEdit" key="A" text="Level A"/>
+                            <core:Item id="levelBItemEdit" key="B" text="Level B"/>
+                            <core:Item id="levelCItemEdit" key="C" text="Level C"/>
+                            <core:Item id="levelDItemEdit" key="D" text="Level D"/>
+                        </items>
+                    </ComboBox>
+
+                    <!-- Solution Description -->
+                    <Label id="exampleDescriptionEditLabel" text="Solution Description *" required="true"/>
+                    <TextArea
+                        id="exampleDescriptionEditArea"
+                        value="{editModel>/solutionDescription}"
+                        editable="{editModel>/editable}"
+                        rows="4"
+                        placeholder="Enter detailed solution description"/>
+
+                    <!-- Technologies -->
+                    <Label id="exampleTechnologiesEditLabel" text="Technologies"/>
+                    <Input
+                        id="exampleTechnologiesEditInput"
+                        value="{editModel>/technologiesUsed}"
+                        editable="{editModel>/editable}"
+                        placeholder="Comma-separated (e.g., ABAP CDS, RAP, Fiori)"/>
+                    
+
+                    </form:content>
+                </form:SimpleForm>
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="saveExampleButton"
+                text="Save"
+                type="Emphasized"
+                press="onEditConfirm"
+                visible="{editModel>/editable}"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="cancelExampleButton"
+                text="{= ${editModel>/editable} ? 'Cancel' : 'Close' }"
+                press="onEditCancel"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

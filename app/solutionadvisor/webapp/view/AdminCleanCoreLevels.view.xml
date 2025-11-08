@@ -51,7 +51,12 @@
                 <!-- Levels Table -->
                 <Table
                     id="levelsTable"
-                    items="{admin>/CleanCoreLevels}"
+                    items="{
+                        path: 'admin>/CleanCoreLevels',
+                        parameters: {
+                            $count: true
+                        }
+                    }"
                     mode="SingleSelectMaster"
                     busy="{viewModel>/busy}"
                     noDataText="No levels found. Click Create to add new levels.">
@@ -81,17 +86,17 @@
                     </columns>
                     
                     <items>
-                        <ColumnListItem id="levelItem">
+                        <ColumnListItem id="levelItem" type="Active" press="onItemPress">
                             <cells>
                                 <ObjectStatus
                                     id="levelStatus"
-                                    text="{level}"
-                                    state="{= ${level} === 'A' ? 'Success' : ${level} === 'B' ? 'Information' : ${level} === 'C' ? 'Warning' : 'Error' }"/>
-                                <Text id="levelNameText" text="{levelName}" class="sapUiMediumText"/>
-                                <Text id="descriptionText" text="{description}" maxLines="2"/>
-                                <Text id="techDebtText" text="{technicalDebtMultiplier}"/>
-                                <Text id="cloudReadinessText" text="{cloudReadinessMultiplier}"/>
-                                <Text id="upgradeImpactText" text="{upgradeImpactMultiplier}"/>
+                                    text="{admin>level}"
+                                    state="{= ${admin>level} === 'A' ? 'Success' : ${admin>level} === 'B' ? 'Information' : ${admin>level} === 'C' ? 'Warning' : 'Error' }"/>
+                                <Text id="levelNameText" text="{admin>levelName}" class="sapUiMediumText"/>
+                                <Text id="descriptionText" text="{admin>description}" maxLines="2"/>
+                                <Text id="techDebtText" text="{admin>technicalDebtMultiplier}"/>
+                                <Text id="cloudReadinessText" text="{admin>cloudReadinessFactor}"/>
+                                <Text id="upgradeImpactText" text="{admin>upgradeImpactMultiplier}"/>
                                 <HBox id="levelActionsHBox">
                                     <Button
                                         id="editLevelButton"

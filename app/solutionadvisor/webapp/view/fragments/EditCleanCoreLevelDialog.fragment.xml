@@ -1,0 +1,103 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="editCleanCoreLevelDialog"
+        title="{editModel>/dialogTitle}"
+        contentWidth="600px"
+        contentHeight="500px"
+        resizable="true"
+        draggable="true">
+
+        <content>
+            <VBox id="editLevelVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="editLevelForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="1"
+                    columnsL="1"
+                    columnsM="1"
+                    singleContainerFullSize="false">
+
+                    <form:content>
+
+                    <!-- Level (readonly) -->
+                    <Label id="levelEditLabel" text="Level"/>
+                    <Input
+                        id="levelEditInput"
+                        value="{editModel>/level}"
+                        editable="false"/>
+
+                    <!-- Level Name -->
+                    <Label id="levelNameEditLabel" text="Level Name *" required="true"/>
+                    <Input
+                        id="levelNameEditInput"
+                        value="{editModel>/levelName}"
+                        editable="{editModel>/editable}"
+                        placeholder="Enter level name"/>
+
+                    <!-- Description -->
+                    <Label id="levelDescriptionEditLabel" text="Description"/>
+                    <TextArea
+                        id="levelDescriptionEditArea"
+                        value="{editModel>/description}"
+                        editable="{editModel>/editable}"
+                        rows="3"
+                        placeholder="Enter description"/>
+
+                    <!-- Multipliers -->
+                    <Label id="techDebtMultiplierEditLabel" text="Technical Debt Multiplier *" required="true"/>
+                    <Input
+                        id="techDebtMultiplierEditInput"
+                        value="{editModel>/technicalDebtMultiplier}"
+                        editable="{editModel>/editable}"
+                        type="Number"/>
+
+                    <Label id="cloudReadinessMultiplierEditLabel" text="Cloud Readiness Multiplier *" required="true"/>
+                    <Input
+                        id="cloudReadinessMultiplierEditInput"
+                        value="{editModel>/cloudReadinessMultiplier}"
+                        editable="{editModel>/editable}"
+                        type="Number"/>
+
+                    <Label id="upgradeImpactMultiplierEditLabel" text="Upgrade Impact Multiplier *" required="true"/>
+                    <Input
+                        id="upgradeImpactMultiplierEditInput"
+                        value="{editModel>/upgradeImpactMultiplier}"
+                        editable="{editModel>/editable}"
+                        type="Number"/>
+
+                    </form:content>
+                </form:SimpleForm>
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="saveLevelButton"
+                text="Save"
+                type="Emphasized"
+                press="onEditConfirm"
+                visible="{editModel>/editable}"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="cancelLevelButton"
+                text="{= ${editModel>/editable} ? 'Cancel' : 'Close' }"
+                press="onEditCancel"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

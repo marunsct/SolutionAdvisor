@@ -6,14 +6,42 @@ sap.ui.define([
   "sap/ui/model/FilterType",
   "sap/m/MessageToast",
   "sap/m/MessageBox",
-  "sap/ui/core/Fragment"
-], (Controller, JSONModel, Filter, FilterOperator, FilterType, MessageToast, MessageBox, Fragment) => {
+  "sap/ui/core/Fragment",
+  "sap/ui/core/format/DateFormat"
+], (Controller, JSONModel, Filter, FilterOperator, FilterType, MessageToast, MessageBox, Fragment, DateFormat) => {
   "use strict";
 
   /* global XLSX, FileReader */
   /* eslint-disable no-console */
 
   return Controller.extend("sd.solutionadvisor.controller.AdminQuestionFlow", {
+    
+    /**
+     * Formatter for timestamp display
+     * Safely formats date or returns dash if invalid
+     * @param {string|Date} sTimestamp - Timestamp to format
+     * @returns {string} Formatted date or "-"
+     */
+    formatTimestamp: function(sTimestamp) {
+      if (!sTimestamp) {
+        return "-";
+      }
+      try {
+        const oDateFormat = DateFormat.getDateTimeInstance({
+          pattern: "yyyy-MM-dd HH:mm"
+        });
+        const oDate = new Date(sTimestamp);
+        
+        if (isNaN(oDate.getTime())) {
+          return "-";
+        }
+        
+        return oDateFormat.format(oDate);
+      } catch (_e) {
+        // Intentionally ignore exception - return dash for any formatting errors
+        return "-";
+      }
+    },
     
     /**
      * Controller initialization
@@ -43,6 +71,15 @@ sap.ui.define([
      * @private
      */
     _onRouteMatched: function() {
+      // Clear any existing filters to ensure fresh view
+      const oTable = this.byId("questionFlowTable");
+      if (oTable) {
+        const oBinding = oTable.getBinding("items");
+        if (oBinding) {
+          oBinding.filter([], FilterType.Application);
+        }
+      }
+      
       // Load data on route match (model should be ready by now)
       this._loadData();
     },
@@ -62,30 +99,46 @@ sap.ui.define([
         return;
       }
       
-      oViewModel.setProperty("/busy", true);
+      if (!oTable) {
+        console.error("Table not found");
+        return;
+      }
       
-      const oBinding = oModel.bindList("/QuestionFlow", null, null, null, {
-        $count: true,
-        $orderby: "questionId"
-      });
+      // Get the existing table binding
+      const oBinding = oTable.getBinding("items");
       
-      oBinding.requestContexts(0, 100).then(() => {
-        const iCount = oBinding.getLength();
+      if (!oBinding) {
+        console.error("Table binding not available");
+        return;
+      }
+      
+      // Check if the binding or model has pending changes before refreshing
+      if (oModel.hasPendingChanges() || oBinding.hasPendingChanges()) {
+        console.warn("Model or binding has pending changes, waiting for them to clear...");
+        // Don't refresh if there are pending changes - it will cause an error
+        // Instead, schedule a retry
+        setTimeout(() => {
+          this._loadData();
+        }, 200);
+        return;
+      }
+      
+      // Set up event handler to update count when data is received
+      const fnUpdateCount = () => {
+        // Use getCount() to get the total count from $count parameter (not just loaded contexts)
+        // For OData V4, getLength() returns total count when $count=true is set
+        const iCount = oBinding.getCount ? oBinding.getCount() : oBinding.getLength();
         oViewModel.setProperty("/recordCount", iCount);
-        oViewModel.setProperty("/busy", false);
-        
-        // Refresh table binding
-        if (oTable) {
-          oTable.getBinding("items").refresh();
+        if (iCount > 0) {
+          MessageToast.show(`Loaded ${iCount} question flow records`);
         }
-        
-        MessageToast.show(`Loaded ${iCount} question flow records`);
-      }).catch((error) => {
-        console.error("Error loading data:", error);
-        oViewModel.setProperty("/busy", false);
-        oViewModel.setProperty("/recordCount", 0);
-        MessageBox.error("Failed to load question flow data: " + (error.message || "Unknown error"));
-      });
+        oBinding.detachChange(fnUpdateCount);
+      };
+      
+      oBinding.attachChange(fnUpdateCount);
+      
+      // Refresh the binding - this will trigger the change event
+      oBinding.refresh();
     },
     
     /**
@@ -130,9 +183,9 @@ sap.ui.define([
       
       oBinding.filter(aFilters, FilterType.Application);
       
-      // Update count after filtering
+      // Update count after filtering - use getCount() for total count
       setTimeout(() => {
-        const iCount = oBinding.getLength();
+        const iCount = oBinding.getCount ? oBinding.getCount() : oBinding.getLength();
         oViewModel.setProperty("/recordCount", iCount);
       }, 100);
       
@@ -150,9 +203,9 @@ sap.ui.define([
       const oBinding = oTable.getBinding("items");
       oBinding.filter([], FilterType.Application);
       
-      // Update count
+      // Update count - use getCount() for total count
       setTimeout(() => {
-        const iCount = oBinding.getLength();
+        const iCount = oBinding.getCount ? oBinding.getCount() : oBinding.getLength();
         oViewModel.setProperty("/recordCount", iCount);
       }, 100);
       
@@ -265,7 +318,11 @@ sap.ui.define([
       oContext.created().then(() => {
         MessageToast.show("Question flow created successfully");
         this._oCreateDialog.close();
-        this._loadData();
+        
+        // After successful creation, context is created - no need to reset changes
+        setTimeout(() => {
+          this._loadData();
+        }, 100);
       }).catch((error) => {
         console.error("Error creating question flow:", error);
         MessageBox.error("Failed to create question flow: " + error.message);
@@ -427,10 +484,19 @@ sap.ui.define([
       oModel.submitBatch("$auto").then(() => {
         MessageToast.show("Saved successfully");
         if (this._oEditDialog) { this._oEditDialog.close(); }
-        this._loadData();
+        
+        // After successful submit, changes are already committed
+        // No need to reset changes, just refresh the data
+        // Wait a bit longer to ensure model state is fully settled
+        setTimeout(() => {
+          this._loadData();
+        }, 300);
       }).catch((error) => {
-        // Revert pending changes on error
-        oModel.resetChanges("$auto");
+        // On error, reset changes for the specific group
+        // Note: In OData V4, we should use the group ID used in submitBatch
+        if (oModel.hasPendingChanges()) {
+          oModel.resetChanges();
+        }
         console.error("Save failed", error);
         MessageBox.error("Failed to save changes");
       });
@@ -473,7 +539,11 @@ sap.ui.define([
     _deleteRecord: function(oContext) {
       oContext.delete().then(() => {
         MessageToast.show("Question flow deleted successfully");
-        this._loadData();
+        
+        // After successful deletion, context is removed - no need to reset changes
+        setTimeout(() => {
+          this._loadData();
+        }, 100);
       }).catch((error) => {
         console.error("Error deleting question flow:", error);
         MessageBox.error("Failed to delete question flow");

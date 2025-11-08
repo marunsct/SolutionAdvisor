@@ -51,7 +51,12 @@
                 <!-- Object Types Table -->
                 <Table
                     id="objectTypesTable"
-                    items="{admin>/ObjectTypes}"
+                    items="{
+                        path: 'admin>/ObjectTypes',
+                        parameters: {
+                            $count: true
+                        }
+                    }"
                     mode="SingleSelectMaster"
                     busy="{viewModel>/busy}"
                     noDataText="No object types found.">
@@ -81,23 +86,23 @@
                     </columns>
                     
                     <items>
-                        <ColumnListItem id="adminObjectTypeItem">
+                        <ColumnListItem id="adminObjectTypeItem" type="Active" press="onItemPress">
                             <cells>
                                 <ObjectIdentifier
                                     id="adminTypeCodeIdentifier"
-                                    title="{typeCode}"
+                                    title="{admin>objectCode}"
                                     titleActive="false"/>
                                 <core:Icon
                                     id="typeIcon"
-                                    src="{icon}"
+                                    src="{admin>iconName}"
                                     size="1.5rem"
                                     xmlns:core="sap.ui.core"/>
-                                <Text id="typeNameText" text="{typeName}" class="sapUiMediumText"/>
-                                <Text id="typeDescriptionText" text="{description}" maxLines="2"/>
-                                <Text id="displayOrderText" text="{displayOrder}"/>
+                                <Text id="typeNameText" text="{admin>displayName}" class="sapUiMediumText"/>
+                                <Text id="typeDescriptionText" text="{admin>description}" maxLines="2"/>
+                                <Text id="complexityText" text="{admin>complexity}"/>
                                 <Switch
                                     id="typeActiveSwitch"
-                                    state="{isActive}"
+                                    state="{admin>isActive}"
                                     enabled="false"/>
                                 <HBox id="typeActionsHBox">
                                     <Button

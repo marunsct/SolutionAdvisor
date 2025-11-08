@@ -168,6 +168,9 @@
                     id="questionFlowTable"
                     items="{
                         path: 'admin>/QuestionFlow',
+                        parameters: {
+                            $count: true
+                        },
                         sorter: {
                             path: 'questionId'
                         }
@@ -244,7 +247,7 @@
                                 <HBox id="qfActiveBox" justifyContent="Center">
                                     <core:Icon id="qfActiveIcon" src="{= ${admin>isActive} ? 'sap-icon://accept' : 'sap-icon://decline' }" color="{= ${admin>isActive} ? 'green' : 'red' }" />
                                 </HBox>
-                                <Text id="qfModifiedText" text="{ path: 'admin>modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: { pattern: 'yyyy-MM-dd HH:mm' } }" />
+                                <Text id="qfModifiedText" text="{ path: 'admin>modifiedAt', formatter: '.formatTimestamp' }" />
                                 <HBox id="qfActionsBox" justifyContent="End">
                                     <Button id="qfEditBtn" icon="sap-icon://edit" type="Transparent" press="onEdit" tooltip="Edit" />
                                     <Button id="qfDeleteBtn" icon="sap-icon://delete" type="Transparent" press="onDelete" tooltip="Delete" />

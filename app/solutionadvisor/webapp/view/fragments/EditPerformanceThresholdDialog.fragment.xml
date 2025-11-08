@@ -1,0 +1,180 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="editPerformanceThresholdDialog"
+        title="{editModel>/dialogTitle}"
+        contentWidth="600px"
+        contentHeight="500px"
+        resizable="true"
+        draggable="true">
+
+        <content>
+            <VBox id="editThresholdVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="editThresholdForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4"
+                    labelSpanL="4"
+                    labelSpanM="4"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="1"
+                    columnsL="1"
+                    columnsM="1"
+                    singleContainerFullSize="false">
+
+                    <form:content>
+
+                    <!-- Category -->
+                    <Label id="thresholdCategoryEditLabel" text="Category *" required="true"/>
+                    <ComboBox
+                        id="thresholdCategoryComboEdit"
+                        selectedKey="{editModel>/category}"
+                        editable="{editModel>/editable}">
+                        <items>
+                            <core:Item id="performanceCatItemEdit" key="Performance" text="Performance"/>
+                            <core:Item id="scalabilityCatItemEdit" key="Scalability" text="Scalability"/>
+                            <core:Item id="complianceCatItemEdit" key="Compliance" text="Compliance"/>
+                            <core:Item id="technicalCatItemEdit" key="Technical" text="Technical"/>
+                            <core:Item id="reportingCatItemEdit" key="Reporting" text="Reporting"/>
+                            <core:Item id="workflowCatItemEdit" key="Workflow" text="Workflow"/>
+                            <core:Item id="integrationCatItemEdit" key="Integration" text="Integration"/>
+                            <core:Item id="formsCatItemEdit" key="Forms" text="Forms"/>
+                            <core:Item id="conversionCatItemEdit" key="Conversion" text="Conversion"/>
+                            <core:Item id="enhancementCatItemEdit" key="Enhancement" text="Enhancement"/>
+                            <core:Item id="dataMigrationCatItemEdit" key="DataMigration" text="DataMigration"/>
+                        </items>
+                    </ComboBox>
+                    
+                    <!-- Method -->
+                    <Label id="thresholdMethodEditLabel" text="Method"/>
+                    <Input
+                        id="thresholdMethodEditInput"
+                        value="{editModel>/method}"
+                        editable="{editModel>/editable}"
+                        placeholder="Method or metric name"/>
+
+                    <!-- Volume Limit -->
+                    <Label id="thresholdVolumeLimitEditLabel" text="Volume Limit"/>
+                    <Input
+                        id="thresholdVolumeLimitEditInput"
+                        value="{editModel>/volumeLimit}"
+                        editable="{editModel>/editable}"
+                        type="Number"
+                        placeholder="e.g., 100000"/>
+
+                    <!-- Size Threshold -->
+                    <Label id="thresholdSizeThresholdEditLabel" text="Size Threshold"/>
+                    <Input
+                        id="thresholdSizeThresholdEditInput"
+                        value="{editModel>/sizeThreshold}"
+                        editable="{editModel>/editable}"
+                        placeholder="e.g., 1 GB, 10 MB"/>
+
+                    <!-- Frequency Limit -->
+                    <Label id="thresholdFrequencyLimitEditLabel" text="Frequency Limit"/>
+                    <Input
+                        id="thresholdFrequencyLimitEditInput"
+                        value="{editModel>/frequencyLimit}"
+                        editable="{editModel>/editable}"
+                        placeholder="e.g., hourly, daily"/>
+
+                    <!-- Response Time Target -->
+                    <Label id="thresholdRespTimeEditLabel" text="Response Time Target (ms)"/>
+                    <Input
+                        id="thresholdRespTimeEditInput"
+                        value="{editModel>/responseTimeTarget}"
+                        editable="{editModel>/editable}"
+                        type="Number"/>
+
+                    <!-- Concurrency Limit -->
+                    <Label id="thresholdConcurrencyLimitEditLabel" text="Concurrency Limit"/>
+                    <Input
+                        id="thresholdConcurrencyLimitEditInput"
+                        value="{editModel>/concurrencyLimit}"
+                        editable="{editModel>/editable}"
+                        type="Number"/>
+
+                    <!-- Clean Core Level -->
+                    <Label id="thresholdCleanCoreLevelEditLabel" text="Clean Core Level"/>
+                    <ComboBox
+                        id="thresholdCleanCoreLevelComboEdit"
+                        selectedKey="{editModel>/cleanCoreLevel}"
+                        editable="{editModel>/editable}">
+                        <items>
+                            <core:Item id="cleanLevelAItemEdit" key="A" text="Level A"/>
+                            <core:Item id="cleanLevelBItemEdit" key="B" text="Level B"/>
+                            <core:Item id="cleanLevelCItemEdit" key="C" text="Level C"/>
+                            <core:Item id="cleanLevelDItemEdit" key="D" text="Level D"/>
+                        </items>
+                    </ComboBox>
+
+                    <!-- Applicable Object Types -->
+                    <Label id="thresholdObjectTypesEditLabel" text="Applicable Object Types"/>
+                    <Input
+                        id="thresholdObjectTypesEditInput"
+                        value="{editModel>/applicableObjectTypes}"
+                        editable="{editModel>/editable}"
+                        placeholder="Comma-separated (e.g., R,I,C,E,F,W)"/>
+
+                    <!-- Deployment Types -->
+                    <Label id="deploymentTypesEditLabel" text="Deployment Types"/>
+                    <Input
+                        id="deploymentTypesEditInput"
+                        value="{editModel>/deploymentTypes}"
+                        editable="{editModel>/editable}"
+                        placeholder="e.g., S4 Public, S4 Private, On-Prem"/>
+
+                    <!-- When Exceeded -->
+                    <Label id="whenExceededEditLabel" text="When Exceeded"/>
+                    <TextArea
+                        id="whenExceededEditArea"
+                        value="{editModel>/whenExceeded}"
+                        editable="{editModel>/editable}"
+                        rows="3"/>
+
+                    <!-- Alternative Solution -->
+                    <Label id="alternativeSolutionEditLabel" text="Alternative Solution"/>
+                    <TextArea
+                        id="alternativeSolutionEditArea"
+                        value="{editModel>/alternativeSolution}"
+                        editable="{editModel>/editable}"
+                        rows="3"/>
+
+                    <!-- Is Active -->
+                    <Label id="thresholdActiveEditLabel" text="Active"/>
+                    <Switch
+                        id="thresholdActiveEditSwitch"
+                        state="{editModel>/isActive}"
+                        enabled="{editModel>/editable}"/>
+
+                    </form:content>
+                </form:SimpleForm>
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="saveThresholdButton"
+                text="Save"
+                type="Emphasized"
+                press="onEditConfirm"
+                visible="{editModel>/editable}"/>
+        </beginButton>
+
+        <endButton>
+            <Button
+                id="cancelThresholdButton"
+                text="{= ${editModel>/editable} ? 'Cancel' : 'Close' }"
+                press="onEditCancel"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

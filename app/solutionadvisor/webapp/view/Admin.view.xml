@@ -167,13 +167,7 @@
                                     <cells>
                                         <Text
                                             id="recentChangesDateCell"
-                                            text="{
-                                                path: 'admin>timestamp',
-                                                type: 'sap.ui.model.type.DateTime',
-                                                formatOptions: {
-                                                    pattern: 'yyyy-MM-dd HH:mm'
-                                                }
-                                            }"
+                                            text="{ path: 'admin>timestamp', formatter: '.formatTimestamp' }"
                                         />
                                         <Text
                                             id="recentChangesTableCell"
