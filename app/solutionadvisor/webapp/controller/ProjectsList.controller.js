@@ -51,54 +51,53 @@ sap.ui.define([
         
         /**
          * Check if current user has Admin or TenantAdmin role
+         * Uses app router user API endpoint configured in xs-app.json
          * @private
          */
         _checkUserRoles() {
             const oViewModel = this.getView().getModel("viewModel");
             
-            // Get user info from Shell services if available
-            if (sap.ushell && sap.ushell.Container) {
-                const oUser = sap.ushell.Container.getService("UserInfo");
-                if (oUser) {
-                    oUser.getUser().then((oUserData) => {
-                        // Check if user has Admin or TenantAdmin scope
-                        const aScopes = oUserData.getScopes ? oUserData.getScopes() : [];
-                        const bIsAdmin = aScopes.some(scope => 
-                            scope.includes("Admin") || scope.includes("TenantAdmin")
-                        );
-                        oViewModel.setProperty("/isAdmin", bIsAdmin);
-                    }).catch((error) => {
-                        Log.error("Error checking user roles:", error);
-                        // Default to false for security
+            // Use app router's user API to get current user info with scopes
+            fetch("/user-api/currentUser")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`User API returned ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(userData => {
+                    Log.debug("User data from app router:", userData);
+                    
+                    // Check scopes for Admin or TenantAdmin roles
+                    const scopes = userData.scopes || [];
+                    const isAdmin = scopes.some(scope => 
+                        scope.includes("Admin") || 
+                        scope.includes("TenantAdmin") ||
+                        scope.includes("SolutionAdvisor.Admin") ||
+                        scope.includes("SolutionAdvisor.TenantAdmin")
+                    );
+                    
+                    oViewModel.setProperty("/isAdmin", isAdmin);
+                    Log.info(`User admin status: ${isAdmin}`, scopes);
+                })
+                .catch(error => {
+                    Log.error("Error fetching user info from app router:", error);
+                    
+                    // Fallback for local development
+                    if (window.location.hostname === "localhost") {
+                        Log.warning("Running on localhost - defaulting to admin access");
+                        oViewModel.setProperty("/isAdmin", true);
+                    } else {
+                        // Default to false for security in production
                         oViewModel.setProperty("/isAdmin", false);
-                    });
-                } else {
-                    // Fallback: In development/local mode, check via OData service
-                    this._checkRolesViaService();
-                }
-            } else {
-                // Fallback: In development/local mode, check via OData service
-                this._checkRolesViaService();
-            }
+                    }
+                });
         },
         
         /**
-         * Fallback method to check roles via backend service
-         * @private
+         * Removed - no longer needed, now using app router user API directly
+         * @deprecated Use _checkUserRoles() which calls /user-api/currentUser
          */
-        _checkRolesViaService() {
-            const oViewModel = this.getView().getModel("viewModel");
-            
-            // In local development without authentication, default to true
-            if (window.location.hostname === "localhost") {
-                oViewModel.setProperty("/isAdmin", true);
-                return;
-            }
-            
-            // Call backend to get user roles (requires implementation in service.js)
-            // For now, set to false for security
-            oViewModel.setProperty("/isAdmin", false);
-        },
         
         _onRouteMatched() {
             // Show loading indicator while data is being fetched
