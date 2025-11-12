@@ -157,6 +157,54 @@
                             rows="3"
                             placeholder="Optional: Describe the object..."
                         />
+
+                        <!-- Business Area Selection -->
+                        <Label
+                            id="businessAreaLabel"
+                            text="Business Area"
+                            class="sapUiTinyMarginTop"
+                        />
+                        <ComboBox
+                            id="businessAreaComboBox"
+                            width="100%"
+                            placeholder="Select business area..."
+                            selectedKey="{wizardModel>/businessArea_ID}"
+                            items="{
+                                path: '/BusinessAreas',
+                                sorter: [
+                                    { path: 'category' },
+                                    { path: 'displayOrder' }
+                                ]
+                            }"
+                            selectionChange="onBusinessAreaSelect"
+                        >
+                            <core:Item
+                                id="businessAreaItem"
+                                key="{ID}"
+                                text="[{category}] {code} - {displayName}"
+                            />
+                        </ComboBox>
+
+                        <!-- Complexity Selection -->
+                        <Label
+                            id="complexityLabel"
+                            text="Complexity"
+                            class="sapUiTinyMarginTop"
+                        />
+                        <ComboBox
+                            id="complexityComboBox"
+                            width="100%"
+                            placeholder="Select complexity level..."
+                            selectedKey="{wizardModel>/complexity}"
+                            items="{wizardModel>/complexityOptions}"
+                            selectionChange="onComplexitySelect"
+                        >
+                            <core:Item
+                                id="complexityItem"
+                                key="{wizardModel>key}"
+                                text="{wizardModel>text}"
+                            />
+                        </ComboBox>
                     </VBox>
                 </WizardStep>
 
@@ -227,6 +275,26 @@
                                 <Text
                                     id="summaryObjectName"
                                     text="{wizardModel>/objectName}"
+                                />
+
+                                <Label
+                                    id="summaryBusinessAreaLabel"
+                                    text="Business Area:"
+                                    class="sapUiTinyMarginTop"
+                                />
+                                <Text
+                                    id="summaryBusinessArea"
+                                    text="{wizardModel>/businessAreaName}"
+                                />
+
+                                <Label
+                                    id="summaryComplexityLabel"
+                                    text="Complexity:"
+                                    class="sapUiTinyMarginTop"
+                                />
+                                <Text
+                                    id="summaryComplexity"
+                                    text="{wizardModel>/complexity}"
                                 />
                             </VBox>
                         </VBox>

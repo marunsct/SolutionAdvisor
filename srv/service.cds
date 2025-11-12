@@ -98,6 +98,13 @@ service solutionAdvisorService {
         grant: 'READ',
         to   : 'authenticated-user'
     }]
+    entity BusinessAreas         as projection on my.BusinessAreas;
+
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : 'authenticated-user'
+    }]
     entity PerformanceThresholds as projection on my.PerformanceThreshold;
 
     @readonly
@@ -196,7 +203,7 @@ service solutionAdvisorService {
     /**
      * Start a new wizard session for an analysis
      */
-    action   startWizard(projectID: String, ricefwId: String, objectType: String, objectName: String)                                                    returns {
+    action   startWizard(projectID: String, ricefwId: String, objectType: String, objectName: String, businessArea_ID: String, complexity: String)    returns {
         sessionID     : String;
         analysisID    : String;
         firstQuestion : {

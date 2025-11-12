@@ -1,0 +1,31 @@
+ID,code,displayName,description,category,icon,isActive,displayOrder
+01234567-1111-2222-3333-000000000001,SD,Sales and Distribution,Sales & Distribution module handling customer orders and deliveries,Sales & Procurement,sap-icon://cart-3,true,1
+01234567-1111-2222-3333-000000000002,MM,Material Management,Material Management module handling procurement and inventory,Sales & Procurement,sap-icon://product,true,2
+01234567-1111-2222-3333-000000000003,HR,Human Resources,Human Resources module managing workforce and payroll,Human Resources,sap-icon://employee,true,3
+01234567-1111-2222-3333-000000000004,FA,Fixed Assets,Fixed Assets module managing company assets and depreciation,Core Finance,sap-icon://building,true,4
+01234567-1111-2222-3333-000000000005,CO,Costing,Costing module for cost center accounting and cost object controlling,Core Finance,sap-icon://calculator,true,5
+01234567-1111-2222-3333-000000000006,FI,Financial Accounting,Financial Accounting module handling general ledger and accounts,Core Finance,sap-icon://money-bills,true,6
+01234567-1111-2222-3333-000000000007,PP,Production Planning,Production Planning module managing manufacturing processes,Production & Logistics,sap-icon://factory,true,7
+01234567-1111-2222-3333-000000000008,QM,Quality Management,Quality Management module for quality control and assurance,Production & Logistics,sap-icon://quality-assurance,true,8
+01234567-1111-2222-3333-000000000009,PM,Plant Maintenance,Plant Maintenance module for equipment maintenance and service,Production & Logistics,sap-icon://wrench,true,9
+01234567-1111-2222-3333-000000000010,CS,Customer Service,Customer Service module for customer support and returns,Services & Projects,sap-icon://customer-support,true,10
+01234567-1111-2222-3333-000000000011,PS,Project Systems,Project Systems module for project management and accounting,Services & Projects,sap-icon://process,true,11
+01234567-1111-2222-3333-000000000012,WM,Warehouse Management,Warehouse Management module for warehouse operations,Production & Logistics,sap-icon://shipping-status,true,12
+01234567-1111-2222-3333-000000000013,TR,Treasury Management,Treasury Management module for cash and liquidity management,Core Finance,sap-icon://money,true,13
+01234567-1111-2222-3333-000000000014,IM,Investment Management,Investment Management module for capital projects and investments,Core Finance,sap-icon://chart-business,true,14
+01234567-1111-2222-3333-000000000015,RE,Real Estate Management,Real Estate Management module for property and facility management,Core Finance,sap-icon://building,true,15
+01234567-1111-2222-3333-000000000016,CA,Contract Accounting,Contract Accounting module for milestone and revenue recognition,Core Finance,sap-icon://document-text,true,16
+01234567-1111-2222-3333-000000000017,BA,Bank Accounting,Bank Accounting module for banking and financial institution operations,Specialized,sap-icon://account,true,17
+01234567-1111-2222-3333-000000000018,SU,Supplier Management,Supplier Management and Sourcing module for vendor operations,Sales & Procurement,sap-icon://supplier,true,18
+01234567-1111-2222-3333-000000000019,MS,Master Data & Governance,Master Data Management and Data Governance module,Master Data,sap-icon://database,true,19
+01234567-1111-2222-3333-000000000020,BP,Business Partner,Business Partner Management module for customer and vendor data,Master Data,sap-icon://contacts,true,20
+01234567-1111-2222-3333-000000000021,LO,Logistics General,Logistics General module for cross-module logistics integration,Production & Logistics,sap-icon://shipping-status,true,21
+01234567-1111-2222-3333-000000000022,SA,Sales Analytics,Sales Analytics module for sales reporting and insights,Analytics,sap-icon://status-positive,true,22
+01234567-1111-2222-3333-000000000023,PA,Production Analytics,Production Analytics module for manufacturing insights and KPIs,Analytics,sap-icon://chart-pie,true,23
+01234567-1111-2222-3333-000000000024,SC,Supply Chain Management,Supply Chain Management module for end-to-end supply chain,Production & Logistics,sap-icon://chain-link,true,24
+01234567-1111-2222-3333-000000000025,EC,E-Commerce,E-Commerce module for online sales and digital channels,Specialized,sap-icon://cart,true,25
+01234567-1111-2222-3333-000000000026,UC,Utilities,Utilities module for electricity and utility management,Specialized,sap-icon://lightbulb,true,26
+01234567-1111-2222-3333-000000000027,AP,Accounts Payable,Accounts Payable module for vendor invoice processing,Specialized,sap-icon://money-bills,true,27
+01234567-1111-2222-3333-000000000028,AR,Accounts Receivable,Accounts Receivable module for customer billing and collections,Specialized,sap-icon://receipt,true,28
+01234567-1111-2222-3333-000000000029,GR,General Ledger & Reporting,General Ledger and Financial Reporting module,Reporting & Compliance,sap-icon://document,true,29
+01234567-1111-2222-3333-000000000030,AX,Compliance and Regulatory Reporting,Compliance and Regulatory Reporting module for regulatory requirements and reporting,Reporting & Compliance,sap-icon://shield,true,30

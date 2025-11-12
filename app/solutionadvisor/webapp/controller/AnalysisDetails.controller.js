@@ -16,7 +16,7 @@ sap.ui.define([
         onInit() {
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("AnalysisDetails").attachPatternMatched(this._onObjectMatched, this);
-            
+
             // Listen to tab selection to generate flowchart when tab is selected
             const oIconTabBar = this.byId("analysisDetails_IconTabBar");
             if (oIconTabBar) {
@@ -36,27 +36,53 @@ sap.ui.define([
         },
 
         _onObjectMatched(oEvent) {
-            const sAnalysisId = oEvent.getParameter("arguments").key;
+            const oArgs = oEvent.getParameter("arguments");
+            let sAnalysisId = oArgs.key;
+            const sProjectId = oArgs.projectId || "all"; // Extract projectId from route
+            const sProjectName = oArgs.projectName; // Will be populated from analysis data if needed
             
+            // Normalize the analysis ID to plain UUID format
+            // Handle formats: "ID=uuid,IsActiveEntity=true", "uuid", or "(uuid)"
+            if (sAnalysisId) {
+                // Remove parentheses if present
+                sAnalysisId = sAnalysisId.replace(/[()]/g, "");
+                // Extract UUID from OData format if present (e.g., "ID=uuid,IsActiveEntity=true")
+                const uuidMatch = sAnalysisId.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+                if (uuidMatch) {
+                    sAnalysisId = uuidMatch[1];
+                }
+            }
+            
+            // Store projectId for use in back navigation
+            this._currentProjectId = sProjectId;
+            this._routeProjectId = sProjectId;
+            this._currentProjectName = sProjectName;
+
+            // Show loading indicator for initial data load
+            this.getView().setBusy(true);
+
             // Reset flowchart generation flag and clear existing flowchart
             this._flowchartGenerated = false;
             this._clearFlowchart();
-            
+
             // Check if we're in mock mode and the ID starts with "mock-"
             if (this.getOwnerComponent().mockAnalysisService && sAnalysisId.startsWith("mock-")) {
                 // Create a mock analysis object
                 const oMockAnalysis = this._createMockAnalysisObject(sAnalysisId);
-                
+
                 // Create a JSONModel with the mock data
                 const oModel = new JSONModel(oMockAnalysis);
                 this.getView().setModel(oModel, "mockAnalysis");
-                
+
                 // Set mock binding context
                 this.getView().bindElement({
                     path: "/",
                     model: "mockAnalysis"
                 });
-                
+
+                // Hide loading when mock data is ready
+                this.getView().setBusy(false);
+
                 // If flowchart tab is active, regenerate after data is loaded
                 setTimeout(() => {
                     const oIconTabBar = this.byId("analysisDetails_IconTabBar");
@@ -74,6 +100,22 @@ sap.ui.define([
                     },
                     events: {
                         dataReceived: () => {
+                            // Extract project info from loaded analysis if not in URL
+                            const oContext = this.getView().getBindingContext();
+                            if (oContext) {
+                                const oData = oContext.getObject();
+                                if (oData && oData.projectConfig) {
+                                    // Update project context if not already set
+                                    if (sProjectId === "all") {
+                                        this._currentProjectId = oData.projectConfig_ID || oData.projectConfig.ID;
+                                        this._currentProjectName = oData.projectConfig.projectName || oData.projectConfig.name;
+                                    }
+                                }
+                            }
+                            
+                            // Hide loading indicator when data is received
+                            this.getView().setBusy(false);
+
                             // Check if flowchart tab is active after data is loaded
                             const oIconTabBar = this.byId("analysisDetails_IconTabBar");
                             if (oIconTabBar && oIconTabBar.getSelectedKey() === "flowchart") {
@@ -82,6 +124,10 @@ sap.ui.define([
                                     this._flowchartGenerated = true;
                                 }, 300);
                             }
+                        },
+                        dataRequested: () => {
+                            // Ensure loading is shown when data request starts
+                            this.getView().setBusy(true);
                         }
                     }
                     // flowchart will be generated when the flowchart tab is selected
@@ -100,7 +146,7 @@ sap.ui.define([
             // and without quotes. Booleans are unquoted.
             return `/Analyses(ID=${id},IsActiveEntity=true)`;
         },
-        
+
         /**
          * Create a mock analysis object for testing without backend
          * @param {string} sAnalysisId - The analysis ID
@@ -157,14 +203,14 @@ sap.ui.define([
                 ]
             };
         },
-        
+
         _onTabSelect(oEvent) {
             const sKey = oEvent.getParameter("key");
             if (sKey === "flowchart") {
                 // Always clear and regenerate flowchart when tab is selected
                 // This ensures fresh visualization when switching between analyses
                 this._clearFlowchart();
-                
+
                 // Use timeout to ensure IconTabBar has rendered the tab content
                 setTimeout(() => {
                     this._generateFlowchart();
@@ -201,7 +247,15 @@ sap.ui.define([
             const sObjectType = oAnalysis.objectType;
             const sDeploymentType = oAnalysis.projectConfig?.s4HanaFlavor || "Cloud Public";
             const aComplianceReq = oAnalysis.projectConfig?.complianceRequirements || [];
-            const sCleanCoreLevel = oAnalysis.recommendedLevel; // Filter by finalized clean core level
+            const sRecommendedLevel = oAnalysis.recommendedLevel || oAnalysis.finalRecommendation; // Get recommended level
+            
+            // Extract clean core level (A/B/C/D) from recommendedLevel string
+            // Format: "Event-Driven Integration - Level A" or "Level A"
+            let sCleanCoreLevel = "";
+            if (sRecommendedLevel) {
+                const match = sRecommendedLevel.match(/Level\s+([ABCD])\b/i);
+                sCleanCoreLevel = match ? `Level ${match[1].toUpperCase()}` : "";
+            }
 
             if (!sObjectType) {
                 Log.warning("Cannot load constraints without object type in analysis details");
@@ -225,6 +279,7 @@ sap.ui.define([
 
             // Add clean core level filter if finalized analysis has a recommended level
             if (sCleanCoreLevel) {
+                Log.info(`Filtering constraints for clean core level: ${sCleanCoreLevel}`);
                 aThresholdFilters.push(
                     new sap.ui.model.Filter("cleanCoreLevel", sap.ui.model.FilterOperator.EQ, sCleanCoreLevel)
                 );
@@ -245,6 +300,7 @@ sap.ui.define([
 
                 oConstraintsModel.setProperty("/violations", aViolations);
                 oConstraintsModel.setProperty("/performanceConstraints", aRegular);
+                Log.info(`Loaded ${aRegular.length} performance constraints for level ${sCleanCoreLevel}`);
             }).catch((oError) => {
                 Log.error("Failed to load performance thresholds (details):", oError);
             }).finally(() => {
@@ -356,10 +412,11 @@ sap.ui.define([
             oOperation.execute().then(() => {
                 const oResult = oOperation.getBoundContext().getObject();
                 this.getView().setBusy(false);
-                // Navigate to Wizard to resume newly created analysis
+                // Navigate to Wizard to resume newly created analysis with project context
+                const sProjectId = oAnalysis.projectConfig_ID || oAnalysis.projectConfig?.ID || this._currentProjectId;
                 const oRouter = this.getOwnerComponent().getRouter();
                 oRouter.navTo("Wizard", {
-                    projectId: oAnalysis.projectConfig_ID || oAnalysis.projectConfig?.ID || "",
+                    projectId: sProjectId || "",
                     sessionId: oResult.sessionID,
                     analysisId: oResult.analysisID
                 });
@@ -395,7 +452,7 @@ sap.ui.define([
 
             oOperation.execute().then(() => {
                 const oResult = oOperation.getBoundContext().getObject();
-                
+
                 this.getView().setBusy(false);
                 MessageToast.show(`Scores recalculated: TD=${oResult.technicalDebt}, CR=${oResult.cloudReadiness}, UI=${oResult.upgradeImpact}, CH=${oResult.compositeHealth}`);
 
@@ -427,13 +484,13 @@ sap.ui.define([
             }
 
             const oAnalysis = oContext.getObject();
-            
+
             // Check if data is loaded
             if (!oAnalysis || !oAnalysis.ID) {
                 MessageToast.show("Analysis data is still loading. Please wait...");
                 return;
             }
-            
+
             // Validation: Check if analysis has required data
             if (!oAnalysis.finalRecommendation) {
                 MessageBox.error("Cannot save incomplete analysis. Please complete the wizard first.");
@@ -469,12 +526,12 @@ sap.ui.define([
          */
         _saveAnalysisPermanently(oAnalysis) {
             const oContext = this.getView().getBindingContext();
-            
+
             if (!oContext) {
                 MessageBox.error("Cannot save analysis - binding context lost");
                 return;
             }
-            
+
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
 
@@ -482,13 +539,13 @@ sap.ui.define([
             // CAP handles draft lifecycle automatically
             oContext.setProperty("status", "Completed");
             oContext.setProperty("modifiedAt", new Date().toISOString());
-            
+
             // Submit changes using the default update group
             oModel.submitBatch(oModel.getUpdateGroupId()).then(() => {
                 this.getView().setBusy(false);
-                
+
                 MessageToast.show(`Analysis "${oAnalysis.ricefwId}" saved successfully!`);
-                
+
                 // Refresh binding to get updated data from backend
                 const sAnalysisId = oAnalysis.ID;
                 this.getView().unbindElement();
@@ -505,7 +562,7 @@ sap.ui.define([
                 ErrorHandler.showServiceError(oError, "Failed to save analysis permanently");
             });
         },
-        
+
         /**
          * Clear the existing flowchart visualization
          * @private
@@ -521,7 +578,7 @@ sap.ui.define([
             // Clear reference to current SVG
             this._currentSvg = null;
         },
-        
+
         _generateFlowchart(oMockData) {
             const loadGenerator = () => new Promise((resolve, reject) => {
                 if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
@@ -545,7 +602,7 @@ sap.ui.define([
                     return;
                 }
             }
-            
+
             // Check if we're in mock mode with mock model
             if (this.getView().getModel("mockAnalysis")) {
                 const oAnalysis = this.getView().getModel("mockAnalysis").getData();
@@ -560,26 +617,26 @@ sap.ui.define([
                 }
                 return;
             }
-            
+
             // Normal backend data flow
             const oContext = this.getView().getBindingContext();
             if (!oContext) return;
-            
+
             const oAnalysis = oContext.getObject();
             if (!oAnalysis) return;
-            
+
             // Load decision paths using context binding with $expand
             const oModel = this.getView().getModel();
             const oBinding = oModel.bindContext(this._getAnalysisKeyPath(oAnalysis.ID), null, {
                 $expand: "decisionPaths"
             });
-            
+
             oBinding.requestObject().then((oData) => {
                 const analysisData = {
                     ...oData,
                     decisionPaths: oData.decisionPaths || []
                 };
-                
+
                 // Generate flowchart
                 try {
                     loadGenerator().then((Gen) => {
@@ -597,20 +654,17 @@ sap.ui.define([
         },
 
         onNavBack() {
-            const oHistory = History.getInstance();
-            const sPreviousHash = oHistory.getPreviousHash();
+            const oRouter = this.getOwnerComponent().getRouter();
 
-            if (sPreviousHash !== undefined) {
-                window.history.go(-1);
-            } else {
-                const oRouter = this.getOwnerComponent().getRouter();
-                oRouter.navTo("AnalysesList", {
-                    projectId: "all",
-                    projectName: "All Projects"
-                }, true);
-            }
+            // Get projectId from URL parameters (stored during route matching)
+            const sProjectId = this._routeProjectId !== "all" ? this._currentProjectId : "all";
+
+            // Navigate back to AnalysesList with the same project context
+            oRouter.navTo("AnalysesList", {
+                projectId: sProjectId
+            }, true);
         },
-        
+
         onViewFlowchart() {
             // Switch to flowchart tab (will trigger _onTabSelect which generates the flowchart)
             const oIconTabBar = this.byId("analysisDetails_IconTabBar");
@@ -625,12 +679,12 @@ sap.ui.define([
                 MessageToast.show("No analysis data available");
                 return;
             }
-            
+
             const oAnalysis = oContext.getObject();
             const filename = `flowchart_${oAnalysis.ricefwId}.png`;
-            
+
             this.getView().setBusy(true);
-            
+
             const doExport = () => new Promise((resolve, reject) => {
                 if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
                 sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
@@ -650,19 +704,19 @@ sap.ui.define([
                     ErrorHandler.showServiceError(error, "Failed to export PNG");
                 });
         },
-        
+
         onExportFlowchartPDF() {
             const oContext = this.getView().getBindingContext();
             if (!oContext) {
                 MessageToast.show("No analysis data available");
                 return;
             }
-            
+
             const oAnalysis = oContext.getObject();
             const filename = `flowchart_${oAnalysis.ricefwId}.pdf`;
-            
+
             this.getView().setBusy(true);
-            
+
             const doExport = () => new Promise((resolve, reject) => {
                 if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
                 sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
@@ -689,10 +743,10 @@ sap.ui.define([
                 MessageToast.show("No analysis data available");
                 return;
             }
-            
+
             const oAnalysis = oContext.getObject();
             const filename = `flowchart_${oAnalysis.ricefwId}`;
-            
+
             const doExport = () => new Promise((resolve, reject) => {
                 if (this._FlowchartGenerator) return resolve(this._FlowchartGenerator);
                 sap.ui.require(["sd/solutionadvisor/utils/FlowchartGenerator"], (Gen) => {
@@ -730,15 +784,15 @@ sap.ui.define([
         onResetZoom() {
             const container = document.getElementById("flowchartSvgContainer");
             if (!container) return;
-            
+
             const svg = container.querySelector("svg");
             if (svg && typeof window.d3 !== 'undefined' && window.d3.select) {
                 const d3Svg = window.d3.select(svg);
-                
+
                 // Reset to identity transform
                 const zoom = window.d3.zoom();
                 d3Svg.call(zoom.transform, window.d3.zoomIdentity);
-                
+
                 MessageToast.show("Zoom reset");
             }
         },
@@ -751,27 +805,27 @@ sap.ui.define([
         _applyZoom(scaleFactor) {
             const container = document.getElementById("flowchartSvgContainer");
             if (!container) return;
-            
+
             const svg = container.querySelector("svg");
             if (svg && typeof window.d3 !== 'undefined' && window.d3.select && window.d3.zoom) {
                 const d3Svg = window.d3.select(svg);
                 const currentTransform = window.d3.zoomTransform(svg);
-                
+
                 // Calculate new scale
                 const newScale = currentTransform.k * scaleFactor;
-                
+
                 // Constrain scale between 0.3 and 3
                 if (newScale < 0.3 || newScale > 3) {
                     MessageToast.show(newScale < 0.3 ? "Minimum zoom reached" : "Maximum zoom reached");
                     return;
                 }
-                
+
                 // Apply transformation
                 const zoom = window.d3.zoom();
                 const newTransform = window.d3.zoomIdentity
                     .translate(currentTransform.x, currentTransform.y)
                     .scale(newScale);
-                    
+
                 d3Svg.transition()
                     .duration(300)
                     .call(zoom.transform, newTransform);
@@ -782,27 +836,27 @@ sap.ui.define([
          * Setup radar chart for scoring visualization
          * @private
          */
-        _setupRadarChart: function() {
+        _setupRadarChart: function () {
             const oContext = this.getView().getBindingContext();
             if (!oContext) {
                 return;
             }
 
             const oAnalysis = oContext.getObject();
-            
+
             // Prepare radar chart data
             const radarData = [
-                { 
-                    metric: "Technical Debt", 
-                    value: oAnalysis.technicalDebtScore || 0 
+                {
+                    metric: "Technical Debt",
+                    value: oAnalysis.technicalDebtScore || 0
                 },
-                { 
-                    metric: "Cloud Readiness", 
-                    value: oAnalysis.cloudReadinessScore || 0 
+                {
+                    metric: "Cloud Readiness",
+                    value: oAnalysis.cloudReadinessScore || 0
                 },
-                { 
-                    metric: "Upgrade Impact", 
-                    value: oAnalysis.upgradeImpactScore || 0 
+                {
+                    metric: "Upgrade Impact",
+                    value: oAnalysis.upgradeImpactScore || 0
                 }
             ];
 
@@ -816,7 +870,7 @@ sap.ui.define([
                     id: this.getView().getId(),
                     name: "sd.solutionadvisor.view.fragments.RadarChart",
                     controller: this
-                }).then(function(oFragment) {
+                }).then(function (oFragment) {
                     this._oRadarChartFragment = oFragment;
                     // Add fragment to the container in the view
                     const oContainer = this.byId("analysisDetails_RadarChartContainer");
@@ -834,7 +888,7 @@ sap.ui.define([
          * Configure radar chart with data
          * @private
          */
-        _configureRadarChart: function() {
+        _configureRadarChart: function () {
             const oVizFrame = this.byId("analysisDetails_RadarChart");
             if (!oVizFrame) {
                 return;
@@ -855,7 +909,7 @@ sap.ui.define([
             });
 
             oVizFrame.setDataset(oDataset);
-            
+
             const feedValueAxis = new FeedItem({
                 uid: "valueAxis",
                 type: "Measure",
@@ -876,7 +930,7 @@ sap.ui.define([
         /**
          * Show scoring drill-down dialog
          */
-        onScoringDrillDown: function() {
+        onScoringDrillDown: function () {
             const oContext = this.getView().getBindingContext();
             if (!oContext) {
                 MessageToast.show("No analysis data available");
@@ -888,7 +942,7 @@ sap.ui.define([
                     id: this.getView().getId(),
                     name: "sd.solutionadvisor.view.fragments.ScoringDrillDownDialog",
                     controller: this
-                }).then(function(oDialog) {
+                }).then(function (oDialog) {
                     this._oScoringDialog = oDialog;
                     this.getView().addDependent(this._oScoringDialog);
                     this._openScoringDialog();
@@ -902,18 +956,18 @@ sap.ui.define([
          * Open scoring drill-down dialog with data
          * @private
          */
-        _openScoringDialog: function() {
+        _openScoringDialog: function () {
             const oContext = this.getView().getBindingContext();
             const oAnalysis = oContext.getObject();
             const oModel = this.getView().getModel();
-            
+
             // Need to load decision paths with $expand
             const oBinding = oModel.bindContext(this._getAnalysisKeyPath(oAnalysis.ID), null, {
                 $expand: "decisionPaths"
             });
 
             this.getView().setBusy(true);
-            
+
             oBinding.requestObject().then((oData) => {
                 const breakdownData = this._prepareScoringBreakdown(oData);
                 const oScoringModel = new JSONModel(breakdownData);
@@ -933,17 +987,17 @@ sap.ui.define([
          * @returns {object} Breakdown data
          * @private
          */
-        _prepareScoringBreakdown: function(analysis) {
+        _prepareScoringBreakdown: function (analysis) {
             // Get decision paths from the expanded association
             const decisionPaths = analysis.decisionPaths || [];
-            
+
             // Extract level from finalRecommendation (e.g., "Event-Driven Integration - Level A" -> "Level A")
             const extractLevel = (recommendation) => {
                 if (!recommendation) return 'Unknown';
                 const match = recommendation.match(/Level\s+([ABCD])\b/i);
                 return match ? match[1].toUpperCase() : 'Unknown';
             };
-            
+
             const recommendedLevel = extractLevel(analysis.finalRecommendation);
 
             // Build technical debt breakdown from decision paths
@@ -952,7 +1006,7 @@ sap.ui.define([
                 const timeMinutes = (step.timeSpentSeconds || 60) / 60;
                 const factor = Math.min(2, timeMinutes); // Complexity factor capped at 2
                 const contribution = weight * factor;
-                
+
                 return {
                     stepOrder: step.stepOrder || (index + 1),
                     stepDescription: step.questionText || 'Decision Step',
@@ -970,7 +1024,7 @@ sap.ui.define([
                 C: 0,
                 D: 0
             };
-            
+
             // Since all steps point to the same final recommendation, count total steps for that level
             if (recommendedLevel && Object.prototype.hasOwnProperty.call(levelCounts, recommendedLevel)) {
                 levelCounts[recommendedLevel] = decisionPaths.length;
@@ -981,11 +1035,11 @@ sap.ui.define([
                 objectType: analysis.objectType,
                 recommendedLevel: `Level ${recommendedLevel}`,
                 analysisDate: analysis.createdAt || analysis.analysisDate,
-                
+
                 // Technical Debt
                 technicalDebtBreakdown: technicalDebtBreakdown,
                 finalTechnicalDebtScore: analysis.technicalDebtScore || 0,
-                
+
                 // Cloud Readiness
                 cloudReadiness: {
                     levelACount: levelCounts.A,
@@ -993,7 +1047,7 @@ sap.ui.define([
                     levelCDCount: levelCounts.C + levelCounts.D
                 },
                 finalCloudReadinessScore: analysis.cloudReadinessScore || 0,
-                
+
                 // Upgrade Impact
                 upgradeImpact: {
                     customCodeLines: decisionPaths.length * 50, // Estimate
@@ -1001,10 +1055,10 @@ sap.ui.define([
                     complexityMultiplier: this._getLevelWeight(recommendedLevel)
                 },
                 finalUpgradeImpactScore: analysis.upgradeImpactScore || 0,
-                
+
                 // Composite Health
                 finalCompositeHealthScore: analysis.compositeHealthScore || 0,
-                
+
                 // Recommendations
                 recommendations: this._generateRecommendations(analysis, recommendedLevel)
             };
@@ -1017,9 +1071,9 @@ sap.ui.define([
          * @returns {array} Array of recommendations
          * @private
          */
-        _generateRecommendations: function(analysis, level) {
+        _generateRecommendations: function (analysis, level) {
             const recommendations = [];
-            
+
             if (level === 'A') {
                 recommendations.push({
                     title: "Excellent Clean Core Alignment",
@@ -1029,7 +1083,7 @@ sap.ui.define([
                     icon: "sap-icon://accept"
                 });
             }
-            
+
             if (level === 'B') {
                 recommendations.push({
                     title: "Use Side-by-Side Extensions",
@@ -1039,7 +1093,7 @@ sap.ui.define([
                     icon: "sap-icon://quality-issue"
                 });
             }
-            
+
             if (level === 'C' || level === 'D') {
                 recommendations.push({
                     title: "Refactor to Standard SAP APIs",
@@ -1049,7 +1103,7 @@ sap.ui.define([
                     icon: "sap-icon://warning"
                 });
             }
-            
+
             if ((analysis.technicalDebtScore || 0) > 60) {
                 recommendations.push({
                     title: "Reduce Technical Debt",
@@ -1059,7 +1113,7 @@ sap.ui.define([
                     icon: "sap-icon://activity-2"
                 });
             }
-            
+
             if ((analysis.cloudReadinessScore || 0) < 70) {
                 recommendations.push({
                     title: "Improve Cloud Readiness",
@@ -1069,7 +1123,7 @@ sap.ui.define([
                     icon: "sap-icon://cloud"
                 });
             }
-            
+
             return recommendations;
         },
 
@@ -1079,7 +1133,7 @@ sap.ui.define([
          * @returns {number} Weight value
          * @private
          */
-        _getLevelWeight: function(level) {
+        _getLevelWeight: function (level) {
             const weights = {
                 'A': 0.0,
                 'B': 1.0,
@@ -1096,14 +1150,14 @@ sap.ui.define([
          * @returns {number} Count
          * @private
          */
-        _countLevel: function(path, level) {
+        _countLevel: function (path, level) {
             return path.filter(step => step.recommendedLevel === level).length;
         },
 
         /**
          * Close scoring drill-down dialog
          */
-        onCloseDrillDown: function() {
+        onCloseDrillDown: function () {
             if (this._oScoringDialog) {
                 this._oScoringDialog.close();
             }
@@ -1112,7 +1166,7 @@ sap.ui.define([
         /**
          * Export scoring breakdown data
          */
-        onExportBreakdown: function() {
+        onExportBreakdown: function () {
             MessageToast.show("Export functionality will be implemented in future release");
         },
 
@@ -1120,12 +1174,12 @@ sap.ui.define([
          * Save analysis from drill-down dialog
          * Delegates to main save handler and closes dialog
          */
-        onSaveAnalysisFromDialog: function() {
+        onSaveAnalysisFromDialog: function () {
             // Close the drill-down dialog first
             if (this._oScoringDialog) {
                 this._oScoringDialog.close();
             }
-            
+
             // Delegate to main save analysis handler
             this.onSaveAnalysis();
         },
@@ -1135,7 +1189,7 @@ sap.ui.define([
          * @param {string} level - Clean core level
          * @returns {string} State value
          */
-        formatLevelState: function(level) {
+        formatLevelState: function (level) {
             if (!level) return "None";
             const levelStr = level.toString().toUpperCase();
             if (levelStr.includes('A')) return "Success";
@@ -1150,7 +1204,7 @@ sap.ui.define([
          * @param {number} score - Score value
          * @returns {string} State value
          */
-        formatScoreState: function(score) {
+        formatScoreState: function (score) {
             if (score < 30) return "Success";
             if (score < 60) return "Warning";
             return "Error";
@@ -1161,7 +1215,7 @@ sap.ui.define([
          * @param {number} score - Score value
          * @returns {string} State value
          */
-        formatCloudReadinessState: function(score) {
+        formatCloudReadinessState: function (score) {
             if (score >= 80) return "Success";
             if (score >= 60) return "Warning";
             return "Error";
@@ -1172,7 +1226,7 @@ sap.ui.define([
          * @param {number} score - Score value
          * @returns {string} State value
          */
-        formatHealthState: function(score) {
+        formatHealthState: function (score) {
             if (score >= 80) return "Success";
             if (score >= 60) return "Warning";
             if (score >= 40) return "Error";

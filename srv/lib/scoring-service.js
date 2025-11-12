@@ -283,6 +283,132 @@ class ScoringService {
         // Fallback: return as-is; upstream logic will still apply safe defaults
         return str;
     }
+
+    /**
+     * Calculate Risk Assessment based on clean core level and scores
+     * @param {string} level - Clean core level (Level A/B/C/D)
+     * @param {number} technicalDebtScore - Technical debt score
+     * @param {number} upgradeImpactScore - Upgrade impact score
+     * @returns {string} Risk assessment (Low, Medium, High, Critical)
+     */
+    calculateRiskAssessment(level, technicalDebtScore = 0, upgradeImpactScore = 0) {
+        const canonicalLevel = this.extractLevel(level) || level;
+        
+        // Base risk by level
+        let baseRisk = 0;
+        if (canonicalLevel === 'Level A') baseRisk = 0; // No risk
+        else if (canonicalLevel === 'Level B') baseRisk = 1; // Low
+        else if (canonicalLevel === 'Level C') baseRisk = 2; // Medium
+        else if (canonicalLevel === 'Level D') baseRisk = 3; // High
+        
+        // Adjust based on scores
+        let scoreRisk = 0;
+        if (technicalDebtScore > 70) scoreRisk += 2;
+        else if (technicalDebtScore > 40) scoreRisk += 1;
+        
+        if (upgradeImpactScore > 70) scoreRisk += 2;
+        else if (upgradeImpactScore > 40) scoreRisk += 1;
+        
+        const totalRisk = baseRisk + scoreRisk;
+        
+        if (totalRisk <= 1) return 'Low';
+        if (totalRisk <= 3) return 'Medium';
+        if (totalRisk <= 5) return 'High';
+        return 'Critical';
+    }
+
+    /**
+     * Determine Compliance Status based on clean core level and requirements
+     * @param {string} level - Clean core level (Level A/B/C/D)
+     * @param {string} complianceRequirements - Comma-separated compliance requirements (SOX, GDPR, FDA)
+     * @returns {string} Compliance status (Compliant, Requires Review, Non-Compliant)
+     */
+    calculateComplianceStatus(level, complianceRequirements = '') {
+        const canonicalLevel = this.extractLevel(level) || level;
+        
+        // If no compliance requirements, assume compliant
+        if (!complianceRequirements || complianceRequirements.trim() === '') {
+            return 'Compliant';
+        }
+        
+        // Check level suitability for compliance
+        if (canonicalLevel === 'Level A' || canonicalLevel === 'Level B') {
+            // Levels A & B are well-suited for compliance
+            return 'Compliant';
+        } else if (canonicalLevel === 'Level C') {
+            // Level C requires review for compliance
+            return 'Requires Review';
+        } else if (canonicalLevel === 'Level D') {
+            // Level D has compliance concerns
+            return 'Non-Compliant';
+        }
+        
+        return 'Requires Review';
+    }
+
+    /**
+     * Estimate effort in person-days based on complexity and level
+     * @param {Array} decisionPaths - Array of decision path steps
+     * @param {string} level - Clean core level
+     * @returns {number} Estimated effort in person-days
+     */
+    estimateEffort(decisionPaths = [], level = 'Level A') {
+        const canonicalLevel = this.extractLevel(level) || level;
+        let baseEffort = 5; // Base 5 days
+        
+        // Add effort based on number of steps
+        if (decisionPaths && decisionPaths.length > 0) {
+            baseEffort += decisionPaths.length * 2;
+        }
+        
+        // Multiply by level complexity
+        const effortMultipliers = {
+            'Level A': 1.0,  // 5-15 days
+            'Level B': 1.5,  // 7.5-22.5 days
+            'Level C': 2.5,  // 12.5-37.5 days
+            'Level D': 4.0   // 20-60 days
+        };
+        
+        const multiplier = effortMultipliers[canonicalLevel] || 1.0;
+        return Math.round(baseEffort * multiplier);
+    }
+
+    /**
+     * Determine technical complexity based on level
+     * @param {string} level - Clean core level
+     * @returns {string} Technical complexity (Simple, Moderate, Complex, Very Complex)
+     */
+    calculateTechnicalComplexity(level) {
+        const canonicalLevel = this.extractLevel(level) || level;
+        
+        if (canonicalLevel === 'Level A') return 'Simple';
+        if (canonicalLevel === 'Level B') return 'Moderate';
+        if (canonicalLevel === 'Level C') return 'Complex';
+        if (canonicalLevel === 'Level D') return 'Very Complex';
+        
+        return 'Moderate';
+    }
+
+    /**
+     * Determine business impact based on scores
+     * @param {number} technicalDebtScore - Technical debt score
+     * @param {number} cloudReadinessScore - Cloud readiness score
+     * @param {number} upgradeImpactScore - Upgrade impact score
+     * @returns {string} Business impact assessment
+     */
+    calculateBusinessImpact(technicalDebtScore = 0, cloudReadinessScore = 0, upgradeImpactScore = 0) {
+        const avgScore = (technicalDebtScore + (100 - cloudReadinessScore) + upgradeImpactScore) / 3;
+        
+        if (avgScore <= 25) {
+            return 'Minimal impact. Solution is production-ready with low risk and maintenance overhead.';
+        } else if (avgScore <= 50) {
+            return 'Low impact. Solution requires minor enhancements but is generally maintainable.';
+        } else if (avgScore <= 75) {
+            return 'Moderate impact. Solution requires planned improvements for future upgrades.';
+        } else {
+            return 'High impact. Solution requires significant refactoring to align with clean core principles.';
+        }
+    }
 }
 
 module.exports = ScoringService;

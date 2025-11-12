@@ -93,27 +93,41 @@ sap.ui.define([
       // Load RICEFW types
       const oRicefwBinding = oModel.bindList("/ObjectTypes");
       oRicefwBinding.requestContexts().then((aContexts) => {
-        const aTypes = aContexts.map(ctx => ctx.getObject());
+        const aTypes = aContexts.map(ctx => {
+          const oObj = ctx.getObject();
+          return {
+            code: oObj.objectCode,
+            name: oObj.objectType
+          };
+        });
         oFilterModel.setProperty("/ricefwTypes", aTypes);
       }).catch((oError) => {
+        Log.error("Failed to load RICEFW types:", oError);
         MessageToast.show("Failed to load RICEFW types");
       });
       
       // Load Clean Core levels
       const oLevelsBinding = oModel.bindList("/CleanCoreLevels");
       oLevelsBinding.requestContexts().then((aContexts) => {
-        const aLevels = aContexts.map(ctx => ctx.getObject());
+        const aLevels = aContexts.map(ctx => {
+          const oObj = ctx.getObject();
+          return {
+            level: oObj.level || oObj.ID
+          };
+        });
         oFilterModel.setProperty("/cleanCoreLevels", aLevels);
       }).catch((oError) => {
+        Log.error("Failed to load Clean Core levels:", oError);
         MessageToast.show("Failed to load Clean Core levels");
       });
       
-  // Load Projects
-  const oProjectsBinding = oModel.bindList("/Projects");
+      // Load Projects
+      const oProjectsBinding = oModel.bindList("/Projects");
       oProjectsBinding.requestContexts().then((aContexts) => {
         const aProjects = aContexts.map(ctx => ctx.getObject());
         oFilterModel.setProperty("/projects", aProjects);
       }).catch((oError) => {
+        Log.error("Failed to load projects:", oError);
         MessageToast.show("Failed to load projects");
       });
     },
@@ -223,6 +237,10 @@ sap.ui.define([
       this._setupRicefwTypeDistributionChart();
       this._setupTrendAnalysisChart();
       this._setupRiskMatrixChart();
+      this._setupMonthlyTrendChart();
+      this._setupOverallTrendChart();
+      this._setupYearOverYearChart();
+      this._setupProjectComparisonChart();
     },
 
     /**
@@ -300,15 +318,34 @@ sap.ui.define([
         return;
       }
 
+      // Create stacked bar chart with Level A-D breakdown
       const oDataset = new FlattenedDataset({
         dimensions: [{
           name: "Object Type",
           value: "{analytics>objectType}"
         }],
-        measures: [{
-          name: "Count",
-          value: "{analytics>count}"
-        }],
+        measures: [
+          {
+            name: "Level A",
+            value: "{analytics>Level A}"
+          },
+          {
+            name: "Level B",
+            value: "{analytics>Level B}"
+          },
+          {
+            name: "Level C",
+            value: "{analytics>Level C}"
+          },
+          {
+            name: "Level D",
+            value: "{analytics>Level D}"
+          },
+          {
+            name: "Unknown",
+            value: "{analytics>Unknown}"
+          }
+        ],
         data: {
           path: "analytics>/ricefwTypeDistribution"
         }
@@ -316,6 +353,9 @@ sap.ui.define([
 
       oVizFrame.setDataset(oDataset);
       oVizFrame.setModel(oAnalyticsModel, "analytics");
+      
+      // Change to stacked bar chart type
+      oVizFrame.setVizType("stacked_bar");
       
       oVizFrame.setVizProperties({
         plotArea: {
@@ -337,14 +377,22 @@ sap.ui.define([
           visible: false
         },
         legend: {
-          visible: false
+          visible: true,
+          position: "bottom"
+        },
+        color: {
+          "Level A": "#0070f2",      // Blue
+          "Level B": "#ff9900",      // Orange
+          "Level C": "#30b040",      // Green
+          "Level D": "#ff0000",      // Red
+          "Unknown": "#999999"       // Gray
         }
       });
 
       const feedValueAxis = new FeedItem({
         uid: "valueAxis",
         type: "Measure",
-        values: ["Count"]
+        values: ["Level A", "Level B", "Level C", "Level D", "Unknown"]
       });
 
       const feedCategoryAxis = new FeedItem({
@@ -531,6 +579,363 @@ sap.ui.define([
       oVizFrame.addFeed(feedValueAxis);
       oVizFrame.addFeed(feedValueAxis2);
       oVizFrame.addFeed(feedColor);
+    },
+
+    /**
+     * Configure Monthly Trend Analysis Chart
+     * @private
+     */
+    _setupMonthlyTrendChart: function() {
+      const oVizFrame = this.byId("idMonthlyTrendChart");
+      if (!oVizFrame) return;
+
+      const oAnalyticsModel = this.getView().getModel("analytics");
+      const trendData = oAnalyticsModel.getProperty("/trendData");
+
+      if (!trendData || trendData.length === 0) {
+        return;
+      }
+
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Month",
+          value: "{analytics>month}"
+        }],
+        measures: [
+          {
+            name: "Technical Debt",
+            value: "{analytics>technicalDebt}"
+          },
+          {
+            name: "Cloud Readiness",
+            value: "{analytics>cloudReadiness}"
+          },
+          {
+            name: "Upgrade Impact",
+            value: "{analytics>upgradeImpact}"
+          }
+        ],
+        data: {
+          path: "analytics>/trendData"
+        }
+      });
+
+      oVizFrame.setDataset(oDataset);
+      oVizFrame.setModel(oAnalyticsModel, "analytics");
+      
+      oVizFrame.setVizProperties({
+        plotArea: {
+          dataLabel: {
+            visible: true
+          }
+        },
+        valueAxis: {
+          title: {
+            text: "Score"
+          }
+        },
+        categoryAxis: {
+          title: {
+            text: "Month"
+          }
+        },
+        title: {
+          visible: false
+        },
+        legend: {
+          visible: true,
+          position: "bottom"
+        }
+      });
+
+      const feedValueAxis = new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: ["Technical Debt", "Cloud Readiness", "Upgrade Impact"]
+      });
+
+      const feedCategoryAxis = new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Month"]
+      });
+
+      oVizFrame.removeAllFeeds();
+      oVizFrame.addFeed(feedValueAxis);
+      oVizFrame.addFeed(feedCategoryAxis);
+    },
+
+    /**
+     * Configure Overall Trend Chart (Cumulative Analysis Count)
+     * @private
+     */
+    _setupOverallTrendChart: function() {
+      const oVizFrame = this.byId("idTrendChart");
+      if (!oVizFrame) return;
+
+      const oAnalyticsModel = this.getView().getModel("analytics");
+      const trendData = oAnalyticsModel.getProperty("/trendData");
+
+      if (!trendData || trendData.length === 0) {
+        return;
+      }
+
+      // Calculate cumulative count
+      let cumulativeCount = 0;
+      const cumulativeData = trendData.map(item => {
+        cumulativeCount += item.analysisCount || 0;
+        return {
+          month: item.month,
+          cumulativeCount: cumulativeCount,
+          monthlyCount: item.analysisCount || 0
+        };
+      });
+
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Month",
+          value: "{analytics>month}"
+        }],
+        measures: [
+          {
+            name: "Cumulative Analyses",
+            value: "{analytics>cumulativeCount}"
+          },
+          {
+            name: "Monthly Count",
+            value: "{analytics>monthlyCount}"
+          }
+        ],
+        data: {
+          path: "/cumulativeData"
+        }
+      });
+
+      const oCumulativeModel = new JSONModel({ cumulativeData });
+      oVizFrame.setModel(oCumulativeModel);
+      oVizFrame.setDataset(oDataset);
+      
+      oVizFrame.setVizProperties({
+        plotArea: {
+          dataLabel: {
+            visible: true
+          }
+        },
+        valueAxis: {
+          title: {
+            text: "Count"
+          }
+        },
+        categoryAxis: {
+          title: {
+            text: "Month"
+          }
+        },
+        title: {
+          visible: false
+        },
+        legend: {
+          visible: true,
+          position: "bottom"
+        }
+      });
+
+      const feedValueAxis = new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: ["Cumulative Analyses", "Monthly Count"]
+      });
+
+      const feedCategoryAxis = new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Month"]
+      });
+
+      oVizFrame.removeAllFeeds();
+      oVizFrame.addFeed(feedValueAxis);
+      oVizFrame.addFeed(feedCategoryAxis);
+    },
+
+    /**
+     * Configure Year-over-Year Comparison Chart
+     * @private
+     */
+    _setupYearOverYearChart: function() {
+      const oVizFrame = this.byId("idYearOverYearChart");
+      if (!oVizFrame) return;
+
+      const oAnalyticsModel = this.getView().getModel("analytics");
+      const yearOverYearData = oAnalyticsModel.getProperty("/yearOverYearData");
+
+      if (!yearOverYearData || yearOverYearData.length === 0) {
+        return;
+      }
+
+      // Extract available years from data
+      const availableYears = new Set();
+      yearOverYearData.forEach(item => {
+        Object.keys(item).forEach(key => {
+          if (key.includes('_')) {
+            const year = key.split('_')[1];
+            if (year && !isNaN(year)) {
+              availableYears.add(year);
+            }
+          }
+        });
+      });
+
+      const years = Array.from(availableYears).sort();
+      const measures = [];
+
+      years.forEach(year => {
+        measures.push({
+          name: `Tech Debt ${year}`,
+          value: `{analytics>technicalDebt_${year}}`
+        });
+      });
+
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Month",
+          value: "{analytics>month}"
+        }],
+        measures: measures.length > 0 ? measures : [{
+          name: "Data",
+          value: "{analytics>month}"
+        }],
+        data: {
+          path: "analytics>/yearOverYearData"
+        }
+      });
+
+      oVizFrame.setDataset(oDataset);
+      oVizFrame.setModel(oAnalyticsModel, "analytics");
+      
+      oVizFrame.setVizProperties({
+        plotArea: {
+          dataLabel: {
+            visible: true
+          }
+        },
+        valueAxis: {
+          title: {
+            text: "Technical Debt Score"
+          }
+        },
+        categoryAxis: {
+          title: {
+            text: "Month"
+          }
+        },
+        title: {
+          visible: false
+        },
+        legend: {
+          visible: true,
+          position: "bottom"
+        }
+      });
+
+      const feedValueAxis = new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: measures.map(m => m.name)
+      });
+
+      const feedCategoryAxis = new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Month"]
+      });
+
+      oVizFrame.removeAllFeeds();
+      oVizFrame.addFeed(feedValueAxis);
+      oVizFrame.addFeed(feedCategoryAxis);
+    },
+
+    /**
+     * Configure Project Comparison Chart
+     * @private
+     */
+    _setupProjectComparisonChart: function() {
+      const oVizFrame = this.byId("idProjectComparisonChart");
+      if (!oVizFrame) return;
+
+      const oAnalyticsModel = this.getView().getModel("analytics");
+      const projectComparison = oAnalyticsModel.getProperty("/projectComparison");
+
+      if (!projectComparison || projectComparison.length === 0) {
+        return;
+      }
+
+      const oDataset = new FlattenedDataset({
+        dimensions: [{
+          name: "Project",
+          value: "{analytics>projectName}"
+        }],
+        measures: [
+          {
+            name: "Technical Debt",
+            value: "{analytics>technicalDebt}"
+          },
+          {
+            name: "Cloud Readiness",
+            value: "{analytics>cloudReadiness}"
+          },
+          {
+            name: "Upgrade Impact",
+            value: "{analytics>upgradeImpact}"
+          }
+        ],
+        data: {
+          path: "analytics>/projectComparison"
+        }
+      });
+
+      oVizFrame.setDataset(oDataset);
+      oVizFrame.setModel(oAnalyticsModel, "analytics");
+      
+      oVizFrame.setVizProperties({
+        plotArea: {
+          dataLabel: {
+            visible: true
+          }
+        },
+        valueAxis: {
+          title: {
+            text: "Score"
+          }
+        },
+        categoryAxis: {
+          title: {
+            text: "Project"
+          }
+        },
+        title: {
+          visible: false
+        },
+        legend: {
+          visible: true,
+          position: "bottom"
+        }
+      });
+
+      const feedValueAxis = new FeedItem({
+        uid: "valueAxis",
+        type: "Measure",
+        values: ["Technical Debt", "Cloud Readiness", "Upgrade Impact"]
+      });
+
+      const feedCategoryAxis = new FeedItem({
+        uid: "categoryAxis",
+        type: "Dimension",
+        values: ["Project"]
+      });
+
+      oVizFrame.removeAllFeeds();
+      oVizFrame.addFeed(feedValueAxis);
+      oVizFrame.addFeed(feedCategoryAxis);
     },
 
     /**

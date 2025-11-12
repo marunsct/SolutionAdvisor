@@ -26,16 +26,38 @@ sap.ui.define([
             
             this._sCurrentProjectId = sProjectId;
             
+            // Show loading indicator while data is being fetched
+            this.getView().setBusy(true);
+            
             // Always start in display mode
             const oViewModel = this.getView().getModel("viewModel");
             oViewModel.setProperty("/editMode", false);
             
-            this.getView().bindElement({
+            // Bind element with expand and attach request completed
+            const oBinding = this.getView().bindElement({
                 path: `/Projects(${sProjectId})`,
                 parameters: {
                     expand: "analyses"
                 }
             });
+            
+            // Hide loading when binding context is available
+            if (oBinding.attachDataReceived) {
+                oBinding.attachDataReceived(() => {
+                    this.getView().setBusy(false);
+                });
+            } else {
+                // Fallback: use requestObject for OData V4
+                const oModel = this.getView().getModel();
+                if (oModel) {
+                    const oContext = oModel.bindContext(`/Projects(${sProjectId})`);
+                    oContext.requestObject().then(() => {
+                        this.getView().setBusy(false);
+                    }).catch(() => {
+                        this.getView().setBusy(false);
+                    });
+                }
+            }
         },
 
         onNavBack() {
@@ -60,12 +82,10 @@ sap.ui.define([
             }
             
             const sProjectId = oBindingContext.getProperty("ID");
-            const sProjectName = oBindingContext.getProperty("projectName");
             
             // Navigate to analyses list for this project
             this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                projectId: sProjectId,
-                projectName: encodeURIComponent(sProjectName)
+                projectId: sProjectId
             });
         },
 

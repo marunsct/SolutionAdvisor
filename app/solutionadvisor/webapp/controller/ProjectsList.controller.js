@@ -101,6 +101,9 @@ sap.ui.define([
         },
         
         _onRouteMatched() {
+            // Show loading indicator while data is being fetched
+            this.getView().setBusy(true);
+            
             // Load counts when route is matched (model is guaranteed to be available)
             this._loadCounts();
             
@@ -128,30 +131,44 @@ sap.ui.define([
         _loadCounts() {
             const oModel = this.getView().getModel();
             if (!oModel) {
+                this.getView().setBusy(false);
                 return;
             }
             
             const oViewModel = this.getView().getModel("viewModel");
+            const aCountPromises = [];
 
             // Get total projects count
             const oTotalBinding = oModel.bindList("/Projects");
-            oTotalBinding.requestContexts(0, 0).then(() => {
-                const iCount = oTotalBinding.getLength();
-                oViewModel.setProperty("/projectsCount", iCount);
-            }).catch((oError) => {
-                Log.error("Failed to load projects count:", oError);
-                oViewModel.setProperty("/projectsCount", 0);
-            });
+            aCountPromises.push(
+                oTotalBinding.requestContexts(0, 0).then(() => {
+                    const iCount = oTotalBinding.getLength();
+                    oViewModel.setProperty("/projectsCount", iCount);
+                }).catch((oError) => {
+                    Log.error("Failed to load projects count:", oError);
+                    oViewModel.setProperty("/projectsCount", 0);
+                })
+            );
 
             // Get active projects count
             const aActiveFilters = [new Filter("status", FilterOperator.EQ, "Active")];
             const oActiveBinding = oModel.bindList("/Projects", null, null, aActiveFilters);
-            oActiveBinding.requestContexts(0, 0).then(() => {
-                const iCount = oActiveBinding.getLength();
-                oViewModel.setProperty("/activeProjectsCount", iCount);
-            }).catch((oError) => {
-                Log.error("Failed to load active projects count:", oError);
-                oViewModel.setProperty("/activeProjectsCount", 0);
+            aCountPromises.push(
+                oActiveBinding.requestContexts(0, 0).then(() => {
+                    const iCount = oActiveBinding.getLength();
+                    oViewModel.setProperty("/activeProjectsCount", iCount);
+                }).catch((oError) => {
+                    Log.error("Failed to load active projects count:", oError);
+                    oViewModel.setProperty("/activeProjectsCount", 0);
+                })
+            );
+
+            // Hide busy indicator when all counts are loaded
+            Promise.all(aCountPromises).then(() => {
+                this.getView().setBusy(false);
+            }).catch(() => {
+                // Hide busy even if some counts failed
+                this.getView().setBusy(false);
             });
         },
 
@@ -178,12 +195,10 @@ sap.ui.define([
             const oItem = oEvent.getParameter("listItem") || oEvent.getSource();
             const oContext = oItem.getBindingContext();
             const sProjectId = oContext.getProperty("ID");
-            const sProjectName = oContext.getProperty("projectName");
 
             // Navigate to analyses list with project context
             this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                projectId: sProjectId,
-                projectName: encodeURIComponent(sProjectName)
+                projectId: sProjectId
             });
         },
 
@@ -198,12 +213,10 @@ sap.ui.define([
             
             const oContext = aSelectedItems[0].getBindingContext();
             const sProjectId = oContext.getProperty("ID");
-            const sProjectName = oContext.getProperty("projectName");
 
             // Navigate to analyses list with project context
             this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                projectId: sProjectId,
-                projectName: encodeURIComponent(sProjectName)
+                projectId: sProjectId
             });
         },
 
@@ -304,12 +317,10 @@ sap.ui.define([
                         oTable.getBinding("items").refresh();
                     }
                     this._loadCounts();
-
                     // Navigate to the new project's analyses
                     if (oCreatedProject && oCreatedProject.ID) {
                         this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                            projectId: oCreatedProject.ID,
-                            projectName: encodeURIComponent(oCreatedProject.projectName || oData.projectName)
+                            projectId: oCreatedProject.ID
                         });
                     }
                 }).catch((oError) => {
@@ -416,8 +427,7 @@ sap.ui.define([
         onViewAllAnalyses() {
             // Navigate to all analyses without project filter
             this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                projectId: "all",
-                projectName: "All Projects"
+                projectId: "all"
             });
         },
 

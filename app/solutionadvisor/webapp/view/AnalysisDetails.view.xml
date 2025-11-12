@@ -42,6 +42,16 @@
                         text="{objectType}"
                     />
                     <ObjectAttribute
+                        id="analysisDetails_BusinessAreaAttr"
+                        title="Business Area"
+                        text="{businessArea/displayName}"
+                    />
+                    <ObjectAttribute
+                        id="analysisDetails_ComplexityAttr"
+                        title="Complexity"
+                        text="{complexity}"
+                    />
+                    <ObjectAttribute
                         id="analysisDetails_RiskAssessmentAttr"
                         title="Risk Assessment"
                         text="{riskAssessment}"

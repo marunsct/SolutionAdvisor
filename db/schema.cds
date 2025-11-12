@@ -71,6 +71,10 @@ entity CleanCoreAnalysis : cuid, managed {
     objectName              : String(200) not null;
     objectDescription       : String(1000);
 
+    // Business Context (Step 2 of Wizard)
+    businessArea            : Association to BusinessAreas; // Optional - S/4HANA module
+    complexity              : String(20); // Simple, Medium, High, Very High - Optional
+
     // Analysis Details
     analysisDate            : Date not null;
     status                  : String(20) default 'In Progress'; // In Progress, Completed, Approved, Rejected
@@ -173,6 +177,19 @@ entity WizardSession : cuid, managed {
 // ===============================
 // Master Data Entities
 // ===============================
+
+/**
+ * BusinessAreas - Master data for S/4HANA modules/business areas
+ */
+entity BusinessAreas : cuid, managed {
+    code                    : String(10) not null; // SD, MM, HR, FA, CO, FI, PP, QM, PM, CS
+    displayName             : String(100) not null; // Sales and Distribution, Material Management, etc.
+    description             : String(500);
+    category                : String(50); // Core Finance, Sales & Procurement, Production & Logistics, etc.
+    icon                    : String(50); // SAP icon name
+    isActive                : Boolean default true;
+    displayOrder            : Integer;
+}
 
 /**
  * QuestionFlow - Decision tree structure for each object type

@@ -165,72 +165,96 @@
                             id="ricefwIdColumn"
                             width="10%"
                         >
-                            <Text
+                            <Button
                                 id="ricefwIdHeader"
-                                text="RICEFW ID"
+                                text="{= ${viewModel>/sortProperty} === 'ricefwId' ? 'RICEFW ID ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'RICEFW ID'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="objectNameColumn"
                             width="20%"
                         >
-                            <Text
+                            <Button
                                 id="objectNameHeader"
-                                text="Object Name"
+                                text="{= ${viewModel>/sortProperty} === 'objectName' ? 'Object Name ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Object Name'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="typeColumn"
                             width="10%"
                         >
-                            <Text
+                            <Button
                                 id="typeHeader"
-                                text="Type"
+                                text="{= ${viewModel>/sortProperty} === 'objectType' ? 'Type ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Type'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="cleanCoreLevelColumn"
                             width="12%"
                         >
-                            <Text
+                            <Button
                                 id="cleanCoreLevelHeader"
-                                text="Clean Core Level"
+                                text="{= ${viewModel>/sortProperty} === 'finalRecommendation' ? 'Clean Core Level ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Clean Core Level'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="techDebtColumn"
                             width="12%"
                         >
-                            <Text
+                            <Button
                                 id="techDebtHeader"
-                                text="Technical Debt"
+                                text="{= ${viewModel>/sortProperty} === 'technicalDebtScore' ? 'Technical Debt ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Technical Debt'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="cloudReadyColumn"
                             width="12%"
                         >
-                            <Text
+                            <Button
                                 id="cloudReadyHeader"
-                                text="Cloud Readiness"
+                                text="{= ${viewModel>/sortProperty} === 'cloudReadinessScore' ? 'Cloud Readiness ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Cloud Readiness'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="analysesStatusColumn"
                             width="12%"
                         >
-                            <Text
+                            <Button
                                 id="analysesStatusHeader"
-                                text="Status"
+                                text="{= ${viewModel>/sortProperty} === 'status' ? 'Status ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Status'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="dateColumn"
                             width="12%"
                         >
-                            <Text
+                            <Button
                                 id="dateHeader"
-                                text="Date"
+                                text="{= ${viewModel>/sortProperty} === 'analysisDate' ? 'Date ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Date'}"
+                                type="Transparent"
+                                class="sortableColumnHeader"
+                                press="onColumnHeaderPress"
                             />
                         </Column>
                     </columns>
@@ -241,10 +265,26 @@
                             press="onAnalysisSelect"
                         >
                             <cells>
-                                <Text
+                                <VBox
                                     id="ricefwIdCell"
-                                    text="{ricefwId}"
-                                />
+                                >
+                                    <Text
+                                        id="ricefwIdCellText"
+                                        text="{ricefwId}"
+                                    />
+                                    <Text
+                                        id="draftStatusText"
+                                        text="Draft"
+                                        visible="false"
+                                        class="sapUiSmallMarginTop sapUiLowerCase"
+                                    />
+                                    <Text
+                                        id="ricefwComplexityText"
+                                        text="Complexity: {complexity}"
+                                        visible="{= ${complexity} ? true : false}"
+                                        class="sapUiSmallMarginTop sapUiTinyText"
+                                    />
+                                </VBox>
                                 <ObjectIdentifier
                                     id="objectNameCell"
                                     title="{objectName}"
@@ -278,7 +318,7 @@
                                 />
                                 <Text
                                     id="analysisDateCell"
-                                    text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"
+                                    text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"
                                 />
                             </cells>
                         </ColumnListItem>

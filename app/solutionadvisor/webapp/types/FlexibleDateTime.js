@@ -1,4 +1,4 @@
-sap.ui.define([
+    sap.ui.define([
     "sap/ui/model/SimpleType",
     "sap/ui/core/format/DateFormat"
 ], function (SimpleType, DateFormat) {
@@ -10,7 +10,7 @@ sap.ui.define([
             this._oFormatter = null;
         },
 
-        formatValue: function (vValue, sTargetType) {
+        formatValue: function (vValue) {
             if (vValue === null || vValue === undefined || vValue === "") {
                 return "";
             }
@@ -19,11 +19,16 @@ sap.ui.define([
             if (vValue instanceof Date) {
                 oDate = vValue;
             } else if (typeof vValue === "string") {
-                // ISO 8601, Edm.Date (yyyy-MM-dd), or numeric string
-                if (/^\d{4}-\d{2}-\d{2}$/.test(vValue)) {
-                    // Treat as date only (assume UTC midnight)
-                    oDate = new Date(vValue + "T00:00:00Z");
+                // Check if it's an ISO 8601 datetime (with time component)
+                if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(vValue)) {
+                    // Full ISO 8601 datetime string - parse as-is
+                    oDate = new Date(vValue);
+                } else if (/^\d{4}-\d{2}-\d{2}$/.test(vValue)) {
+                    // Date-only string (yyyy-MM-dd) - parse in local timezone
+                    const parts = vValue.split('-');
+                    oDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 } else {
+                    // Try numeric string or other formats
                     const n = Number(vValue);
                     if (!Number.isNaN(n) && vValue.trim() !== "") {
                         oDate = new Date(n);
@@ -43,12 +48,12 @@ sap.ui.define([
             return oFormatter.format(oDate);
         },
 
-        parseValue: function (vValue, sSourceType) {
+        parseValue: function (vValue) {
             // Keep as-is for two-way bindings using text; parsing is not needed
             return vValue;
         },
 
-        validateValue: function (vValue) {
+        validateValue: function () {
             // No-op: display-only scenarios
         },
 

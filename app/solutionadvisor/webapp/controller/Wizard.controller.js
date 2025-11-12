@@ -64,6 +64,17 @@ sap.ui.define([
                 objectDescription: "",
                 autoSelectedProject: false,
 
+                // Business Area & Complexity (Step 2)
+                businessArea_ID: "",
+                businessAreaName: "",
+                complexity: "",
+                complexityOptions: [
+                    { key: "Simple", text: "Simple" },
+                    { key: "Medium", text: "Medium" },
+                    { key: "High", text: "High" },
+                    { key: "Very High", text: "Very High" }
+                ],
+
                 // Dynamic question flow properties
                 currentQuestion: null,
                 selectedAnswer: null,
@@ -191,7 +202,7 @@ sap.ui.define([
                     return;
                 }
 
-                this._saveWizardProgress(true); // true = silent auto-save
+                // Update last save time (actual save happens when user clicks Save Draft button)
                 oProgressModel.setProperty("/lastSaveTime", new Date());
             } catch (oError) {
                 Log.error("Auto-save failed:", oError);
@@ -205,25 +216,40 @@ sap.ui.define([
          * @param {number} totalSteps - Total number of steps
          * @private
          */
-        _updateProgress(currentStep, totalSteps) {
+        /**
+         * Extract question number from questionId (e.g., "Q003" -> 3)
+         * @param {string} questionId - Question ID like "Q001", "Q003", etc.
+         * @returns {number} Extracted question number
+         * @private
+         */
+        _extractQuestionNumber(questionId) {
+            if (!questionId) return 0;
+            const match = questionId.match(/Q(\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+        },
+
+        _updateProgress(currentQuestionId, totalSteps) {
             const oProgressModel = this.getView().getModel("progressModel");
             
-            const percentComplete = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
+            // Extract actual question number from questionId (e.g., "Q003" -> 3)
+            const questionNumber = this._extractQuestionNumber(currentQuestionId);
+            
+            const percentComplete = totalSteps > 0 ? Math.round((questionNumber / totalSteps) * 100) : 0;
             const questionsAnswered = Object.keys(this._answeredQuestions).length;
             
             // Calculate estimated time remaining based on average time per question
             const elapsedTime = Date.now() - this._wizardStartTime.getTime();
             const avgTimePerQuestion = questionsAnswered > 0 ? elapsedTime / questionsAnswered : 60000; // Default 1min
-            const remainingQuestions = totalSteps - currentStep;
+            const remainingQuestions = totalSteps - questionNumber;
             const estimatedTimeRemaining = Math.round((remainingQuestions * avgTimePerQuestion) / 60000); // in minutes
 
             oProgressModel.setData({
                 percentComplete: percentComplete,
-                currentStepIndex: currentStep,
+                currentStepIndex: questionNumber,
                 totalSteps: totalSteps,
                 questionsAnswered: questionsAnswered,
                 estimatedTimeRemaining: estimatedTimeRemaining,
-                progressText: `Question ${currentStep} of ${totalSteps}`,
+                progressText: `Question ${questionNumber} of ${totalSteps}`,
                 isError: false,
                 errorMessage: "",
                 canContinue: true,
@@ -303,6 +329,15 @@ sap.ui.define([
                 return;
             }
 
+            // ✅ IMPORTANT: Reset session/analysis IDs when starting a fresh analysis
+            // This prevents resuming a completed analysis when clicking "New Analysis"
+            if (sProjectId && !sSessionId && !sAnalysisId) {
+                // Starting a new analysis - reset all state
+                this._sessionId = null;
+                this._analysisId = null;
+                this._answeredQuestions = {};
+            }
+
             if (sAnalysisId) {
                 // Resume from in-progress analysis
                 this._resumeFromAnalysis(sAnalysisId);
@@ -379,7 +414,8 @@ sap.ui.define([
                 }, {});
 
                 // Load full analysis data to populate wizard fields
-                const oAnalysisBinding = oModel.bindContext(`/Analyses('${oSession.analysis_ID}')`, null, {
+                // For draft-enabled entities, use ID=guid syntax
+                const oAnalysisBinding = oModel.bindContext(`/Analyses(ID=${oSession.analysis_ID},IsActiveEntity=true)`, null, {
                     $expand: "projectConfig"
                 });
 
@@ -409,33 +445,50 @@ sap.ui.define([
                     const oWizard = this.byId("cleanCoreWizard");
                     const iCurrentStep = oSession.currentStep || 1;
 
+                    // Mark completed steps as validated
+                    this.byId("projectStep").setValidated(true);
+                    this.byId("objectStep").setValidated(true);
+
                     // Navigate wizard to the saved step
-                    if (iCurrentStep >= 1) {
-                        oWizard.setCurrentStep(this.byId("projectStep"));
-                    }
-                    if (iCurrentStep >= 2) {
+                    // First go to project step
+                    oWizard.setCurrentStep(this.byId("projectStep"));
+                    
+                    // Then navigate forward to the correct step
+                    for (let i = 2; i <= iCurrentStep; i++) {
                         oWizard.nextStep();
                     }
-                    if (iCurrentStep >= 3) {
-                        oWizard.nextStep();
+
+                    // Show next button if we're at project or object step
+                    const oNextButton = this.byId("wizardNextButton");
+                    const oStartButton = this.byId("wizardStartButton");
+                    if (iCurrentStep <= 2) {
+                        oNextButton.setVisible(true);
+                        oStartButton.setVisible(false);
+                        this._updateNextButtonState();
+                    } else {
+                        // At questions step or summary - hide next button initially
+                        oNextButton.setVisible(false);
+                        oStartButton.setVisible(false);
                     }
 
                     // Update session status from Paused to Active
                     const oUpdateBinding = oModel.bindContext(`/WizardSessions('${sSessionId}')`);
                     oUpdateBinding.requestObject().then(() => {
-                        oUpdateBinding.setProperty("sessionStatus", "Active");
-                        oUpdateBinding.setProperty("lastActivity", new Date().toISOString());
+                        // Get the bound context and update properties
+                        const oUpdateContext = oUpdateBinding.getBoundContext();
+                        oUpdateContext.setProperty("sessionStatus", "Active");
+                        oUpdateContext.setProperty("lastActivity", new Date().toISOString());
 
-                        oModel.submitBatch("updateGroup").then(() => {
-                            this.getView().setBusy(false);
-                            MessageToast.show(`Draft resumed successfully from step ${iCurrentStep}`, {
-                                duration: 3000
-                            });
-                        }).catch((oError) => {
-                            this.getView().setBusy(false);
-                            Log.error("Failed to update session status:", oError);
-                            // Continue anyway, just log the error
+                        return oModel.submitBatch("updateGroup");
+                    }).then(() => {
+                        this.getView().setBusy(false);
+                        MessageToast.show(`Draft resumed successfully from step ${iCurrentStep}`, {
+                            duration: 3000
                         });
+                    }).catch((oError) => {
+                        this.getView().setBusy(false);
+                        Log.error("Failed to update session status:", oError);
+                        // Continue anyway, just log the error
                     });
                 }).catch((oError) => {
                     this.getView().setBusy(false);
@@ -461,12 +514,39 @@ sap.ui.define([
 
             this.getView().setBusy(true);
 
-            // Load analysis with expanded project config and decision paths
-            const oAnalysisBinding = oModel.bindContext(`/Analyses(ID=${sAnalysisId},IsActiveEntity=true)`, null, {
-                $expand: "projectConfig,decisionPaths"
-            });
+            // First, clean up any draft entities for this analysis
+            // Query for draft version using OData V4 list binding
+            const aDraftFilters = [
+                new sap.ui.model.Filter({
+                    filters: [
+                        new sap.ui.model.Filter("ID", sap.ui.model.FilterOperator.EQ, sAnalysisId),
+                        new sap.ui.model.Filter("IsActiveEntity", sap.ui.model.FilterOperator.EQ, false)
+                    ],
+                    and: true
+                })
+            ];
+            const oDraftBinding = oModel.bindList("/Analyses", null, null, aDraftFilters);
 
-            oAnalysisBinding.requestObject().then((oAnalysis) => {
+            oDraftBinding.requestContexts().then((aDraftContexts) => {
+                // Delete any draft entities found
+                const aDraftDeletions = aDraftContexts.map(oDraftCtx => {
+                    Log.info("Discarding stale draft for analysis:", sAnalysisId);
+                    return oDraftCtx.delete().catch((oError) => {
+                        Log.warning("Failed to discard draft, continuing anyway:", oError);
+                    });
+                });
+
+                // Wait for all draft deletions to complete (or fail)
+                return Promise.allSettled(aDraftDeletions);
+            }).then(() => {
+                // Now load the active analysis entity
+                // For draft-enabled entities, use ID=guid,IsActiveEntity=true syntax
+                const oAnalysisBinding = oModel.bindContext(`/Analyses(ID=${sAnalysisId},IsActiveEntity=true)`, null, {
+                    $expand: "projectConfig,decisionPaths"
+                });
+
+                return oAnalysisBinding.requestObject();
+            }).then((oAnalysis) => {
                 if (!oAnalysis) {
                     MessageBox.error("Analysis not found");
                     this.getView().setBusy(false);
@@ -539,19 +619,34 @@ sap.ui.define([
                         const oWizard = this.byId("cleanCoreWizard");
                         const iCurrentStep = oSession.currentStep || 1;
 
-                        if (iCurrentStep >= 1) {
-                            oWizard.setCurrentStep(this.byId("projectStep"));
-                        }
-                        if (iCurrentStep >= 2) {
+                        // First go to project step
+                        oWizard.setCurrentStep(this.byId("projectStep"));
+                        
+                        // Then navigate forward to the correct step
+                        for (let i = 2; i <= iCurrentStep; i++) {
                             oWizard.nextStep();
                         }
-                        if (iCurrentStep >= 3) {
-                            oWizard.nextStep();
-                            // If in questions step, load current question
-                            if (oSession.currentQuestionId) {
-                                // Load and display the current question
-                                this._loadQuestionById(oSession.currentQuestionId);
-                            }
+
+                        // Show next button if we're at project or object step
+                        const oNextButton = this.byId("wizardNextButton");
+                        const oStartButton = this.byId("wizardStartButton");
+                        if (iCurrentStep <= 2) {
+                            oNextButton.setVisible(true);
+                            oStartButton.setVisible(false);
+                            this._updateNextButtonState();
+                        } else {
+                            // At questions step or summary - hide next button initially
+                            oNextButton.setVisible(false);
+                            oStartButton.setVisible(false);
+                        }
+
+                        // If in questions step (step 3 or higher), load current question
+                        if (iCurrentStep >= 3 && oSession.currentQuestionId) {
+                            // Load and display the current question
+                            this._loadQuestionById(oSession.currentQuestionId);
+                            
+                            // Update progress display with current question and total steps
+                            this._updateProgress(oSession.currentQuestionId, oSession.totalSteps || 0);
                         }
 
                         this.getView().setBusy(false);
@@ -719,6 +814,40 @@ sap.ui.define([
                 });
             }
             this._validateObjectStep();
+        },
+
+        /**
+         * Handle Business Area selection
+         * Stores selected business area ID and display name in wizard model
+         */
+        onBusinessAreaSelect(oEvent) {
+            const oSelectedItem = oEvent.getParameter("selectedItem");
+            const oWizardModel = this.getView().getModel("wizardModel");
+            
+            if (oSelectedItem) {
+                const sBusinessAreaID = oSelectedItem.getKey();
+                const sBusinessAreaName = oSelectedItem.getText();
+                oWizardModel.setProperty("/businessArea_ID", sBusinessAreaID);
+                oWizardModel.setProperty("/businessAreaName", sBusinessAreaName);
+            } else {
+                oWizardModel.setProperty("/businessArea_ID", "");
+                oWizardModel.setProperty("/businessAreaName", "");
+            }
+        },
+
+        /**
+         * Handle Complexity selection
+         * Stores selected complexity level in wizard model
+         */
+        onComplexitySelect(oEvent) {
+            const oSelectedItem = oEvent.getParameter("selectedItem");
+            const oWizardModel = this.getView().getModel("wizardModel");
+            
+            if (oSelectedItem) {
+                oWizardModel.setProperty("/complexity", oSelectedItem.getKey());
+            } else {
+                oWizardModel.setProperty("/complexity", "");
+            }
         },
 
         _loadConstraints(sObjectType) {
@@ -1289,13 +1418,24 @@ sap.ui.define([
             const oWizard = this.byId("cleanCoreWizard");
             const currentStep = oWizard.getCurrentStep();
             const oNextButton = this.byId("wizardNextButton");
+            const oSaveDraftButton = this.byId("saveDraftButton");
 
             if (currentStep === "projectStep") {
                 const bValidated = this.byId("projectStep").getValidated();
                 oNextButton.setEnabled(bValidated);
+                // Hide save draft button on project step (no session yet)
+                oSaveDraftButton.setVisible(false);
             } else if (currentStep === "objectStep") {
                 const bValidated = this.byId("objectStep").getValidated();
                 oNextButton.setEnabled(bValidated);
+                // Hide save draft button on object step (no session yet)
+                oSaveDraftButton.setVisible(false);
+            } else if (currentStep === "questionStep") {
+                // Show save draft button on question step (session is active)
+                oSaveDraftButton.setVisible(true);
+            } else if (currentStep === "summaryStep") {
+                // Hide save draft button on summary step (analysis is complete)
+                oSaveDraftButton.setVisible(false);
             }
         },
 
@@ -1304,7 +1444,7 @@ sap.ui.define([
             const oData = oWizardModel.getData();
 
             // Initialize wizard start time for time tracking
-            this._wizardStartTime = Date.now();
+            this._wizardStartTime = new Date();
 
             // Show loading indicator
             this.getView().setBusy(true);
@@ -1318,6 +1458,8 @@ sap.ui.define([
             oOperation.setParameter("ricefwId", oData.ricefwId);
             oOperation.setParameter("objectType", oData.objectType);
             oOperation.setParameter("objectName", oData.objectName);
+            oOperation.setParameter("businessArea_ID", oData.businessArea_ID || null);
+            oOperation.setParameter("complexity", oData.complexity || null);
 
             oOperation.execute().then(() => {
                 const oResult = oOperation.getBoundContext().getObject();
@@ -1335,6 +1477,9 @@ sap.ui.define([
 
                 // Initialize step counters
                 oWizardModel.setProperty("/currentStep", 1);
+
+                // Update progress with actual question number and total steps
+                this._updateProgress(oResult.firstQuestion.questionId, oResult.totalSteps);
 
                 // Update wizard navigation - go to question step
                 const oWizard = this.byId("cleanCoreWizard");
@@ -1463,11 +1608,19 @@ sap.ui.define([
                     oWizardModel.setProperty("/scores", oResult.scores || {});
                     oWizardModel.setProperty("/currentQuestion", null);
 
+                    // Clean up draft session and any draft entities
+                    this._cleanupDrafts();
+
                     // Update UI for completion
                     this._showCompletionUI();
                 } else {
                     // Display next question
                     this._displayQuestion(oResult.nextQuestion);
+
+                    // Update progress with actual question number
+                    const totalSteps = oWizardModel.getProperty("/progressModel/totalSteps") || 
+                                      this.getView().getModel("progressModel").getProperty("/totalSteps");
+                    this._updateProgress(oResult.nextQuestion.questionId, totalSteps);
 
                     // Lazy: do not auto-refresh constraints/examples on every question
                 }
@@ -1554,28 +1707,57 @@ sap.ui.define([
             const oSessionBinding = oModel.bindContext(`/WizardSessions('${this._sessionId}')`);
 
             oSessionBinding.requestObject().then(() => {
-                // Update properties
-                oSessionBinding.setProperty("sessionStatus", "Paused");
-                oSessionBinding.setProperty("currentStep", oDraftModel.getProperty("/currentStep"));
-                oSessionBinding.setProperty("totalSteps", oDraftModel.getProperty("/totalSteps"));
-                oSessionBinding.setProperty("timeSpentTotal", oDraftModel.getProperty("/timeSpent") * 60); // Convert to seconds
-                oSessionBinding.setProperty("lastActivity", new Date().toISOString());
-                oSessionBinding.setProperty("draftName", sDraftName || `Draft - ${new Date().toLocaleDateString()}`);
+                // Get the bound context from the binding
+                const oContext = oSessionBinding.getBoundContext();
+                
+                // Update properties using the context's setProperty method
+                oContext.setProperty("sessionStatus", "Paused");
+                oContext.setProperty("currentStep", oDraftModel.getProperty("/currentStep"));
+                oContext.setProperty("totalSteps", oDraftModel.getProperty("/totalSteps"));
+                oContext.setProperty("timeSpentTotal", oDraftModel.getProperty("/timeSpent") * 60); // Convert to seconds
+                oContext.setProperty("lastActivity", new Date().toISOString());
+                oContext.setProperty("draftName", sDraftName || `Draft - ${new Date().toLocaleDateString()}`);
 
-                // Submit batch
-                oModel.submitBatch("updateGroup").then(() => {
-                    MessageToast.show("Draft saved successfully", {
-                        duration: 3000
-                    });
-                    this._saveDraftDialog.close();
-                }).catch((oError) => {
-                    Log.error("Failed to save draft:", oError);
-                    MessageBox.error("Failed to save draft: " + oError.message);
+                // Submit batch to save changes
+                return oModel.submitBatch("updateGroup");
+            }).then(() => {
+                MessageToast.show("Draft saved successfully", {
+                    duration: 3000
                 });
+                this._saveDraftDialog.close();
             }).catch((oError) => {
-                Log.error("Failed to load session:", oError);
+                Log.error("Failed to save draft:", oError);
                 MessageBox.error("Failed to save draft: " + oError.message);
             });
+        },
+
+        /**
+         * Clean up draft sessions and draft entities after analysis completion
+         * @private
+         */
+        _cleanupDrafts() {
+            const oModel = this.getView().getModel();
+
+            // ✅ FIX #2: Only delete the WizardSession, NOT the Analysis record
+            // The Analysis must persist as a draft so user can resume it later
+            // When analysis is completed, it will be marked as status='Completed' and IsActiveEntity=true
+            
+            if (this._sessionId) {
+                const oSessionBinding = oModel.bindContext(`/WizardSessions('${this._sessionId}')`);
+                oSessionBinding.requestObject().then(() => {
+                    oSessionBinding.delete().then(() => {
+                        Log.info("Draft session deleted successfully:", this._sessionId);
+                    }).catch((oError) => {
+                        Log.warning("Failed to delete draft session, continuing anyway:", oError);
+                    });
+                }).catch((oError) => {
+                    Log.warning("Failed to load draft session for deletion:", oError);
+                });
+            }
+
+            // ✅ REMOVED: Code that deleted draft Analysis entities
+            // Analysis record now stays in database as a draft (status='In Progress', IsActiveEntity=false)
+            // This allows user to resume the analysis later by clicking "Resume Draft"
         },
 
         onWizardComplete() {
@@ -1583,13 +1765,37 @@ sap.ui.define([
         },
 
         onCancel() {
-            MessageBox.confirm("Do you want to cancel the analysis?", {
-                onClose: (sAction) => {
-                    if (sAction === MessageBox.Action.OK) {
-                        this.onNavBack();
+            // If analysis has started (session exists), ask about saving draft
+            if (this._sessionId) {
+                MessageBox.confirm(
+                    "Do you want to save this analysis as a draft before leaving?",
+                    {
+                        title: "Save Draft?",
+                        actions: ["Save Draft", "Discard", MessageBox.Action.CANCEL],
+                        onClose: (sAction) => {
+                            if (sAction === "Save Draft") {
+                                // Show save draft dialog
+                                this.onSaveDraft();
+                            } else if (sAction === "Discard") {
+                                // Clean up draft entities before leaving
+                                this._cleanupDrafts();
+                                // Leave without saving
+                                this.onNavBack();
+                            }
+                            // If Cancel, do nothing - stay on wizard
+                        }
                     }
-                }
-            });
+                );
+            } else {
+                // No session started yet - just confirm cancel
+                MessageBox.confirm("Do you want to cancel the analysis?", {
+                    onClose: (sAction) => {
+                        if (sAction === MessageBox.Action.OK) {
+                            this.onNavBack();
+                        }
+                    }
+                });
+            }
         },
 
         onNavBack() {
@@ -1601,8 +1807,7 @@ sap.ui.define([
                 // Navigate back to analyses list with project context
                 // Use replace: true to remove wizard from browser history
                 this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                    projectId: sProjectId,
-                    projectName: encodeURIComponent(sProjectName)
+                    projectId: sProjectId
                 }, true); // replace: true
             } else {
                 // Navigate back to project list
@@ -1624,18 +1829,19 @@ sap.ui.define([
             const oWizardModel = this.getView().getModel("wizardModel");
             const sProjectId = oWizardModel.getProperty("/projectID");
             const sProjectName = oWizardModel.getProperty("/projectName");
-
+/*on Close button it should always navigate to analyses list page.
             // If we have an analysis ID, it means the analysis was saved
             if (this._analysisId) {
                 // Navigate to the analysis details page, replacing history to prevent back to wizard
                 this.getOwnerComponent().getRouter().navTo("AnalysisDetails", {
                     key: this._analysisId
                 }, true); // replace: true
-            } else if (sProjectId) {
+            } else
+              */
+                if (sProjectId) {
                 // Navigate back to analyses list with project context, replacing history
                 this.getOwnerComponent().getRouter().navTo("AnalysesList", {
-                    projectId: sProjectId,
-                    projectName: encodeURIComponent(sProjectName)
+                    projectId: sProjectId
                 }, true); // replace: true
             } else {
                 // Navigate back to project list, replacing history
@@ -1644,3 +1850,4 @@ sap.ui.define([
         }
     });
 });
+

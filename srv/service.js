@@ -324,7 +324,7 @@ module.exports = cds.service.impl(async function () {
      * from the decision tree based on object type. Logs audit trail for analysis creation.
      */
     this.on('startWizard', async (req) => {
-        const { projectID, ricefwId, objectType, objectName } = req.data;
+        const { projectID, ricefwId, objectType, objectName, businessArea_ID, complexity } = req.data;
         const tenant = req.user?.tenant || 'default';
 
         try {
@@ -334,7 +334,42 @@ module.exports = cds.service.impl(async function () {
                 return req.error(400, req.t('error.invalidRicefwId'));
             }
 
-            // Create new analysis record
+            // ✅ FIX #1: Check if draft session already exists for this RICEFW ID
+            // This prevents creating duplicate analyses when resuming
+            const existingDraft = await SELECT.one.from(Analyses)
+                .where({
+                    projectConfig_ID: projectID,
+                    ricefwId: ricefwId,
+                    status: 'In Progress',
+                    tenant: tenant
+                });
+
+            if (existingDraft?.ID ) {
+                LOG.info(`Found existing draft analysis for RICEFW ID ${ricefwId}, resuming...`);
+                
+                // Check if session exists for this analysis
+                // Query for any active session (not Completed)
+                const existingSession = await SELECT.one.from(WizardSessions)
+                    .where({ analysis_ID: existingDraft.ID, tenant: tenant })
+                    .orderBy({ lastActivity: 'desc' });  // Get most recent session
+                
+                if (existingSession?.ID && existingSession.sessionStatus !== 'Completed') {
+                    LOG.info(`Found existing session ${existingSession.ID} for analysis ${existingDraft.ID}`);
+                    
+                    // Get first question
+                    const firstQuestion = await decisionEngine.getFirstQuestion(objectType);
+                    
+                    // Return existing session and analysis instead of creating new ones
+                    return {
+                        sessionID: existingSession.ID,
+                        analysisID: existingDraft.ID,
+                        firstQuestion: firstQuestion,
+                        isResumed: true  // Flag to indicate this is a resume, not a new start
+                    };
+                }
+            }
+
+            // ✅ No existing draft found, proceed with creating new analysis
             const analysisID = cds.utils.uuid();
             const analysis = {
                 ID: analysisID,
@@ -342,6 +377,8 @@ module.exports = cds.service.impl(async function () {
                 ricefwId: ricefwId,
                 objectType: objectType,
                 objectName: objectName,
+                businessArea_ID: businessArea_ID || null,
+                complexity: complexity || null,
                 analysisDate: new Date().toISOString().split('T')[0],
                 status: 'In Progress',
                 tenant: tenant
@@ -496,13 +533,55 @@ module.exports = cds.service.impl(async function () {
                 // Now calculate scores (will read the updated finalRecommendation)
                 const scores = await scoringService.calculateScores(session.analysis_ID);
 
-                // Update analysis with calculated scores
+                // Get decision paths to calculate additional metrics
+                const decisionPaths = await SELECT.from(DecisionPaths)
+                    .where({ analysis_ID: session.analysis_ID })
+                    .orderBy('stepOrder');
+
+                // Get analysis data to extract project config
+                const analysis = await SELECT.one.from(Analyses)
+                    .where({ ID: session.analysis_ID })
+                    .columns(a => a('*', a.projectConfig('*')));
+
+                // Calculate risk assessment and compliance status
+                const riskAssessment = scoringService.calculateRiskAssessment(
+                    nextStep.recommendation,
+                    scores.technicalDebt,
+                    scores.upgradeImpact
+                );
+
+                const complianceStatus = scoringService.calculateComplianceStatus(
+                    nextStep.recommendation,
+                    analysis?.projectConfig?.complianceRequirements
+                );
+
+                const technicalComplexity = scoringService.calculateTechnicalComplexity(
+                    nextStep.recommendation
+                );
+
+                const estimatedEffort = scoringService.estimateEffort(
+                    decisionPaths,
+                    nextStep.recommendation
+                );
+
+                const businessImpact = scoringService.calculateBusinessImpact(
+                    scores.technicalDebt,
+                    scores.cloudReadiness,
+                    scores.upgradeImpact
+                );
+
+                // Update analysis with calculated scores AND risk/compliance metrics
                 await cds.update(Analyses)
                     .set({
                         technicalDebtScore: scores.technicalDebt,
                         cloudReadinessScore: scores.cloudReadiness,
                         upgradeImpactScore: scores.upgradeImpact,
-                        compositeHealthScore: scores.compositeHealth
+                        compositeHealthScore: scores.compositeHealth,
+                        riskAssessment: riskAssessment,
+                        complianceStatus: complianceStatus,
+                        technicalComplexity: technicalComplexity,
+                        estimatedEffort: estimatedEffort,
+                        businessImpact: businessImpact
                     })
                     .where({ ID: session.analysis_ID });
 
@@ -655,7 +734,8 @@ module.exports = cds.service.impl(async function () {
         try {
             // Verify analysis exists and has a final recommendation
             const analysis = await SELECT.one.from(Analyses)
-                .where({ ID: analysisID, tenant: tenant });
+                .where({ ID: analysisID, tenant: tenant })
+                .columns(a => a('*', a.projectConfig('*')));
 
             if (!analysis) {
                 return req.error(404, req.t('error.analysisNotFound'));
@@ -668,13 +748,50 @@ module.exports = cds.service.impl(async function () {
             // Calculate fresh scores
             const scores = await scoringService.calculateScores(analysisID);
 
-            // Update analysis with new scores (cds.update bypasses draft for internal operations)
+            // Get decision paths for effort and complexity calculations
+            const decisionPaths = await SELECT.from(DecisionPaths)
+                .where({ analysis_ID: analysisID })
+                .orderBy('stepOrder');
+
+            // Calculate risk and compliance data
+            const riskAssessment = scoringService.calculateRiskAssessment(
+                analysis.finalRecommendation,
+                scores.technicalDebt,
+                scores.upgradeImpact
+            );
+
+            const complianceStatus = scoringService.calculateComplianceStatus(
+                analysis.finalRecommendation,
+                analysis?.projectConfig?.complianceRequirements
+            );
+
+            const technicalComplexity = scoringService.calculateTechnicalComplexity(
+                analysis.finalRecommendation
+            );
+
+            const estimatedEffort = scoringService.estimateEffort(
+                decisionPaths,
+                analysis.finalRecommendation
+            );
+
+            const businessImpact = scoringService.calculateBusinessImpact(
+                scores.technicalDebt,
+                scores.cloudReadiness,
+                scores.upgradeImpact
+            );
+
+            // Update analysis with new scores AND risk/compliance metrics
             await cds.update(Analyses)
                 .set({
                     technicalDebtScore: scores.technicalDebt,
                     cloudReadinessScore: scores.cloudReadiness,
                     upgradeImpactScore: scores.upgradeImpact,
-                    compositeHealthScore: scores.compositeHealth
+                    compositeHealthScore: scores.compositeHealth,
+                    riskAssessment: riskAssessment,
+                    complianceStatus: complianceStatus,
+                    technicalComplexity: technicalComplexity,
+                    estimatedEffort: estimatedEffort,
+                    businessImpact: businessImpact
                 })
                 .where({ ID: analysisID, tenant: tenant });
 
@@ -688,18 +805,38 @@ module.exports = cds.service.impl(async function () {
                     technicalDebtScore: analysis.technicalDebtScore,
                     cloudReadinessScore: analysis.cloudReadinessScore,
                     upgradeImpactScore: analysis.upgradeImpactScore,
-                    compositeHealthScore: analysis.compositeHealthScore
+                    compositeHealthScore: analysis.compositeHealthScore,
+                    riskAssessment: analysis.riskAssessment,
+                    complianceStatus: analysis.complianceStatus,
+                    technicalComplexity: analysis.technicalComplexity,
+                    estimatedEffort: analysis.estimatedEffort,
+                    businessImpact: analysis.businessImpact
                 },
-                scores
+                {
+                    technicalDebtScore: scores.technicalDebt,
+                    cloudReadinessScore: scores.cloudReadiness,
+                    upgradeImpactScore: scores.upgradeImpact,
+                    compositeHealthScore: scores.compositeHealth,
+                    riskAssessment: riskAssessment,
+                    complianceStatus: complianceStatus,
+                    technicalComplexity: technicalComplexity,
+                    estimatedEffort: estimatedEffort,
+                    businessImpact: businessImpact
+                }
             );
 
             return {
                 success: true,
-                message: 'Scores recalculated successfully',
+                message: 'Scores and risk metrics recalculated successfully',
                 technicalDebt: scores.technicalDebt,
                 cloudReadiness: scores.cloudReadiness,
                 upgradeImpact: scores.upgradeImpact,
-                compositeHealth: scores.compositeHealth
+                compositeHealth: scores.compositeHealth,
+                riskAssessment: riskAssessment,
+                complianceStatus: complianceStatus,
+                technicalComplexity: technicalComplexity,
+                estimatedEffort: estimatedEffort,
+                businessImpact: businessImpact
             };
         } catch (error) {
             LOG.error('Error recalculating scores:', error);

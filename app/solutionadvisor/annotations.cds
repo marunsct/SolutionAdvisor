@@ -464,6 +464,30 @@ annotate service.Analyses with {
         ]
     };
     objectName @title : 'Object Name';
+    businessArea @title : 'Business Area'  @Common.ValueList : {
+        CollectionPath : 'BusinessAreas',
+        Parameters : [
+            {
+                $Type : 'Common.ValueListParameterInOut',
+                LocalDataProperty : businessArea_ID,
+                ValueListProperty : 'ID'
+            },
+            {
+                $Type : 'Common.ValueListParameterDisplayOnly',
+                ValueListProperty : 'displayName'
+            }
+        ]
+    };
+    complexity @title : 'Complexity'  @Common.ValueList : {
+        CollectionPath : 'ComplexityValues',
+        Parameters : [
+            {
+                $Type : 'Common.ValueListParameterInOut',
+                LocalDataProperty : complexity,
+                ValueListProperty : 'value'
+            }
+        ]
+    };
     finalRecommendation @title : 'Clean Core Level'  @Common.ValueList : {
         CollectionPath : 'CleanCoreLevels',
         Parameters : [

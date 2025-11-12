@@ -1109,3 +1109,129 @@ html {
     max-height: 60vh;
   }
 }
+
+/* ============================================
+   ANALYSES LIST DRAFT ITEM STYLING
+   ============================================ */
+
+/* Draft List Item - Make it appear "dull" */
+.draftAnalysisItem {
+  opacity: 0.65 !important;
+  background-color: #f9f9f9 !important;
+}
+
+.draftAnalysisItem:hover {
+  opacity: 0.75 !important;
+  background-color: #f3f3f3 !important;
+}
+
+/* Draft Status Text - Styling */
+#draftStatusText {
+  font-size: 0.75rem;
+  color: #ff9800;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Draft Text with Icon-like appearance */
+.draftStatusBadge {
+  display: inline-block;
+  background-color: #fff3e0;
+  border: 1px solid #ffb74d;
+  color: #e65100;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* RICEFW ID Cell in Draft Items */
+.draftAnalysisItem #ricefwIdCellText {
+  color: #666;
+  font-weight: normal;
+}
+
+/* Completed Analysis Items - Highlight them */
+.completedAnalysisItem {
+  opacity: 1 !important;
+  background-color: white !important;
+}
+
+.completedAnalysisItem:hover {
+  background-color: #fafafa !important;
+}
+
+.completedAnalysisItem #ricefwIdCellText {
+  color: #333;
+  font-weight: 600;
+}
+
+/* ============================================
+   SORTABLE COLUMN HEADERS STYLING
+   ============================================ */
+
+/* Make column headers look like clickable elements */
+.sortableColumnHeader {
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0.25rem 0.5rem !important;
+  text-align: left;
+  font-size: inherit;
+  font-weight: 500;
+  color: #0854a0;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* Style for sortable column header text on hover */
+.sortableColumnHeader:hover {
+  text-decoration: underline;
+  color: #053b7a;
+  font-weight: 600;
+  background-color: rgba(240, 244, 255, 0.5) !important;
+}
+
+.sortableColumnHeader:active {
+  opacity: 0.8;
+}
+
+.sortableColumnHeader:focus {
+  outline: 2px solid #0854a0;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Add visual feedback for currently sorted column header */
+.sapMTable .sapMListTblHeaderCell .sortableColumnHeader {
+  font-weight: 600;
+}
+
+/* Ensure proper spacing for sort indicators */
+.sapMTable .sapMListTblHeaderCell {
+  padding: 0.5rem 0.25rem !important;
+}
+
+/* Styling for the sapUiLinkPointer class (clickable pointer cursor) */
+.sapUiLinkPointer {
+  cursor: pointer;
+  text-decoration: none;
+  color: #0854a0;
+}
+
+.sapUiLinkPointer:hover {
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.sapUiLinkPointer:active {
+  opacity: 0.7;
+}
+

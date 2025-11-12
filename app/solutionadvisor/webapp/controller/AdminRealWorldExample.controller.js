@@ -58,6 +58,10 @@ sap.ui.define(
         },
         
         _onRouteMatched: function() {
+          // Show loading indicator
+          const oViewModel = this.getView().getModel("viewModel");
+          oViewModel.setProperty("/busy", true);
+          
           // Clear any filters from previous navigation
           const oTable = this.byId("exampleTable");
           if (oTable) {

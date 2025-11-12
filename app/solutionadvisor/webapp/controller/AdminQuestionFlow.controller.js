@@ -71,6 +71,10 @@ sap.ui.define([
      * @private
      */
     _onRouteMatched: function() {
+      // Show loading indicator
+      const oViewModel = this.getView().getModel("viewModel");
+      oViewModel.setProperty("/busy", true);
+      
       // Clear any existing filters to ensure fresh view
       const oTable = this.byId("questionFlowTable");
       if (oTable) {
@@ -129,6 +133,7 @@ sap.ui.define([
         // For OData V4, getLength() returns total count when $count=true is set
         const iCount = oBinding.getCount ? oBinding.getCount() : oBinding.getLength();
         oViewModel.setProperty("/recordCount", iCount);
+        oViewModel.setProperty("/busy", false); // Hide loading indicator
         if (iCount > 0) {
           MessageToast.show(`Loaded ${iCount} question flow records`);
         }

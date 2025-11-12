@@ -59,7 +59,7 @@ class AnalyticsService {
     try {
       // Build where clause with tenant filtering and optional filters
       const whereClause = { tenant: cds.context.tenant || 'default' };
-      
+
       // Add date range filter
       if (filters.dateFrom) {
         whereClause.createdAt = { '>=': filters.dateFrom };
@@ -71,38 +71,43 @@ class AnalyticsService {
           whereClause.createdAt = { '<=': filters.dateTo };
         }
       }
-      
+
       // Add project filter
       if (filters.projectId) {
-        whereClause.project_ID = filters.projectId;
+        whereClause.projectConfig_ID = filters.projectId;
       }
-      
+
       // Get all analyses for calculations with filters
       let analyses = await SELECT.from('sd.CleanCoreAnalysis')
         .where(whereClause);
-      
+
       // Apply additional filters in JavaScript (for array-based filters)
       if (filters.ricefwTypes && filters.ricefwTypes.length > 0) {
-        analyses = analyses.filter(a => filters.ricefwTypes.includes(a.objectType_code));
+        analyses = analyses.filter(a => filters.ricefwTypes.includes(a.objectType));
       }
-      
+
       if (filters.cleanCoreLevels && filters.cleanCoreLevels.length > 0) {
-        analyses = analyses.filter(a => filters.cleanCoreLevels.includes(a.recommendedLevel));
+        analyses = analyses.filter(a => {
+          const level = this._extractLevel(a.finalRecommendation) || 'Unknown';
+          return filters.cleanCoreLevels.includes(level);
+        });
       }
-      
+
       if (!analyses || analyses.length === 0) {
         return this._getEmptyAnalyticsData();
       }
 
       // Calculate KPIs
       const kpiData = this._calculateKPIs(analyses);
-      
+
       // Prepare chart data
       const levelDistribution = this._prepareLevelDistribution(analyses);
       const ricefwTypeDistribution = this._prepareRicefwTypeDistribution(analyses);
       const trendData = await this._prepareTrendData();
       const riskMatrixData = this._prepareRiskMatrixData(analyses);
       const topObjects = this._prepareTopObjectsData(analyses);
+      const projectComparison = await this._prepareProjectComparison(analyses);
+      const yearOverYearData = await this._prepareYearOverYearData(analyses);
 
       return {
         ...kpiData,
@@ -111,6 +116,8 @@ class AnalyticsService {
         trendData,
         riskMatrixData,
         topObjects,
+        projectComparison,
+        yearOverYearData,
         totalAnalyses: analyses.length
       };
     } catch (error) {
@@ -124,10 +131,26 @@ class AnalyticsService {
    * @private
    */
   _calculateKPIs(analyses) {
-    const technicalDebtScore = analyses.reduce((sum, a) => sum + (a.technicalDebtScore || 0), 0) / analyses.length;
-    const cloudReadinessScore = analyses.reduce((sum, a) => sum + (a.cloudReadinessScore || 0), 0) / analyses.length;
-    const upgradeImpactScore = analyses.reduce((sum, a) => sum + (a.upgradeImpactScore || 0), 0) / analyses.length;
-    const compositeHealthScore = analyses.reduce((sum, a) => sum + (a.compositeHealthScore || 0), 0) / analyses.length;
+    // Convert string scores to numbers
+    const technicalDebtScore = analyses.reduce((sum, a) => {
+      const score = parseFloat(a.technicalDebtScore) || 0;
+      return sum + score;
+    }, 0) / analyses.length;
+    
+    const cloudReadinessScore = analyses.reduce((sum, a) => {
+      const score = parseFloat(a.cloudReadinessScore) || 0;
+      return sum + score;
+    }, 0) / analyses.length;
+    
+    const upgradeImpactScore = analyses.reduce((sum, a) => {
+      const score = parseFloat(a.upgradeImpactScore) || 0;
+      return sum + score;
+    }, 0) / analyses.length;
+    
+    const compositeHealthScore = analyses.reduce((sum, a) => {
+      const score = parseFloat(a.compositeHealthScore) || 0;
+      return sum + score;
+    }, 0) / analyses.length;
 
     return {
       technicalDebtScore: Math.round(technicalDebtScore),
@@ -138,19 +161,30 @@ class AnalyticsService {
   }
 
   /**
+   * Extract clean core level from recommendation string
+   * Handles formats like "Use Standard Template - Level A" or "Level A"
+   * @private
+   */
+  _extractLevel(recommendation) {
+    if (!recommendation) return 'Unknown';
+    const match = recommendation.match(/Level\s+([ABCD])\b/i);
+    return match ? `Level ${match[1].toUpperCase()}` : 'Unknown';
+  }
+
+  /**
    * Prepare level distribution data for donut chart
    * @private
    */
   _prepareLevelDistribution(analyses) {
     const levelCounts = {};
-    
+
     analyses.forEach(analysis => {
-      const level = analysis.recommendedLevel || 'Unknown';
+      const level = this._extractLevel(analysis.finalRecommendation) || 'Unknown';
       levelCounts[level] = (levelCounts[level] || 0) + 1;
     });
 
     const total = analyses.length;
-    
+
     return Object.keys(levelCounts).map(level => ({
       level,
       count: levelCounts[level],
@@ -159,11 +193,11 @@ class AnalyticsService {
   }
 
   /**
-   * Prepare RICEFW type distribution data for bar chart
+   * Prepare RICEFW type distribution data with level breakdown for stacked bar chart
+   * Shows total count per object type and breaks down by Clean Core Level (A, B, C, D)
    * @private
    */
   _prepareRicefwTypeDistribution(analyses) {
-    const typeCounts = {};
     const typeNames = {
       'Reports': 'Reports',
       'Interfaces': 'Interfaces',
@@ -172,19 +206,33 @@ class AnalyticsService {
       'Forms': 'Forms',
       'Workflows': 'Workflows'
     };
-    
+
+    // Group analyses by object type and then by level
+    const typeData = {};
+
     analyses.forEach(analysis => {
-      const objectType = analysis.objectType_code || 'Unknown';
-      typeCounts[objectType] = (typeCounts[objectType] || 0) + 1;
+      const objectType = analysis.objectType || 'Unknown';
+      const displayName = typeNames[objectType] || objectType;
+      const level = this._extractLevel(analysis.finalRecommendation) || 'Unknown';
+
+      if (!typeData[displayName]) {
+        typeData[displayName] = {
+          objectType: displayName,
+          total: 0,
+          'Level A': 0,
+          'Level B': 0,
+          'Level C': 0,
+          'Level D': 0,
+          'Unknown': 0
+        };
+      }
+
+      typeData[displayName].total += 1;
+      typeData[displayName][level] = (typeData[displayName][level] || 0) + 1;
     });
 
-    const total = analyses.length;
-    
-    return Object.keys(typeCounts).map(type => ({
-      objectType: typeNames[type] || type,
-      count: typeCounts[type],
-      percentage: Math.round((typeCounts[type] / total) * 100)
-    }));
+    // Convert to array format for VizFrame
+    return Object.values(typeData);
   }
 
   /**
@@ -199,19 +247,19 @@ class AnalyticsService {
       const analyses = await SELECT.from('sd.CleanCoreAnalysis')
         .where({ tenant: cds.context.tenant || 'default' })
         .orderBy('createdAt');
-      
+
       if (!analyses || analyses.length === 0) {
         return [];
       }
-      
+
       // Group by year-month in JavaScript for portability
       const monthlyData = {};
       analyses.forEach(analysis => {
         if (!analysis.createdAt) return;
-        
+
         const date = new Date(analysis.createdAt);
         const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
+
         if (!monthlyData[month]) {
           monthlyData[month] = {
             technicalDebtSum: 0,
@@ -220,13 +268,13 @@ class AnalyticsService {
             count: 0
           };
         }
-        
-        monthlyData[month].technicalDebtSum += analysis.technicalDebtScore || 0;
-        monthlyData[month].cloudReadinessSum += analysis.cloudReadinessScore || 0;
-        monthlyData[month].upgradeImpactSum += analysis.upgradeImpactScore || 0;
+
+        monthlyData[month].technicalDebtSum += parseFloat(analysis.technicalDebtScore) || 0;
+        monthlyData[month].cloudReadinessSum += parseFloat(analysis.cloudReadinessScore) || 0;
+        monthlyData[month].upgradeImpactSum += parseFloat(analysis.upgradeImpactScore) || 0;
         monthlyData[month].count++;
       });
-      
+
       // Convert to array and calculate averages
       return Object.keys(monthlyData).sort().map(month => ({
         month,
@@ -250,9 +298,9 @@ class AnalyticsService {
     return analyses.map(analysis => ({
       id: analysis.ID,
       ricefwId: analysis.ricefwId,
-      level: analysis.recommendedLevel || 'Unknown',
-      x: analysis.technicalDebtScore || 0,
-      y: analysis.cloudReadinessScore || 0,
+      level: this._extractLevel(analysis.finalRecommendation) || 'Unknown',
+      x: parseFloat(analysis.technicalDebtScore) || 0,
+      y: parseFloat(analysis.cloudReadinessScore) || 0,
       size: 1
     }));
   }
@@ -261,14 +309,18 @@ class AnalyticsService {
    * Prepare top objects data (most complex)
    * @private
    */
+    /**
+   * Prepare top objects data for table display
+   * @private
+   */
   _prepareTopObjectsData(analyses) {
     // Calculate complexity score and sort
     const analyzedObjects = analyses.map(obj => ({
       id: obj.ID,
       ricefwId: obj.ricefwId,
-      objectType: obj.objectType_code || 'Unknown',
-      complexityScore: Math.round(((obj.technicalDebtScore || 0) + (obj.upgradeImpactScore || 0)) / 2),
-      level: obj.recommendedLevel || 'Unknown'
+      objectType: obj.objectType || 'Unknown',
+      complexityScore: Math.round(((parseFloat(obj.technicalDebtScore) || 0) + (parseFloat(obj.upgradeImpactScore) || 0)) / 2),
+      level: this._extractLevel(obj.finalRecommendation) || 'Unknown'
     }));
 
     // Sort by complexity score and return top 10
@@ -276,6 +328,119 @@ class AnalyticsService {
       .sort((a, b) => b.complexityScore - a.complexityScore)
       .slice(0, 10);
   }
+
+  /**
+   * Prepare project comparison data
+   * Compares KPI metrics across different projects
+   * @private
+   */
+  async _prepareProjectComparison(analyses) {
+    try {
+      // Group analyses by project
+      const projectMap = {};
+
+      analyses.forEach(analysis => {
+        const projectId = analysis.projectConfig_ID;
+        if (!projectMap[projectId]) {
+          projectMap[projectId] = [];
+        }
+        projectMap[projectId].push(analysis);
+      });
+
+      // Fetch project names
+      const projectIds = Object.keys(projectMap);
+      const projects = await SELECT.from('sd.ProjectConfiguration').where({ ID: { in: projectIds } });
+      const projectNames = {};
+      projects.forEach(p => {
+        projectNames[p.ID] = p.projectName;
+      });
+
+      // Calculate KPIs per project
+      return Object.keys(projectMap).map(projectId => {
+        const projectAnalyses = projectMap[projectId];
+        const avgTechDebt = projectAnalyses.reduce((sum, a) => sum + (parseFloat(a.technicalDebtScore) || 0), 0) / projectAnalyses.length;
+        const avgCloudReadiness = projectAnalyses.reduce((sum, a) => sum + (parseFloat(a.cloudReadinessScore) || 0), 0) / projectAnalyses.length;
+        const avgUpgradeImpact = projectAnalyses.reduce((sum, a) => sum + (parseFloat(a.upgradeImpactScore) || 0), 0) / projectAnalyses.length;
+
+        return {
+          projectId,
+          projectName: projectNames[projectId] || 'Unknown Project',
+          analysisCount: projectAnalyses.length,
+          technicalDebt: Math.round(avgTechDebt),
+          cloudReadiness: Math.round(avgCloudReadiness),
+          upgradeImpact: Math.round(avgUpgradeImpact)
+        };
+      }).sort((a, b) => b.analysisCount - a.analysisCount).slice(0, 5); // Top 5 projects
+    } catch (error) {
+      LOG.error('Error preparing project comparison:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Prepare year-over-year comparison data
+   * Compares metrics between same month in different years
+   * @private
+   */
+  async _prepareYearOverYearData(analyses) {
+    try {
+      if (!analyses || analyses.length === 0) {
+        return [];
+      }
+
+      // Group by year and month
+      const yearMonthMap = {};
+
+      analyses.forEach(analysis => {
+        if (!analysis.createdAt) return;
+
+        const date = new Date(analysis.createdAt);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const yearMonth = `${month}`;  // Month only (for comparison across years)
+        const yearKey = `${year}`;
+
+        if (!yearMonthMap[yearMonth]) {
+          yearMonthMap[yearMonth] = {};
+        }
+        if (!yearMonthMap[yearMonth][yearKey]) {
+          yearMonthMap[yearMonth][yearKey] = [];
+        }
+
+        yearMonthMap[yearMonth][yearKey].push(analysis);
+      });
+
+      // Build year-over-year comparison
+      const result = [];
+      Object.keys(yearMonthMap).sort().forEach(month => {
+        const monthData = {
+          month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][parseInt(month) - 1]
+        };
+
+        Object.keys(yearMonthMap[month]).sort().forEach(year => {
+          const yearAnalyses = yearMonthMap[month][year];
+          const avgTechDebt = yearAnalyses.reduce((sum, a) => sum + (parseFloat(a.technicalDebtScore) || 0), 0) / yearAnalyses.length;
+          const avgCloudReadiness = yearAnalyses.reduce((sum, a) => sum + (parseFloat(a.cloudReadinessScore) || 0), 0) / yearAnalyses.length;
+
+          monthData[`technicalDebt_${year}`] = Math.round(avgTechDebt);
+          monthData[`cloudReadiness_${year}`] = Math.round(avgCloudReadiness);
+          monthData[`count_${year}`] = yearAnalyses.length;
+        });
+
+        result.push(monthData);
+      });
+
+      return result;
+    } catch (error) {
+      LOG.error('Error preparing year-over-year data:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Return empty analytics data structure
+   * @private
+   */
 
   /**
    * Return empty analytics data structure
@@ -292,6 +457,8 @@ class AnalyticsService {
       trendData: [],
       riskMatrixData: [],
       topObjects: [],
+      projectComparison: [],
+      yearOverYearData: [],
       totalAnalyses: 0
     };
   }

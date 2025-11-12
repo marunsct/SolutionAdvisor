@@ -253,14 +253,14 @@
         },
         {
           "name": "AnalysesList",
-          "pattern": "Analyses/:projectId:/:projectName:",
+          "pattern": "Analyses/:projectId:",
           "target": [
             "AnalysesList"
           ]
         },
         {
           "name": "AnalysisDetails",
-          "pattern": "Analyses({key})",
+          "pattern": "Analyses/:projectId:/details/:key:",
           "target": [
             "AnalysisDetails"
           ]
