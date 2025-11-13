@@ -419,7 +419,8 @@ module.exports = cds.service.impl(async function () {
             return {
                 sessionID: sessionID,
                 analysisID: analysisID,
-                firstQuestion: firstQuestion
+                firstQuestion: firstQuestion,
+                totalSteps: totalSteps  // ✅ Return totalSteps to frontend for progress tracking
             };
         } catch (error) {
             LOG.error('Error starting wizard:', error);
