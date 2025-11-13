@@ -114,6 +114,13 @@ service solutionAdvisorService {
     }]
     entity RealWorldExamples     as projection on my.RealWorldExample;
 
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : 'authenticated-user'
+    }]
+    entity CleanCoreGuidance     as projection on my.CleanCoreGuidance;
+
     // ===============================
     // Logging Entities
     // ===============================
@@ -255,6 +262,57 @@ service solutionAdvisorService {
         challenge : String;
         solution  : String;
         level     : String;
+    };
+
+    /**
+     * Get full guidance content for a RICEFW type (Step 3 of wizard)
+     * Returns comprehensive educational content including decision trees,
+     * level details, examples, and constraints in a single call
+     */
+    function getFullGuidance(ricefwType: String)                                                                                                         returns {
+        guidance : {
+            ricefwType            : String;
+            title                 : String;
+            introduction          : String;
+            apiExplanation        : String;
+            decisionTree          : String;
+            determinationFactors  : String;
+            performanceThresholds : String;
+            deploymentConstraints : String;
+            realWorldScenarios    : String;
+            officialGuidance      : String;
+            strategyMatrix        : String;
+            summaryTable          : String;
+            designGuidance        : String;
+            beginnerFaq           : String;
+        };
+        levels   : array of {
+            level           : String;
+            ricefwType      : String;
+            title           : String;
+            whatItMeans     : String;
+            beginnerAnalogy : String;
+            toolsUsed       : String;
+            exampleReport   : String;
+            whyReasoning    : String;
+            description     : String;
+            technology      : String;
+            upgradeComplexity : String;
+            maintenanceEffort : String;
+            cloudReadiness  : String;
+            technicalRisk   : String;
+        };
+        examples : array of {
+            exampleId       : String;
+            title           : String;
+            scenario        : String;
+            design          : String;
+            whyLevel        : String;
+            outcome         : String;
+            associatedLevel : String;
+            industry        : String;
+            ricefwType      : String;
+        };
     };
 
     /**

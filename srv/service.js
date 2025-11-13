@@ -712,6 +712,54 @@ module.exports = cds.service.impl(async function () {
     });
 
     /**
+     * Get Full Guidance - Returns comprehensive guidance content for Step 3 of wizard
+     * Fetches all educational content for a RICEFW type in one call
+     */
+    this.on('getFullGuidance', async (req) => {
+        const { ricefwType } = req.data;
+
+        try {
+            // Validate ricefwType
+            if (!ricefwType || !['R', 'I', 'C', 'E', 'F', 'W'].includes(ricefwType)) {
+                return req.error(400, 'Invalid ricefwType. Must be one of: R, I, C, E, F, W');
+            }
+
+            // Fetch guidance document
+            const guidance = await SELECT.one.from('sd.CleanCoreGuidance').where({ ricefwType });
+            
+            // Fetch level details
+            const levels = await SELECT.from('sd.CleanCoreLevels')
+                .where({ ricefwType })
+                .orderBy('displayOrder');
+            
+            // Fetch real-world examples
+            const examples = await SELECT.from('sd.RealWorldExample')
+                .where({ ricefwType, isActive: true })
+                .columns([
+                    'exampleId',
+                    'title',
+                    'scenario',
+                    'design',
+                    'whyLevel',
+                    'outcome',
+                    'associatedLevel',
+                    'industry',
+                    'ricefwType'
+                ]);
+
+            // Return structured response
+            return {
+                guidance: guidance || null,
+                levels: levels || [],
+                examples: examples || []
+            };
+        } catch (error) {
+            LOG.error('Error getting full guidance:', error);
+            return req.error(500, req.t('error.getGuidanceFailed', [error.message]) || 'Failed to retrieve guidance content');
+        }
+    });
+
+    /**
      * Calculate Scores
      */
     this.on('calculateScores', async (req) => {
