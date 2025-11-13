@@ -1,0 +1,360 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.Guidance"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.uxap"
+    xmlns:m="sap.m"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%"
+>
+    <ObjectPageLayout
+        id="guidanceObjectPage"
+        enableLazyLoading="false"
+        showTitleInHeaderContent="true"
+        alwaysShowContentHeader="false"
+        upperCaseAnchorBar="false"
+    >
+        <headerTitle>
+            <ObjectPageHeader
+                id="guidanceHeader"
+                objectTitle="{guidance>/guidance/title}"
+                objectSubtitle="Clean Core Educational Content"
+            />
+        </headerTitle>
+        
+        <headerContent>
+            <m:VBox id="headerContentVBox">
+                <m:FormattedText id="introductionText" htmlText="{guidance>/guidance/introduction}" class="sapUiSmallMarginBottom" />
+                <m:FormattedText
+                    id="apiExplanationText"
+                    htmlText="{guidance>/guidance/apiExplanation}"
+                    visible="{= ${guidance>/guidance/apiExplanation} !== null &amp;&amp; ${guidance>/guidance/apiExplanation} !== '' }"
+                />
+            </m:VBox>
+        </headerContent>
+        
+        <sections>
+            <!-- Section 1: Clean Core Levels - Detailed Breakdown -->
+            <ObjectPageSection id="levelsSection" title="Clean Core Levels - Detailed Breakdown">
+                <subSections>
+                    <!-- Level A -->
+                    <ObjectPageSubSection id="levelASubSection" title="🟩 Level A - Cleanest (Gold Standard)">
+                        <blocks>
+                            <m:VBox id="levelAVBox" class="sapUiSmallMargin">
+                                <m:Label id="levelAWhatLabel" text="What it means:" design="Bold" />
+                                <m:FormattedText id="levelAWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="A" />
+                                        <core:CustomData key="field" value="whatItMeans" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelAAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelAAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="A" />
+                                        <core:CustomData key="field" value="beginnerAnalogy" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelAToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelAToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="A" />
+                                        <core:CustomData key="field" value="toolsUsed" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelAExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelAExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="A" />
+                                        <core:CustomData key="field" value="exampleReport" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelAWhyLabel" text="Why it's best:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelAWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="A" />
+                                        <core:CustomData key="field" value="whyReasoning" />
+                                    </m:customData>
+                                </m:FormattedText>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Level B -->
+                    <ObjectPageSubSection id="levelBSubSection" title="🟦 Level B - Classic but Acceptable">
+                        <blocks>
+                            <m:VBox id="levelBVBox" class="sapUiSmallMargin">
+                                <m:Label id="levelBWhatLabel" text="What it means:" design="Bold" />
+                                <m:FormattedText id="levelBWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="B" />
+                                        <core:CustomData key="field" value="whatItMeans" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelBAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelBAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="B" />
+                                        <core:CustomData key="field" value="beginnerAnalogy" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelBToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelBToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="B" />
+                                        <core:CustomData key="field" value="toolsUsed" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelBExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelBExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="B" />
+                                        <core:CustomData key="field" value="exampleReport" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelBWhyLabel" text="Why it's acceptable:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelBWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="B" />
+                                        <core:CustomData key="field" value="whyReasoning" />
+                                    </m:customData>
+                                </m:FormattedText>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Level C -->
+                    <ObjectPageSubSection id="levelCSubSection" title="🟨 Level C - Risky Legacy">
+                        <blocks>
+                            <m:VBox id="levelCVBox" class="sapUiSmallMargin">
+                                <m:Label id="levelCWhatLabel" text="What it means:" design="Bold" />
+                                <m:FormattedText id="levelCWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="C" />
+                                        <core:CustomData key="field" value="whatItMeans" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelCAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelCAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="C" />
+                                        <core:CustomData key="field" value="beginnerAnalogy" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelCToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelCToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="C" />
+                                        <core:CustomData key="field" value="toolsUsed" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelCExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelCExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="C" />
+                                        <core:CustomData key="field" value="exampleReport" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelCWhyLabel" text="Why it's risky:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelCWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="C" />
+                                        <core:CustomData key="field" value="whyReasoning" />
+                                    </m:customData>
+                                </m:FormattedText>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Level D -->
+                    <ObjectPageSubSection id="levelDSubSection" title="🟥 Level D - Do Not Do This (Modifications)">
+                        <blocks>
+                            <m:VBox id="levelDVBox" class="sapUiSmallMargin">
+                                <m:Label id="levelDWhatLabel" text="What it means:" design="Bold" />
+                                <m:FormattedText id="levelDWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="D" />
+                                        <core:CustomData key="field" value="whatItMeans" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelDAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelDAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="D" />
+                                        <core:CustomData key="field" value="beginnerAnalogy" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelDToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelDToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="D" />
+                                        <core:CustomData key="field" value="toolsUsed" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelDExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelDExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="D" />
+                                        <core:CustomData key="field" value="exampleReport" />
+                                    </m:customData>
+                                </m:FormattedText>
+                                
+                                <m:Label id="levelDWhyLabel" text="Why it's bad:" design="Bold" class="sapUiTinyMarginTop" />
+                                <m:FormattedText id="levelDWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
+                                    <m:customData>
+                                        <core:CustomData key="level" value="D" />
+                                        <core:CustomData key="field" value="whyReasoning" />
+                                    </m:customData>
+                                </m:FormattedText>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Summary Table for all levels -->
+                    <ObjectPageSubSection id="levelsSummarySubSection" title="Summary Table">
+                        <blocks>
+                            <m:Table
+                                id="levelsSummaryTable"
+                                items="{guidance>/levels}"
+                                width="auto"
+                                growing="false"
+                            >
+                                <m:columns>
+                                    <m:Column id="levelColumn" width="5em"><m:Text id="levelColumnHeader" text="Level" /></m:Column>
+                                    <m:Column id="descriptionColumn"><m:Text id="descriptionColumnHeader" text="Description" /></m:Column>
+                                    <m:Column id="technologyColumn"><m:Text id="technologyColumnHeader" text="Technology" /></m:Column>
+                                    <m:Column id="upgradeComplexityColumn"><m:Text id="upgradeComplexityColumnHeader" text="Upgrade Complexity" /></m:Column>
+                                    <m:Column id="maintenanceEffortColumn"><m:Text id="maintenanceEffortColumnHeader" text="Maintenance Effort" /></m:Column>
+                                    <m:Column id="cloudReadinessColumn"><m:Text id="cloudReadinessColumnHeader" text="Cloud Readiness" /></m:Column>
+                                    <m:Column id="technicalRiskColumn"><m:Text id="technicalRiskColumnHeader" text="Technical Risk" /></m:Column>
+                                </m:columns>
+                                <m:items>
+                                    <m:ColumnListItem id="levelsSummaryTableItem">
+                                        <m:cells>
+                                            <m:Text id="levelCell" text="{guidance>level}" />
+                                            <m:Text id="descriptionCell" text="{guidance>description}" />
+                                            <m:Text id="technologyCell" text="{guidance>technology}" />
+                                            <m:Text id="upgradeComplexityCell" text="{guidance>upgradeComplexity}" />
+                                            <m:Text id="maintenanceEffortCell" text="{guidance>maintenanceEffort}" />
+                                            <m:Text id="cloudReadinessCell" text="{guidance>cloudReadiness}" />
+                                            <m:Text id="technicalRiskCell" text="{guidance>technicalRisk}" />
+                                        </m:cells>
+                                    </m:ColumnListItem>
+                                </m:items>
+                            </m:Table>
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+
+            <!-- Section 2: Decision Tree -->
+            <ObjectPageSection
+                id="decisionTreeSection"
+                title="Decision Tree"
+                visible="{= ${guidance>/guidance/decisionTree} &amp;&amp; ${guidance>/guidance/decisionTree}.length > 0}"
+            >
+                <subSections>
+                    <ObjectPageSubSection id="decisionTreeSubSection">
+                        <blocks>
+                            <m:Table
+                                id="decisionTreeTable"
+                                items="{guidance>/decisionTreeParsed}"
+                                width="auto"
+                                growing="false"
+                            >
+                                <m:columns>
+                                    <m:Column id="qidColumn" width="5%"><m:Text id="qidColumnHeader" text="Q.ID" /></m:Column>
+                                    <m:Column id="questionColumn" width="25%"><m:Text id="questionColumnHeader" text="Question" /></m:Column>
+                                    <m:Column id="answersColumn" width="10%"><m:Text id="answersColumnHeader" text="Answers" /></m:Column>
+                                    <m:Column id="navigationColumn" width="25%"><m:Text id="navigationColumnHeader" text="Navigation/Recommendation" /></m:Column>
+                                    <m:Column id="hintColumn" width="15%"><m:Text id="hintColumnHeader" text="Hint" /></m:Column>
+                                    <m:Column id="detailedHintColumn" width="20%"><m:Text id="detailedHintColumnHeader" text="Detailed Hint" /></m:Column>
+                                </m:columns>
+                                <m:items>
+                                    <m:ColumnListItem id="decisionTreeTableItem">
+                                        <m:cells>
+                                            <m:Text id="qidCell" text="{guidance>qid}" />
+                                            <m:Text id="questionCell" text="{guidance>question}" />
+                                            <m:Text id="answersCell" text="{guidance>answers}" />
+                                            <m:Text id="navigationCell" text="{guidance>navigation}" />
+                                            <m:Text id="hintCell" text="{guidance>hint}" />
+                                            <m:Text id="detailedHintCell" text="{guidance>detailedHint}" />
+                                        </m:cells>
+                                    </m:ColumnListItem>
+                                </m:items>
+                            </m:Table>
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+
+            <!-- Section 3: Real-World Examples -->
+            <ObjectPageSection
+                id="realWorldExamplesSection"
+                title="Real-World Examples"
+                visible="{= ${guidance>/examples} &amp;&amp; ${guidance>/examples}.length > 0}"
+            >
+                <subSections>
+                    <ObjectPageSubSection id="realWorldExamplesSubSection">
+                        <blocks>
+                            <m:List id="examplesList" items="{guidance>/examples}">
+                                <m:StandardListItem
+                                    id="exampleListItem"
+                                    title="{guidance>title}"
+                                    description="{guidance>scenario}"
+                                    info="Level {guidance>associatedLevel}"
+                                    type="Active"
+                                    press="onExamplePress"
+                                />
+                            </m:List>
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+            
+            <!-- Section 4: Additional Guidance (optional sections) -->
+            <ObjectPageSection
+                id="additionalGuidanceSection"
+                title="Additional Guidance"
+                visible="{= (${guidance>/guidance/designGuidance} &amp;&amp; ${guidance>/guidance/designGuidance} !== '') || (${guidance>/guidance/beginnerFaq} &amp;&amp; ${guidance>/guidance/beginnerFaq} !== '')}"
+            >
+                <subSections>
+                    <ObjectPageSubSection
+                        id="designGuidanceSubSection"
+                        title="Design Guidance"
+                        visible="{= ${guidance>/guidance/designGuidance} &amp;&amp; ${guidance>/guidance/designGuidance} !== ''}"
+                    >
+                        <blocks>
+                            <m:FormattedText id="designGuidanceText" htmlText="{guidance>/guidance/designGuidance}" />
+                        </blocks>
+                    </ObjectPageSubSection>
+                    <ObjectPageSubSection
+                        id="beginnerFaqSubSection"
+                        title="Beginner FAQ"
+                        visible="{= ${guidance>/guidance/beginnerFaq} &amp;&amp; ${guidance>/guidance/beginnerFaq} !== ''}"
+                    >
+                        <blocks>
+                            <m:FormattedText id="beginnerFaqText" htmlText="{guidance>/guidance/beginnerFaq}" />
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+        </sections>
+    </ObjectPageLayout>
+</mvc:View>

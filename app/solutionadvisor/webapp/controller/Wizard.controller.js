@@ -747,6 +747,52 @@ sap.ui.define([
             this._updateNextButtonState();
         },
 
+        /**
+         * Handler for guidance step activation
+         * Loads the full guidance content for the selected RICEFW type
+         * @public
+         */
+        onGuidanceStepActivate() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            
+            // Extract RICEFW type (first character) from objectType
+            // objectType could be "Reports", "Interfaces", etc.
+            // We need to map it to R, I, C, E, F, W
+            let sRicefwType = "";
+            if (sObjectType) {
+                // Try to get from ricefwId first
+                const sRicefwId = oWizardModel.getProperty("/ricefwId");
+                if (sRicefwId && sRicefwId.length > 0) {
+                    sRicefwType = sRicefwId.charAt(0);
+                } else {
+                    // Fallback: map object type name to RICEFW code
+                    const typeMapping = {
+                        "Reports": "R",
+                        "Interfaces": "I",
+                        "Conversions": "C",
+                        "Enhancements": "E",
+                        "Forms": "F",
+                        "Workflows": "W"
+                    };
+                    sRicefwType = typeMapping[sObjectType] || "";
+                }
+            }
+            
+            if (sRicefwType && ['R', 'I', 'C', 'E', 'F', 'W'].includes(sRicefwType)) {
+                // Get reference to the Guidance view and controller
+                const oGuidanceView = this.byId("guidanceView");
+                if (oGuidanceView) {
+                    const oGuidanceController = oGuidanceView.getController();
+                    if (oGuidanceController && typeof oGuidanceController.loadGuidance === 'function') {
+                        oGuidanceController.loadGuidance(sRicefwType);
+                    }
+                }
+            } else {
+                MessageToast.show("Unable to determine RICEFW type for guidance");
+            }
+        },
+
         onProjectSelect(oEvent) {
             const oSelectedItem = oEvent.getParameter("selectedItem");
             if (oSelectedItem) {
