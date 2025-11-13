@@ -793,6 +793,79 @@ sap.ui.define([
             }
         },
 
+        /**
+         * Handler for "Learn Clean Core Levels" button click
+         * Opens the guidance content as a modal dialog
+         * @public
+         */
+        onLearnCleanCoreLevels() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            const sRicefwId = oWizardModel.getProperty("/ricefwId");
+            
+            // Extract RICEFW type
+            let sRicefwType = "";
+            if (sRicefwId && sRicefwId.length > 0) {
+                sRicefwType = sRicefwId.charAt(0);
+            } else {
+                const typeMapping = {
+                    "Reports": "R",
+                    "Interfaces": "I",
+                    "Conversions": "C",
+                    "Enhancements": "E",
+                    "Forms": "F",
+                    "Workflows": "W"
+                };
+                sRicefwType = typeMapping[sObjectType] || "";
+            }
+
+            if (!sRicefwType) {
+                MessageToast.show("Unable to determine object type for guidance");
+                return;
+            }
+
+            // Load the dialog fragment
+            sap.ui.core.Fragment.load({
+                id: this.getView().getId(),
+                name: "sd.solutionadvisor.view.fragments.GuidanceDialog",
+                controller: this
+            }).then((oDialog) => {
+                // Add dialog to view
+                this.getView().addDependent(oDialog);
+                
+                // Load guidance content in the dialog
+                const oGuidanceView = sap.ui.core.Fragment.byId(this.getView().getId(), "guidanceViewDialog");
+                if (oGuidanceView) {
+                    const oGuidanceController = oGuidanceView.getController();
+                    if (oGuidanceController && typeof oGuidanceController.loadGuidance === 'function') {
+                        oGuidanceController.loadGuidance(sRicefwType);
+                    }
+                }
+                
+                // Open dialog
+                oDialog.open();
+            }).catch((oError) => {
+                Log.error("Failed to load guidance dialog:", oError);
+                MessageToast.show("Unable to load guidance content");
+            });
+        },
+
+        /**
+         * Handler for closing the guidance dialog
+         * Destroys the dialog to clean up resources
+         * @public
+         */
+        onCloseGuidanceDialog() {
+            const oDialog = sap.ui.core.Fragment.byId(this.getView().getId(), "guidanceDialog");
+            if (oDialog) {
+                oDialog.close();
+                // Destroy dialog after closing to free up resources
+                setTimeout(() => {
+                    oDialog.destroy();
+                }, 300);
+            }
+        },
+
         onProjectSelect(oEvent) {
             const oSelectedItem = oEvent.getParameter("selectedItem");
             if (oSelectedItem) {

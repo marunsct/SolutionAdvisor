@@ -1,0 +1,60 @@
+<core:FragmentDefinition
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:core="sap.ui.core"
+>
+    <Dialog
+        id="guidanceDialog"
+        title="Clean Core Levels for {wizardModel>/objectType}"
+        type="Standard"
+        state="Standard"
+        resizable="true"
+        draggable="true"
+        contentWidth="90%"
+        contentHeight="90%"
+        class="sapUiResponsiveMargin"
+    >
+        <!-- Dialog Header with Icon -->
+        <customHeader>
+            <Bar
+                id="guidanceDialogBar"
+                class="sapUiSmallMargin"
+            >
+                <Title
+                    id="guidanceDialogTitle"
+                    text="Clean Core Levels for {wizardModel>/objectType}"
+                    level="H2"
+                />
+                <ToolbarSpacer/>
+                <Button
+                    id="closeGuidanceDialogButton"
+                    icon="sap-icon://decline"
+                    press="onCloseGuidanceDialog"
+                    tooltip="Close"
+                    type="Transparent"
+                />
+            </Bar>
+        </customHeader>
+
+        <!-- Dialog Content with Guidance View -->
+        <content>
+            <mvc:View
+                id="guidanceViewDialog"
+                viewName="sd.solutionadvisor.view.Guidance"
+                type="XML"
+                height="100%"
+            />
+        </content>
+
+        <!-- Dialog Footer Buttons -->
+        <buttons>
+            <Button
+                id="guidanceDialogCloseButton"
+                text="Close"
+                press="onCloseGuidanceDialog"
+                type="Default"
+            />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

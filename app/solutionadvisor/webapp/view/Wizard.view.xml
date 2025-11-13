@@ -215,12 +215,41 @@
                     validated="true"
                     activate="onGuidanceStepActivate"
                 >
-                    <core:mvc.View
-                        id="guidanceView"
-                        viewName="sd.solutionadvisor.view.Guidance"
-                        type="XML"
-                        height="100%"
-                    />
+                    <VBox
+                        id="guidanceStepVBox"
+                        class="sapUiSmallMargin"
+                        alignItems="Center"
+                        justifyContent="Center"
+                        height="300px"
+                    >
+                        <VBox
+                            id="guidanceButtonContainer"
+                            alignItems="Center"
+                            class="sapUiMediumMarginTop"
+                        >
+                            <Title
+                                id="guidanceStepTitle"
+                                text="Learn Clean Core Levels"
+                                level="H2"
+                                class="sapUiMediumMarginBottom"
+                            />
+                            <Text
+                                id="guidanceStepDescription"
+                                text="Click the button below to explore Clean Core levels (A, B, C, D) for your selected object type and understand the design approaches, tools, and best practices."
+                                class="sapUiMediumMarginBottom"
+                                textAlign="Center"
+                            />
+                            <Button
+                                id="learnCleanCoreLevelsButton"
+                                text="Learn Clean Core Levels for {wizardModel>/objectType}"
+                                press="onLearnCleanCoreLevels"
+                                type="Emphasized"
+                                icon="sap-icon://sys-find-next"
+                                class="sapUiMediumMarginTop"
+                                width="300px"
+                            />
+                        </VBox>
+                    </VBox>
                 </WizardStep>
 
                 <!-- Step 4: Ready to Start -->
