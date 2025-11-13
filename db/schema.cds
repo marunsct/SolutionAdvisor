@@ -223,20 +223,56 @@ entity QuestionFlow : cuid, managed {
 }
 
 /**
- * CleanCoreLevels - Defines the four clean core levels
+ * CleanCoreGuidance - Comprehensive guidance content for each RICEFW type
+ * Stores rich educational content from markdown files for display in Step 3
+ */
+@cds.autoexpose
+entity CleanCoreGuidance : cuid, managed {
+    key ricefwType          : String(1); // 'R', 'I', 'C', 'E', 'F', 'W'
+        title               : String(255); // e.g., "Clean Core Levels A–D for SAP Report Design"
+        introduction        : LargeString; // Introduction paragraph with "Why Clean Core?" section
+        apiExplanation      : LargeString; // "What is an API in SAP?" section (for R, I types)
+        // Storing structured content as stringified JSON is flexible
+        decisionTree        : LargeString; // JSON array for the decision tree table
+        determinationFactors : LargeString; // JSON array for the factors table
+        performanceThresholds: LargeString; // JSON array for the thresholds table
+        deploymentConstraints: LargeString; // Simple text or markdown (bullet list)
+        realWorldScenarios  : LargeString; // JSON array for scenarios section
+        officialGuidance    : LargeString; // JSON array for the guidance table
+        strategyMatrix      : LargeString; // JSON array for the strategy matrix table
+        // Additional content sections
+        summaryTable        : LargeString; // Summary table at the end (markdown or JSON)
+        designGuidance      : LargeString; // "Design Guidance" section (numbered list)
+        beginnerFaq         : LargeString; // "Beginner FAQ" section (Q&A format)
+}
+
+/**
+ * CleanCoreLevels - Defines the four clean core levels with detailed educational content
  */
 entity CleanCoreLevels : cuid, managed {
-    level                   : String(10) not null; // Level A, Level B, Level C, Level D
-    levelName               : String(50) not null; // Fully Clean Core, Enhanced Clean Core, etc.
-    description             : String(500);
-    characteristics         : String(1000); // JSON array
+    key level               : String(1); // 'A', 'B', 'C', 'D'
+    key ricefwType          : String(1); // 'R', 'I', 'C', 'E', 'F', 'W'
+        title               : String(100); // e.g., "Level A – "Cleanest" (Gold Standard)"
+        levelName           : String(50); // Fully Clean Core, Enhanced Clean Core, etc.
+        
+        // Detailed level information from markdown files
+        whatItMeans         : LargeString; // "What it means" section
+        beginnerAnalogy     : LargeString; // "Beginner Analogy" section
+        toolsUsed           : LargeString; // "Tools You Use" section (bullet list)
+        exampleReport       : LargeString; // "Example Report" or "Example Interface" section
+        whyReasoning        : LargeString; // "Why it's best/acceptable/risky/bad" section
+        
+        // Summary table columns
+        description         : LargeString;
+        technology          : LargeString;
+        characteristics     : String(1000); // JSON array
 
     // Classification Criteria
-    upgradeComplexity       : String(20); // None, Low, Medium, High, Very High
-    maintenanceEffort       : String(20); // Low, Medium, High, Very High
+    upgradeComplexity       : String(50); // None, Low, Medium, High, Very High
+    maintenanceEffort       : String(50); // Low, Medium, High, Very High
     businessFlexibility     : String(20); // High, Medium, Low
-    technicalRisk           : String(20); // Low, Medium, High, Critical
-    cloudReadiness          : String(30); // Cloud Ready, Partially, Limited, Not Ready
+    technicalRisk           : String(50); // Low, Medium, High, Critical
+    cloudReadiness          : String(50); // Cloud Ready, Partially, Limited, Not Ready
 
     // Scoring Weights (v2.0)
     technicalDebtMultiplier : Decimal(3, 2); // 0.00-5.00
@@ -246,6 +282,9 @@ entity CleanCoreLevels : cuid, managed {
     // Display
     isActive                : Boolean default true;
     displayOrder            : Integer;
+    
+    // Link to the parent guidance document
+    guidance                : Association to CleanCoreGuidance on guidance.ricefwType = ricefwType;
 }
 
 /**
@@ -296,32 +335,37 @@ entity PerformanceThreshold : cuid, managed {
 /**
  * RealWorldExample - Real-world implementation examples
  */
+@cds.autoexpose
 entity RealWorldExample : cuid, managed {
-    // Classification
-    objectType              : String(50) not null;
-    cleanCoreLevel          : String(10);
-    scenario                : String(100); // E-commerce Integration, etc.
-    industry                : String(50); // Retail, Manufacturing, etc.
-
-    // Example Details
-    title                   : String(200);
-    challengeDescription    : String(1000);
-    solutionDescription     : String(2000);
-    technologiesUsed        : String(500); // JSON array
-    implementation          : String(2000); // Implementation details
-
-    // Metrics & Results
-    volumeHandled           : String(100);
-    performanceAchieved     : String(200);
-    implementationTime      : String(50);
-    lessonsLearned          : String(1000);
-
-    // Context Matching
-    keywords                : String(500); // Space-separated for matching
-
-    isActive                : Boolean default true;
-    approvedBy              : String(200);
-    approvedDate            : Date;
+    key exampleId           : String(10);
+        title               : String(255);
+        scenario            : LargeString; // The scenario description
+        design              : LargeString; // The design/solution approach
+        whyLevel            : LargeString; // Why it's classified at this level
+        problemStatement    : LargeString; // Additional problem statement (from scenarios)
+        solutionDescription : LargeString; // Additional solution details
+        outcome             : LargeString; // Outcome/benefit of the solution
+        
+        // Classification
+        associatedLevel     : String(1); // A, B, C, D
+        industry            : String(100);
+        businessBenefit     : LargeString;
+        ricefwType          : String(1); // R, I, C, E, F, W
+        objectType          : String(50);
+        
+        // Legacy fields for backward compatibility
+        challengeDescription : String(1000);
+        technologiesUsed    : String(500); // JSON array
+        implementation      : String(2000); // Implementation details
+        volumeHandled       : String(100);
+        performanceAchieved : String(200);
+        implementationTime  : String(50);
+        lessonsLearned      : String(1000);
+        keywords            : String(500); // Space-separated for matching
+        
+        isActive            : Boolean default true;
+        approvedBy          : String(200);
+        approvedDate        : Date;
 }
 
 // ===============================

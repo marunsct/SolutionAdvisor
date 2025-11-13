@@ -208,10 +208,25 @@
                     </VBox>
                 </WizardStep>
 
-                <!-- Step 3: Ready to Start -->
+                <!-- Step 3: Clean Core Guidance -->
+                <WizardStep
+                    id="guidanceStep"
+                    title="Step 3: Clean Core Guidance"
+                    validated="true"
+                    activate="onGuidanceStepActivate"
+                >
+                    <core:mvc.View
+                        id="guidanceView"
+                        viewName="sd.solutionadvisor.view.Guidance"
+                        type="XML"
+                        height="100%"
+                    />
+                </WizardStep>
+
+                <!-- Step 4: Ready to Start -->
                 <WizardStep
                     id="readyStep"
-                    title="Ready to Start"
+                    title="Step 4: Ready to Start"
                     validated="true"
                 >
                     <VBox
@@ -298,25 +313,10 @@
                                 />
                             </VBox>
                         </VBox>
-
-                        <!-- Add Constraints and Examples Panels -->
-                        <VBox id="constraintsPanelContainer" class="sapUiMediumMarginTop">
-                            <core:Fragment
-                                fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel"
-                                type="XML"
-                            />
-                        </VBox>
-
-                        <VBox id="examplesPanelContainer" class="sapUiMediumMarginTop">
-                            <core:Fragment
-                                fragmentName="sd.solutionadvisor.view.fragments.ExamplesPanel"
-                                type="XML"
-                            />
-                        </VBox>
                     </VBox>
                 </WizardStep>
 
-                <!-- Step 4: Dynamic Questions -->
+                <!-- Step 5: Dynamic Questions -->
                 <WizardStep
                     id="questionStep"
                     title="Analysis Questions"
