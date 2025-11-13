@@ -1,18 +1,17 @@
 {
-    "destinations": [
-        {
-            "name": "srv-api",
-            "url": "http://localhost:4004/",
-            "forwardAuthToken": true
-        },
-        {
-            "name": "ui5",
-            "url": "https://ui5.sap.com",
-            "forwardAuthToken": false
-        }
-    ],
-    "VCAP_SERVICES": {
-
+	"destinations": [
+		{
+			"name": "srv-api",
+			"url": "http://localhost:4004/",
+			"forwardAuthToken": true
+		},
+		{
+			"name": "ui5",
+			"url": "https://ui5.sap.com",
+			"forwardAuthToken": false
+		}
+	],
+	"VCAP_SERVICES": {
 		"xsuaa": [
 			{
 				"label": "xsuaa",
@@ -24,7 +23,7 @@
 				],
 				"instance_guid": "f38717d0-cb6b-4fcc-8fa0-2de0787e1dae",
 				"instance_name": "SolutionAdvisor-auth",
-				"binding_guid": "c41c2fe5-d183-411d-90a1-8bfd46310b63",
+				"binding_guid": "1efbae1b-4694-42b1-a21c-c846f4e15315",
 				"binding_name": null,
 				"credentials": {
 					"tenantmode": "dedicated",
@@ -33,7 +32,7 @@
 					"credential-type": "binding-secret",
 					"clientid": "sb-SolutionAdvisor-14ace10ftrial-dev!t536596",
 					"xsappname": "SolutionAdvisor-14ace10ftrial-dev!t536596",
-					"clientsecret": "c41c2fe5-d183-411d-90a1-8bfd46310b63$ujP6F48TP9ODnprC52Y_uHZ5mjK5s5hXs25J8RenzBc=",
+					"clientsecret": "1efbae1b-4694-42b1-a21c-c846f4e15315$6ffWGKZdvZK38paUlt1Gw_SHO0LBooXzZvVLpJnmHFk=",
 					"serviceInstanceId": "f38717d0-cb6b-4fcc-8fa0-2de0787e1dae",
 					"url": "https://14ace10ftrial.authentication.us10.hana.ondemand.com",
 					"uaadomain": "authentication.us10.hana.ondemand.com",

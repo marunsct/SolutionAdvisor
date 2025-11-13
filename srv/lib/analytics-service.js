@@ -58,7 +58,8 @@ class AnalyticsService {
   async getAnalyticsData(filters = {}) {
     try {
       // Build where clause with tenant filtering and optional filters
-      const whereClause = { tenant: cds.context.tenant || 'default' };
+      const whereClause = { tenant:'default' };
+      //{ tenant: cds.context.tenant || 'default' };
 
       // Add date range filter
       if (filters.dateFrom) {
