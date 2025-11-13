@@ -333,6 +333,8 @@ module.exports = cds.service.impl(async function () {
             if (!ricefwPattern.test(ricefwId)) {
                 return req.error(400, req.t('error.invalidRicefwId'));
             }
+            const totalSteps = await decisionEngine.getTotalSteps(objectType);
+            LOG.info(`Starting wizard for RICEFW ID ${ricefwId} with total steps: ${totalSteps}`);
 
             // ✅ FIX #1: Check if draft session already exists for this RICEFW ID
             // This prevents creating duplicate analyses when resuming
@@ -364,6 +366,7 @@ module.exports = cds.service.impl(async function () {
                         sessionID: existingSession.ID,
                         analysisID: existingDraft.ID,
                         firstQuestion: firstQuestion,
+                        totalSteps: totalSteps,  // ✅ Return totalSteps to frontend for progress tracking
                         isResumed: true  // Flag to indicate this is a resume, not a new start
                     };
                 }
@@ -391,7 +394,7 @@ module.exports = cds.service.impl(async function () {
 
             // Create wizard session
             const sessionID = cds.utils.uuid();
-            const totalSteps = await decisionEngine.getTotalSteps(objectType);
+          
 
             const session = {
                 ID: sessionID,

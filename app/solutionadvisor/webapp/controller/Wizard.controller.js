@@ -1523,6 +1523,7 @@ sap.ui.define([
 
                 // Initialize step counters
                 oWizardModel.setProperty("/currentStep", 1);
+                oWizardModel.setProperty("/totalSteps", oResult.totalSteps);
 
                 // Update progress with actual question number and total steps
                 this._updateProgress(oResult.firstQuestion.questionId, oResult.totalSteps);
