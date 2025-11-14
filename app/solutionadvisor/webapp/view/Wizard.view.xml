@@ -241,7 +241,7 @@
                             />
                             <Button
                                 id="learnCleanCoreLevelsButton"
-                                text="Learn Clean Core Levels for {wizardModel>/objectType}"
+                                text=" Learn Clean Core Levels for {wizardModel>/objectType}"
                                 press="onLearnCleanCoreLevels"
                                 type="Emphasized"
                                 icon="sap-icon://sys-find-next"

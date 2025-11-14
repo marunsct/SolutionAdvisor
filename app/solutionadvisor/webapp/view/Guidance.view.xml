@@ -42,43 +42,43 @@
                     <ObjectPageSubSection id="levelASubSection" title="{= ${guidance>/levelA/title} || '🟩 Level A - Cleanest (Gold Standard)' }">
                         <blocks>
                             <m:VBox id="levelAVBox" class="sapUiNoMargin">
-                                <m:VBox id="levelAContentBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelAContentBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelAWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelAWhatText" htmlText="{guidance>/levelA/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelAWhatText" htmlText="{guidance>/levelA/whatItMeans}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
-                                <m:VBox id="levelAAnalogyBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelAAnalogyBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelAAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelAAnalogyText" htmlText="{guidance>/levelA/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelAAnalogyText" htmlText="{guidance>/levelA/beginnerAnalogy}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
-                                <m:VBox id="levelAToolsBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelAToolsBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelAToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelAToolsText" htmlText="{guidance>/levelA/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelAToolsText" htmlText="{guidance>/levelA/toolsUsed}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
-                                <m:VBox id="levelAExampleBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelAExampleBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelAExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelAExampleText" htmlText="{guidance>/levelA/exampleReport}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelAExampleText" htmlText="{guidance>/levelA/exampleReport}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
-                                <m:VBox id="levelAWhyBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelAWhyBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelAWhyLabel" text="Why it's best:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelAWhyText" htmlText="{guidance>/levelA/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelAWhyText" htmlText="{guidance>/levelA/whyReasoning}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
-                                <m:VBox id="levelADescBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelADescBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelADescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelADescText" htmlText="{guidance>/levelA/description}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelADescText" htmlText="{guidance>/levelA/description}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
-                                <m:VBox id="levelATechBox" class="sapUiSmallMarginBottom">
+                                <m:VBox id="levelATechBox" class="sapUiTinyMarginBottom">
                                     <m:Label id="levelATechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
-                                    <m:FormattedText id="levelATechText" htmlText="{guidance>/levelA/technology}" class="sapUiSmallMarginBottom" />
+                                    <m:FormattedText id="levelATechText" htmlText="{guidance>/levelA/technology}" class="sapUiTinyMarginBottom" />
                                 </m:VBox>
                                 
                                 <!-- Metrics -->
-                                <m:VBox id="levelAMetricsContainer" class="sapUiMediumMarginTop">
+                                <m:VBox id="levelAMetricsContainer" class="sapUiTinyMarginTop">
                                     <m:Label id="levelAMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
                                     <m:HBox id="levelAMetricsBox" justifyContent="SpaceBetween" width="100%">
                                         <m:VBox id="levelAUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
