@@ -6,14 +6,14 @@
     xmlns:f="sap.ui.layout.form"
     xmlns:core="sap.ui.core"
     displayBlock="true"
-    height="100%"
 >
     <ObjectPageLayout
         id="guidanceObjectPage"
         enableLazyLoading="false"
-        showTitleInHeaderContent="true"
+        showTitleInHeaderContent="false"
         alwaysShowContentHeader="false"
         upperCaseAnchorBar="false"
+        flexEnabled="false"
     >
         <headerTitle>
             <ObjectPageHeader
@@ -39,189 +39,261 @@
             <ObjectPageSection id="levelsSection" title="Clean Core Levels - Detailed Breakdown">
                 <subSections>
                     <!-- Level A -->
-                    <ObjectPageSubSection id="levelASubSection" title="🟩 Level A - Cleanest (Gold Standard)">
+                    <ObjectPageSubSection id="levelASubSection" title="{= ${guidance>/levelA/title} || '🟩 Level A - Cleanest (Gold Standard)' }">
                         <blocks>
-                            <m:VBox id="levelAVBox" class="sapUiSmallMargin">
-                                <m:Label id="levelAWhatLabel" text="What it means:" design="Bold" />
-                                <m:FormattedText id="levelAWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="A" />
-                                        <core:CustomData key="field" value="whatItMeans" />
-                                    </m:customData>
-                                </m:FormattedText>
+                            <m:VBox id="levelAVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelAContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelAWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelAWhatText" htmlText="{guidance>/levelA/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelAAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelAAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="A" />
-                                        <core:CustomData key="field" value="beginnerAnalogy" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelAAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelAAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelAAnalogyText" htmlText="{guidance>/levelA/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelAToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelAToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="A" />
-                                        <core:CustomData key="field" value="toolsUsed" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelAToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelAToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelAToolsText" htmlText="{guidance>/levelA/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelAExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelAExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="A" />
-                                        <core:CustomData key="field" value="exampleReport" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelAExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelAExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelAExampleText" htmlText="{guidance>/levelA/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelAWhyLabel" text="Why it's best:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelAWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="A" />
-                                        <core:CustomData key="field" value="whyReasoning" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelAWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelAWhyLabel" text="Why it's best:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelAWhyText" htmlText="{guidance>/levelA/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelADescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelADescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelADescText" htmlText="{guidance>/levelA/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelATechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelATechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelATechText" htmlText="{guidance>/levelA/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelAMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelAMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelAMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelAUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelAUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelAUpgradeText" text="{guidance>/levelA/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelAMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelAMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelAMaintenanceText" text="{guidance>/levelA/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelACloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelACloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelACloudText" text="{guidance>/levelA/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelARiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelARiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelARiskText" text="{guidance>/levelA/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
                             </m:VBox>
                         </blocks>
                     </ObjectPageSubSection>
                     
                     <!-- Level B -->
-                    <ObjectPageSubSection id="levelBSubSection" title="🟦 Level B - Classic but Acceptable">
+                    <ObjectPageSubSection id="levelBSubSection" title="{= ${guidance>/levelB/title} || '🟦 Level B - Classic but Acceptable' }">
                         <blocks>
-                            <m:VBox id="levelBVBox" class="sapUiSmallMargin">
-                                <m:Label id="levelBWhatLabel" text="What it means:" design="Bold" />
-                                <m:FormattedText id="levelBWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="B" />
-                                        <core:CustomData key="field" value="whatItMeans" />
-                                    </m:customData>
-                                </m:FormattedText>
+                            <m:VBox id="levelBVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelBContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBWhatText" htmlText="{guidance>/levelB/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelBAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelBAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="B" />
-                                        <core:CustomData key="field" value="beginnerAnalogy" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelBAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBAnalogyText" htmlText="{guidance>/levelB/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelBToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelBToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="B" />
-                                        <core:CustomData key="field" value="toolsUsed" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelBToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBToolsText" htmlText="{guidance>/levelB/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelBExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelBExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="B" />
-                                        <core:CustomData key="field" value="exampleReport" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelBExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBExampleText" htmlText="{guidance>/levelB/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelBWhyLabel" text="Why it's acceptable:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelBWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="B" />
-                                        <core:CustomData key="field" value="whyReasoning" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelBWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBWhyLabel" text="Why it's acceptable:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBWhyText" htmlText="{guidance>/levelB/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBDescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBDescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBDescText" htmlText="{guidance>/levelB/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBTechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBTechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelBTechText" htmlText="{guidance>/levelB/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelBMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelBMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelBMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelBUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBUpgradeText" text="{guidance>/levelB/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelBMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBMaintenanceText" text="{guidance>/levelB/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelBCloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBCloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBCloudText" text="{guidance>/levelB/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelBRiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBRiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBRiskText" text="{guidance>/levelB/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
                             </m:VBox>
                         </blocks>
                     </ObjectPageSubSection>
                     
                     <!-- Level C -->
-                    <ObjectPageSubSection id="levelCSubSection" title="🟨 Level C - Risky Legacy">
+                    <ObjectPageSubSection id="levelCSubSection" title="{= ${guidance>/levelC/title} || '🟨 Level C - Risky Legacy' }">
                         <blocks>
-                            <m:VBox id="levelCVBox" class="sapUiSmallMargin">
-                                <m:Label id="levelCWhatLabel" text="What it means:" design="Bold" />
-                                <m:FormattedText id="levelCWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="C" />
-                                        <core:CustomData key="field" value="whatItMeans" />
-                                    </m:customData>
-                                </m:FormattedText>
+                            <m:VBox id="levelCVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelCContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCWhatText" htmlText="{guidance>/levelC/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelCAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelCAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="C" />
-                                        <core:CustomData key="field" value="beginnerAnalogy" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelCAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCAnalogyText" htmlText="{guidance>/levelC/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelCToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelCToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="C" />
-                                        <core:CustomData key="field" value="toolsUsed" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelCToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCToolsText" htmlText="{guidance>/levelC/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelCExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelCExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="C" />
-                                        <core:CustomData key="field" value="exampleReport" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelCExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCExampleText" htmlText="{guidance>/levelC/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelCWhyLabel" text="Why it's risky:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelCWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="C" />
-                                        <core:CustomData key="field" value="whyReasoning" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelCWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCWhyLabel" text="Why it's risky:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCWhyText" htmlText="{guidance>/levelC/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCDescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCDescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCDescText" htmlText="{guidance>/levelC/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCTechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCTechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelCTechText" htmlText="{guidance>/levelC/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelCMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelCMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelCMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelCUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCUpgradeText" text="{guidance>/levelC/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelCMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCMaintenanceText" text="{guidance>/levelC/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelCCloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCCloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCCloudText" text="{guidance>/levelC/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelCRiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCRiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCRiskText" text="{guidance>/levelC/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
                             </m:VBox>
                         </blocks>
                     </ObjectPageSubSection>
                     
                     <!-- Level D -->
-                    <ObjectPageSubSection id="levelDSubSection" title="🟥 Level D - Do Not Do This (Modifications)">
+                    <ObjectPageSubSection id="levelDSubSection" title="{= ${guidance>/levelD/title} || '🟥 Level D - Do Not Do This (Modifications)' }">
                         <blocks>
-                            <m:VBox id="levelDVBox" class="sapUiSmallMargin">
-                                <m:Label id="levelDWhatLabel" text="What it means:" design="Bold" />
-                                <m:FormattedText id="levelDWhatText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="D" />
-                                        <core:CustomData key="field" value="whatItMeans" />
-                                    </m:customData>
-                                </m:FormattedText>
+                            <m:VBox id="levelDVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelDContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDWhatText" htmlText="{guidance>/levelD/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelDAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelDAnalogyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="D" />
-                                        <core:CustomData key="field" value="beginnerAnalogy" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelDAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDAnalogyLabel" text="Beginner Analogy:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDAnalogyText" htmlText="{guidance>/levelD/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelDToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelDToolsText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="D" />
-                                        <core:CustomData key="field" value="toolsUsed" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelDToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDToolsText" htmlText="{guidance>/levelD/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelDExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelDExampleText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}" class="sapUiTinyMarginBottom">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="D" />
-                                        <core:CustomData key="field" value="exampleReport" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelDExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDExampleText" htmlText="{guidance>/levelD/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
                                 
-                                <m:Label id="levelDWhyLabel" text="Why it's bad:" design="Bold" class="sapUiTinyMarginTop" />
-                                <m:FormattedText id="levelDWhyText" htmlText="{path: 'guidance>/levels', formatter: '.getLevelField'}">
-                                    <m:customData>
-                                        <core:CustomData key="level" value="D" />
-                                        <core:CustomData key="field" value="whyReasoning" />
-                                    </m:customData>
-                                </m:FormattedText>
+                                <m:VBox id="levelDWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDWhyLabel" text="Why it's bad:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDWhyText" htmlText="{guidance>/levelD/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDDescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDDescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDDescText" htmlText="{guidance>/levelD/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDTechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDTechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:FormattedText id="levelDTechText" htmlText="{guidance>/levelD/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelDMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelDMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelDMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelDUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDUpgradeText" text="{guidance>/levelD/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelDMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDMaintenanceText" text="{guidance>/levelD/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelDCloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDCloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDCloudText" text="{guidance>/levelD/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelDRiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDRiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDRiskText" text="{guidance>/levelD/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
                             </m:VBox>
                         </blocks>
                     </ObjectPageSubSection>
@@ -264,7 +336,7 @@
             </ObjectPageSection>
 
             <!-- Section 2: Decision Tree -->
-            <ObjectPageSection
+            <!--ObjectPageSection
                 id="decisionTreeSection"
                 title="Decision Tree"
                 visible="{= ${guidance>/guidance/decisionTree} &amp;&amp; ${guidance>/guidance/decisionTree}.length > 0}"
@@ -302,7 +374,7 @@
                         </blocks>
                     </ObjectPageSubSection>
                 </subSections>
-            </ObjectPageSection>
+            </ObjectPageSection-->
 
             <!-- Section 3: Real-World Examples -->
             <ObjectPageSection
@@ -313,7 +385,7 @@
                 <subSections>
                     <ObjectPageSubSection id="realWorldExamplesSubSection">
                         <blocks>
-                            <m:List id="examplesList" items="{guidance>/examples}">
+                            <m:List id="examplesListGuidanceView" items="{guidance>/examples}">
                                 <m:StandardListItem
                                     id="exampleListItem"
                                     title="{guidance>title}"
@@ -341,7 +413,7 @@
                         visible="{= ${guidance>/guidance/designGuidance} &amp;&amp; ${guidance>/guidance/designGuidance} !== ''}"
                     >
                         <blocks>
-                            <m:FormattedText id="designGuidanceText" htmlText="{guidance>/guidance/designGuidance}" />
+                            <m:Text id="designGuidanceText" text="{guidance>/guidance/designGuidance}" />
                         </blocks>
                     </ObjectPageSubSection>
                     <ObjectPageSubSection
@@ -350,7 +422,7 @@
                         visible="{= ${guidance>/guidance/beginnerFaq} &amp;&amp; ${guidance>/guidance/beginnerFaq} !== ''}"
                     >
                         <blocks>
-                            <m:FormattedText id="beginnerFaqText" htmlText="{guidance>/guidance/beginnerFaq}" />
+                            <m:Text id="beginnerFaqText" text="{guidance>/guidance/beginnerFaq}" />
                         </blocks>
                     </ObjectPageSubSection>
                 </subSections>

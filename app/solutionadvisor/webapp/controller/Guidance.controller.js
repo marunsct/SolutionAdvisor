@@ -76,7 +76,7 @@ sap.ui.define([
                 if (oData.guidance) {
                     try {
                         // Parse JSON fields
-                        oData.decisionTreeParsed = this._parseJSON(oData.guidance.decisionTree);
+                        //oData.decisionTreeParsed = this._parseJSON(oData.guidance.decisionTree);
                         oData.determinationFactorsParsed = this._parseJSON(oData.guidance.determinationFactors);
                         oData.performanceThresholdsParsed = this._parseJSON(oData.guidance.performanceThresholds);
                         oData.officialGuidanceParsed = this._parseJSON(oData.guidance.officialGuidance);
@@ -91,6 +91,18 @@ sap.ui.define([
                     }
                 }
                 
+                                // Organize levels by level key (A, B, C, D) for direct binding in view
+                if (oData.levels && Array.isArray(oData.levels)) {
+                    const levelMap = {};
+                    oData.levels.forEach(level => {
+                        levelMap['level' + level.level] = level;
+                    });
+                    oData.levelA = levelMap.levelA || {};
+                    oData.levelB = levelMap.levelB || {};
+                    oData.levelC = levelMap.levelC || {};
+                    oData.levelD = levelMap.levelD || {};
+                }
+
                 // Set the parsed data to the model
                 oGuidanceModel.setData(oData);
                 this.getView().setBusy(false);

@@ -8,42 +8,46 @@
         id="guidanceDialog"
         title="Clean Core Levels for {wizardModel>/objectType}"
         type="Standard"
-        state="Standard"
+        state="Information"
         resizable="true"
         draggable="true"
         contentWidth="90%"
-        contentHeight="90%"
+        contentHeight="90vh"
         class="sapUiResponsiveMargin"
     >
         <!-- Dialog Header with Icon -->
         <customHeader>
-            <Bar
-                id="guidanceDialogBar"
-                class="sapUiSmallMargin"
-            >
-                <Title
-                    id="guidanceDialogTitle"
-                    text="Clean Core Levels for {wizardModel>/objectType}"
-                    level="H2"
-                />
-                <ToolbarSpacer/>
-                <Button
-                    id="closeGuidanceDialogButton"
-                    icon="sap-icon://decline"
-                    press="onCloseGuidanceDialog"
-                    tooltip="Close"
-                    type="Transparent"
-                />
+            <Bar id="guidanceDialogBar">
+                <contentLeft>
+                    <Title
+                        id="guidanceDialogTitle"
+                        text="Clean Core Levels for {wizardModel>/objectType}"
+                        level="H2"
+                    />
+                </contentLeft>
+                <contentMiddle>
+                    <ToolbarSpacer id="toolBarSpacerGuidanceDialog" />
+                </contentMiddle>
+                <contentRight>
+                    <Button
+                        id="closeGuidanceDialogButton"
+                        icon="sap-icon://decline"
+                        press="onCloseGuidanceDialog"
+                        tooltip="Close"
+                        type="Transparent"
+                    />
+                </contentRight>
             </Bar>
         </customHeader>
 
         <!-- Dialog Content with Guidance View -->
         <content>
+            <!-- ✅ Use vh (viewport height) units directly - responsive and stable -->
             <mvc:View
                 id="guidanceViewDialog"
                 viewName="sd.solutionadvisor.view.Guidance"
                 type="XML"
-                height="100%"
+                height="85vh"
             />
         </content>
 

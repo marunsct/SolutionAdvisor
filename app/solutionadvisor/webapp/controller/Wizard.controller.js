@@ -824,17 +824,37 @@ sap.ui.define([
                 return;
             }
 
-            // Load the dialog fragment
+            // Store reference to the dialog for later cleanup
+            if (!this._guidanceDialogStack) {
+                this._guidanceDialogStack = [];
+            }
+
+            // Close and destroy any previously opened dialogs
+            while (this._guidanceDialogStack.length > 0) {
+                const oOldDialog = this._guidanceDialogStack.pop();
+                if (oOldDialog && !oOldDialog.isDestroyed()) {
+                    oOldDialog.close();
+                    oOldDialog.destroy();
+                }
+            }
+
+            // Generate unique ID for this fragment instance
+            const sFragmentId = "guidanceDialog_" + Date.now();
+
+            // Load the dialog fragment with unique ID
             sap.ui.core.Fragment.load({
-                id: this.getView().getId(),
+                id: sFragmentId,
                 name: "sd.solutionadvisor.view.fragments.GuidanceDialog",
                 controller: this
             }).then((oDialog) => {
+                // Store dialog reference
+                this._guidanceDialogStack.push(oDialog);
+
                 // Add dialog to view
                 this.getView().addDependent(oDialog);
                 
                 // Load guidance content in the dialog
-                const oGuidanceView = sap.ui.core.Fragment.byId(this.getView().getId(), "guidanceViewDialog");
+                const oGuidanceView = sap.ui.core.Fragment.byId(sFragmentId, "guidanceViewDialog");
                 if (oGuidanceView) {
                     const oGuidanceController = oGuidanceView.getController();
                     if (oGuidanceController && typeof oGuidanceController.loadGuidance === 'function') {
@@ -856,13 +876,19 @@ sap.ui.define([
          * @public
          */
         onCloseGuidanceDialog() {
-            const oDialog = sap.ui.core.Fragment.byId(this.getView().getId(), "guidanceDialog");
-            if (oDialog) {
-                oDialog.close();
-                // Destroy dialog after closing to free up resources
-                setTimeout(() => {
-                    oDialog.destroy();
-                }, 300);
+            // Close the most recent dialog in the stack
+            if (this._guidanceDialogStack && this._guidanceDialogStack.length > 0) {
+                const oDialog = this._guidanceDialogStack[this._guidanceDialogStack.length - 1];
+                if (oDialog && !oDialog.isDestroyed()) {
+                    oDialog.close();
+                    // Destroy dialog after closing to free up resources and remove all controls
+                    setTimeout(() => {
+                        if (oDialog && !oDialog.isDestroyed()) {
+                            oDialog.destroy();
+                            this._guidanceDialogStack.pop();
+                        }
+                    }, 300);
+                }
             }
         },
 
@@ -1970,4 +1996,3 @@ sap.ui.define([
         }
     });
 });
-
