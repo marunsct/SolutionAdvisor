@@ -738,6 +738,7 @@ module.exports = cds.service.impl(async function () {
             // Fetch real-world examples
             const examples = await SELECT.from('sd.RealWorldExample')
                 .where({ ricefwType, isActive: true })
+                .orderBy('associatedLevel',)
                 .columns([
                     'exampleId',
                     'title',

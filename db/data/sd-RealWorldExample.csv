@@ -15,10 +15,10 @@ b9c0d1e2-3f4a-5b6c-7d8e-9f0a1b2c3d4e;E-EX-001;Key User Tools;Custom field additi
 c0d1e2f3-4a5b-6c7d-8e9f-0a1b2c3d4e5f;E-EX-002;Classic BADI;Vendor validation logic;Classic BADI implementations;Uses classic stable APIs;B;General;E;Enhancement;Moderate upgrade risk
 d1e2f3a4-5b6c-7d8e-9f0a-1b2c3d4e5f6a;E-EX-003;Implicit Enhancement;ME21N custom logic;Implicit enhancements in methods;Not upgrade-safe internal;C;General;E;Enhancement;High upgrade risk
 e2f3a4b5-6c7d-8e9f-0a1b-2c3d4e5f6a7b;E-EX-004;Modified Standard;SAPMM06E changes;Direct code modifications;Modifications to standard;D;General;E;Enhancement;Very High upgrade risk
-f3a4b5c6-7d8e-9f0a-1b2c-3d4e5f6a7b8c;F-EX-001;Adobe Forms OData;PO print form;Released CDS with Output Management;Fully upgrade-safe;A;General;F;Form;Upgrade-safe
-a4b5c6d7-8e9f-0a1b-2c3d-4e5f6a7b8c9d;F-EX-002;SmartForm BAPI;PO details form;SmartForm calling BAPI;Uses classic stable APIs;B;General;F;Form;Moderate upgrade risk
-b5c6d7e8-9f0a-1b2c-3d4e-5f6a7b8c9d0e;F-EX-003;Custom Z-form;Reads EKKO directly;Form with direct table reads;Direct table access;C;General;F;Form;High upgrade risk
-c6d7e8f9-0a1b-2c3d-4e5f-6a7b8c9d0e1f;F-EX-004;Modified Form;Standard form changes;Direct form modifications;Modifications to standard;D;General;F;Form;Very High upgrade risk
+f3a4b5c6-7d8e-9f0a-1b2c-3d4e5f6a7b8c;F-EX-001;Adobe Forms using OData creted on top of released CDS view;PO print form fecth data using Release CDS View;Released CDS with Output Management;Fully upgrade-safe;A;General;F;Form;Upgrade-safe
+a4b5c6d7-8e9f-0a1b-2c3d-4e5f6a7b8c9d;F-EX-002;SmartForm using Classical Released API - BAPI to get FORM data;PO details form using BAPI_PO_GETDETAIL for data selection;SmartForm calling BAPI;Uses classic stable APIs;B;General;F;Form;Moderate upgrade risk
+b5c6d7e8-9f0a-1b2c-3d4e-5f6a7b8c9d0e;F-EX-003;Forms that gets using Custom Z-Object with Direct access to internal tables;Reads EKKO directly to get FORM data;Form with direct table reads;Direct table access;C;General;F;Form;High upgrade risk
+c6d7e8f9-0a1b-2c3d-4e5f-6a7b8c9d0e1f;F-EX-004;Modified Standatd Form to get desired output;Standard form changes oth Form or the standard data selection program;Direct form modifications;Modifications to standard;D;General;F;Form;Very High upgrade risk
 d7e8f9a0-1b2c-3d4e-5f6a-7b8c9d0e1f2a;W-EX-001;Flexible Workflow;PO approval;Configuration-driven workflow;Fully upgrade-safe released;A;General;W;Workflow;Upgrade-safe
 e8f9a0b1-2c3d-4e5f-6a7b-8c9d0e1f2a3b;W-EX-002;Classic SAP Workflow;Invoice approval;WS template with BAPI;Uses classic stable;B;General;W;Workflow;Moderate upgrade risk
 f9a0b1c2-3d4e-5f6a-7b8c-9d0e1f2a3b4c;W-EX-003;Table-based Workflow;PO release;Z-workflows updating tables;Internal objects;C;General;W;Workflow;High upgrade risk
