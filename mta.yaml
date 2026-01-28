@@ -83,7 +83,7 @@ resources:
   parameters:
     config:
       tenant-mode: dedicated
-      xsappname: SolutionAdvisor-${org}-${space}
+      xsappname: SolutionAdvisor
     path: ./xs-security.json
     service: xsuaa
     service-plan: application

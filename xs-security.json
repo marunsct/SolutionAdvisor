@@ -1,6 +1,6 @@
 {
   "xsappname": "solutionadvisor",
-  "tenant-mode": "shared",
+  "tenant-mode": "dedicated",
   "description": "SAP Clean Core Solution Advisor - Enhanced Security Configuration with ABAC and Role Collections",
   
   "scopes": [
