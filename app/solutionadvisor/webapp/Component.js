@@ -1,11 +1,12 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
+    "sap/ui/Device",
     "sd/solutionadvisor/model/models",
     "sd/solutionadvisor/localService/MockService",
     "sd/solutionadvisor/services/NotificationService",
     "sd/solutionadvisor/services/SearchService",
     "sd/solutionadvisor/services/ThemeService"
-], (UIComponent, models, MockService, NotificationService, SearchService, ThemeService) => {
+], (UIComponent, Device, models, MockService, NotificationService, SearchService, ThemeService) => {
     "use strict";
 
     return UIComponent.extend("sd.solutionadvisor.Component", {
@@ -26,7 +27,7 @@ sap.ui.define([
             // apply content density mode (responsive design)
             this.getContentDensityClass = function () {
                 if (!this._sContentDensityClass) {
-                    if (!sap.ui.Device.support.touch) {
+                    if (!Device.support.touch) {
                         // Desktop: use compact mode
                         this._sContentDensityClass = "sapUiSizeCompact";
                     } else {

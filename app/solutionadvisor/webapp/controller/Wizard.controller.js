@@ -154,8 +154,8 @@ sap.ui.define([
             });
             this.getView().setModel(oProgressModel, "progressModel");
 
-            // Initialize time tracking
-            this._wizardStartTime = new Date();
+            // Initialize time tracking (use timestamp in milliseconds for consistency)
+            this._wizardStartTime = Date.now();
             this._sessionId = null;
             this._analysisId = null;
             this._answeredQuestions = {};
@@ -228,6 +228,23 @@ sap.ui.define([
             return match ? parseInt(match[1], 10) : 0;
         },
 
+        /**
+         * Normalize step ID by removing container prefix
+         * getCurrentStep() may return container-prefixed ID or plain ID depending on context
+         * This method normalizes to plain ID for consistent comparison
+         * 
+         * @param {string|Object} step - Step ID string or step control object
+         * @returns {string} Normalized step ID without container prefix
+         * @private
+         */
+        _getStepId(step) {
+            if (!step) return "";
+            // If it's an object with getId method, call it
+            const stepId = step.getId ? step.getId() : (typeof step === 'string' ? step : "");
+            // Remove container prefix if present (e.g., "container-sd.solutionadvisor---Wizard--projectStep" -> "projectStep")
+            return stepId.replace(/^container-.*?--(.+)$/, "$1");
+        },
+
         _updateProgress(currentQuestionId, totalSteps) {
             const oProgressModel = this.getView().getModel("progressModel");
             
@@ -238,7 +255,7 @@ sap.ui.define([
             const questionsAnswered = Object.keys(this._answeredQuestions).length;
             
             // Calculate estimated time remaining based on average time per question
-            const elapsedTime = Date.now() - this._wizardStartTime.getTime();
+            const elapsedTime = Date.now() - this._wizardStartTime;
             const avgTimePerQuestion = questionsAnswered > 0 ? elapsedTime / questionsAnswered : 60000; // Default 1min
             const remainingQuestions = totalSteps - questionNumber;
             const estimatedTimeRemaining = Math.round((remainingQuestions * avgTimePerQuestion) / 60000); // in minutes
@@ -321,11 +338,11 @@ sap.ui.define([
             const sSessionId = oArgs.sessionId;
             const sAnalysisId = oArgs.analysisId;
 
-            // Check if we're navigating back from history without valid context
-            // If no parameters provided and wizard was not intentionally opened, redirect
+            // ✅ FIX: Allow no-parameter navigation for fresh analysis start
+            // User can open /app/wizard directly to begin new analysis without project pre-selection
             if (!sProjectId && !sSessionId && !sAnalysisId) {
-                // User likely navigated back from browser history - redirect to projects list
-                this.getOwnerComponent().getRouter().navTo("ProjectsList", {}, true);
+                // User is starting a fresh analysis - initialize fresh state
+                this._resetWizard();
                 return;
             }
 
@@ -717,26 +734,75 @@ sap.ui.define([
          */
         _resetWizard: function () {
             const oWizardModel = this.getView().getModel("wizardModel");
+            const oProgressModel = this.getView().getModel("progressModel");
+            
+            // ✅ FIX: Preserve full model structure including defaults like complexityOptions, scores, etc.
             oWizardModel.setData({
+                // Project setup properties
                 projectID: "",
                 projectName: "",
                 ricefwId: "",
                 objectType: "",
                 objectName: "",
                 objectDescription: "",
-                autoSelectedProject: false
+                autoSelectedProject: false,
+
+                // Business Area & Complexity (Step 2)
+                businessArea_ID: "",
+                businessAreaName: "",
+                complexity: "",
+                complexityOptions: [
+                    { key: "Simple", text: "Simple" },
+                    { key: "Medium", text: "Medium" },
+                    { key: "High", text: "High" },
+                    { key: "Very High", text: "Very High" }
+                ],
+
+                // Dynamic question flow properties
+                currentQuestion: null,
+                selectedAnswer: null,
+                selectedAnswerIndex: -1,
+                questionCompleted: false,
+                currentStep: 0,
+                totalSteps: 0,
+                finalRecommendation: null,
+                finalReasoning: null,
+                scores: {
+                    technicalDebt: 0,
+                    cloudReadiness: 0,
+                    upgradeImpact: 0,
+                    compositeHealth: 0
+                }
             });
 
+            // Reset progress model
+            oProgressModel.setData({
+                percentComplete: 0,
+                currentStepIndex: 0,
+                totalSteps: 0,
+                questionsAnswered: 0,
+                estimatedTimeRemaining: 0,
+                progressText: "Not started",
+                isError: false,
+                errorMessage: "",
+                canContinue: true,
+                lastSaveTime: null,
+                autoSaveEnabled: true
+            });
+
+            // Mark completed steps as not validated
             this.byId("projectStep").setValidated(false);
             this.byId("objectStep").setValidated(false);
 
+            // Reset wizard to first step
             const oWizard = this.byId("cleanCoreWizard");
             oWizard.discardProgress(this.byId("projectStep"));
 
+            // Reset session and time tracking
             this._sessionId = null;
             this._analysisId = null;
             this._answeredQuestions = {};
-            this._wizardStartTime = null; // Initialize wizard start time tracker
+            this._wizardStartTime = Date.now(); // Reset to current time
         },
 
         onProjectStepActivate() {
@@ -1232,7 +1298,7 @@ sap.ui.define([
         },
 
         _calculateTimeSpent() {
-            // Calculate time spent since wizard started
+            // Calculate time spent since wizard started (in seconds)
             if (!this._wizardStartTime) {
                 this._wizardStartTime = Date.now();
             }
@@ -1395,10 +1461,12 @@ sap.ui.define([
         onNextStep() {
             const oWizard = this.byId("cleanCoreWizard");
             const currentStep = oWizard.getCurrentStep();
+            // ✅ FIX: Normalize step ID to handle container prefixes consistently
+            const stepId = this._getStepId(currentStep);
 
-            if (currentStep === "container-sd.solutionadvisor---Wizard--projectStep") {
+            if (stepId === "projectStep") {
                 oWizard.nextStep();
-            } else if (currentStep === "container-sd.solutionadvisor---Wizard--objectStep") {
+            } else if (stepId === "objectStep") {
                 // Update summary
                 const oWizardModel = this.getView().getModel("wizardModel");
                 this.byId("summaryProject").setText(oWizardModel.getProperty("/projectName"));
@@ -1417,23 +1485,25 @@ sap.ui.define([
         _updateNextButtonState() {
             const oWizard = this.byId("cleanCoreWizard");
             const currentStep = oWizard.getCurrentStep();
+            // ✅ FIX: Normalize step ID to handle container prefixes consistently
+            const stepId = this._getStepId(currentStep);
             const oNextButton = this.byId("wizardNextButton");
             const oSaveDraftButton = this.byId("saveDraftButton");
 
-            if (currentStep === "projectStep") {
+            if (stepId === "projectStep") {
                 const bValidated = this.byId("projectStep").getValidated();
                 oNextButton.setEnabled(bValidated);
                 // Hide save draft button on project step (no session yet)
                 oSaveDraftButton.setVisible(false);
-            } else if (currentStep === "objectStep") {
+            } else if (stepId === "objectStep") {
                 const bValidated = this.byId("objectStep").getValidated();
                 oNextButton.setEnabled(bValidated);
                 // Hide save draft button on object step (no session yet)
                 oSaveDraftButton.setVisible(false);
-            } else if (currentStep === "questionStep") {
+            } else if (stepId === "questionStep") {
                 // Show save draft button on question step (session is active)
                 oSaveDraftButton.setVisible(true);
-            } else if (currentStep === "summaryStep") {
+            } else if (stepId === "summaryStep") {
                 // Hide save draft button on summary step (analysis is complete)
                 oSaveDraftButton.setVisible(false);
             }
@@ -1443,8 +1513,8 @@ sap.ui.define([
             const oWizardModel = this.getView().getModel("wizardModel");
             const oData = oWizardModel.getData();
 
-            // Initialize wizard start time for time tracking
-            this._wizardStartTime = new Date();
+            // ✅ FIX: Initialize wizard start time for time tracking (use timestamp format)
+            this._wizardStartTime = Date.now();
 
             // Show loading indicator
             this.getView().setBusy(true);
@@ -1579,8 +1649,8 @@ sap.ui.define([
             // Mark question as completed to disable further changes
             oWizardModel.setProperty("/questionCompleted", true);
 
-            // Calculate time spent on this question (placeholder)
-            const timeSpent = 30; // Seconds
+            // ✅ FIX: Calculate actual time spent instead of hardcoded 30 seconds
+            const timeSpent = this._calculateTimeSpent(); // Use real elapsed time in seconds
 
             // Call backend action using OData V4
             const oModel = this.getView().getModel();

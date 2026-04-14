@@ -271,12 +271,17 @@ service solutionAdvisorService {
      * Recalculate and update scores for an existing analysis
      */
     action   recalculateScores(analysisID: String)                                                                                                       returns {
-        success         : Boolean;
-        message         : String;
-        technicalDebt   : Decimal(5, 2);
-        cloudReadiness  : Decimal(5, 2);
-        upgradeImpact   : Decimal(5, 2);
-        compositeHealth : Decimal(5, 2);
+        success             : Boolean;
+        message             : String;
+        technicalDebt       : Decimal(5, 2);
+        cloudReadiness      : Decimal(5, 2);
+        upgradeImpact       : Decimal(5, 2);
+        compositeHealth     : Decimal(5, 2);
+        riskAssessment      : String;
+        complianceStatus    : String;
+        technicalComplexity : String;
+        estimatedEffort     : String;
+        businessImpact      : String;
     };
 
     /**

@@ -28,6 +28,7 @@ class BatchOptimizer {
      * @param {Object} entity - CDS entity (e.g., Analyses, DecisionPaths)
      * @param {Array} updates - Array of update objects: [{ where: {...}, set: {...} }]
      * @param {Object} options - Optional batch configuration
+     * @param {string} options.tenant - Tenant ID (required for tenant-scoped entities)
      * @returns {Promise<Object>} { success: boolean, updated: number, failed: number, errors: [] }
      */
     async batchUpdate(entity, updates, options = {}) {
@@ -50,7 +51,7 @@ class BatchOptimizer {
                 const batchGroup = batches.slice(i, i + this.config.maxParallelBatches);
                 
                 const batchPromises = batchGroup.map(async (batch, batchIndex) => {
-                    return await this._executeBatch(entity, batch, i + batchIndex);
+                    return await this._executeBatch(entity, batch, i + batchIndex, options.tenant);
                 });
 
                 const batchResults = await Promise.allSettled(batchPromises);
@@ -87,12 +88,14 @@ class BatchOptimizer {
      * Execute a single batch of updates
      * @private
      */
-    async _executeBatch(entity, batch, batchIndex) {
+    async _executeBatch(entity, batch, batchIndex, tenant) {
         const updates = batch.map(update => {
+            // Inject tenant filter if provided
+            const where = tenant ? { ...update.where, tenant } : update.where;
             // Use cds.update for internal operations (bypasses draft automatically)
             return cds.update(entity)
                 .set(update.set)
-                .where(update.where);
+                .where(where);
         });
 
         try {
@@ -202,7 +205,9 @@ class BatchOptimizer {
                     try {
                         let deleteCount = 0;
                         for (const where of batch) {
-                            const result = await DELETE.from(entity).where(where);
+                            // Inject tenant filter if provided
+                            const scopedWhere = options.tenant ? { ...where, tenant: options.tenant } : where;
+                            const result = await DELETE.from(entity).where(scopedWhere);
                             deleteCount += result || 0;
                         }
                         return { deleted: deleteCount };
@@ -274,7 +279,10 @@ class BatchOptimizer {
                 const batchGroup = batches.slice(i, i + this.config.maxParallelBatches);
                 
                 const batchPromises = batchGroup.map(async (batch) => {
-                    let query = SELECT.from(entity).where({ ID: { in: batch } });
+                    const whereClause = options.tenant
+                        ? { ID: { in: batch }, tenant: options.tenant }
+                        : { ID: { in: batch } };
+                    let query = SELECT.from(entity).where(whereClause);
                     
                     if (options.columns) {
                         query = query.columns(options.columns);

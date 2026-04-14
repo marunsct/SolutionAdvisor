@@ -1,5 +1,6 @@
 const cds = require('@sap/cds');
 const cacheService = require('./cache-service');
+const TenantContext = require('./tenant-context');
 
 /**
  * Examples Service - Handles real-world examples display
@@ -37,17 +38,18 @@ class ExamplesService {
         
         if (!examples) {
             // Start with object type filter
-            let query = SELECT.from(RealWorldExample)
-                .where({ objectType, isActive: true });
+            const conditions = { objectType, isActive: true };
             
             // Apply optional filters from context
             if (context.industry) {
-                query = query.and({ industry: context.industry });
+                conditions.industry = context.industry;
             }
             
             if (context.cleanCoreLevel) {
-                query = query.and({ cleanCoreLevel: context.cleanCoreLevel });
+                conditions.cleanCoreLevel = context.cleanCoreLevel;
             }
+            
+            let query = SELECT.from(RealWorldExample).where(conditions);
             
             examples = await query;
             
@@ -257,15 +259,26 @@ class ExamplesService {
     /**
      * Log example view for analytics
      */
-    async logExampleView(analysisID, exampleID, relevanceRating = null) {
+    /**
+     * Log example view for analytics and relevance scoring
+     * @param {string} analysisID - Analysis ID
+     * @param {string} exampleID - Example ID
+     * @param {string} tenant - Request tenant ID
+     * @param {number} [relevanceRating] - User-provided relevance rating (1-5)
+     */
+    async logExampleView(analysisID, exampleID, tenant, relevanceRating = null) {
         const { ExampleLog } = cds.entities('sd');
+        
+        if (!tenant) {
+            throw new Error('tenant parameter required for example logging');
+        }
         
         const logEntry = {
             analysis_ID: analysisID,
             example_ID: exampleID,
             viewedAt: new Date().toISOString(),
             relevanceRating: relevanceRating,
-            tenant: cds.context.tenant || 'default'
+            tenant: tenant
         };
         
         await INSERT.into(ExampleLog).entries(logEntry);

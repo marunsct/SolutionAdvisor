@@ -1,0 +1,21 @@
+{
+  "name": "SolutionAdvisor-mtx",
+  "version": "1.0.0",
+  "description": "MTX Sidecar for SolutionAdvisor multitenancy",
+  "dependencies": {
+    "@sap/cds": "^9",
+    "@cap-js/hana": "^2",
+    "@sap/cds-mtxs": "^3",
+    "@sap/xssec": "^4",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^2"
+  },
+  "scripts": {
+    "start": "cds-serve"
+  },
+  "cds": {
+    "profile": "mtx-sidecar"
+  }
+}

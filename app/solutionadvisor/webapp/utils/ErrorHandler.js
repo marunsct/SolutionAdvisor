@@ -1,4 +1,6 @@
-sap.ui.define([], function () {
+sap.ui.define([
+    "sap/m/MessageBox"
+], function (MessageBox) {
     "use strict";
     
     return {
@@ -36,7 +38,7 @@ sap.ui.define([], function () {
             }
             
             // Show error in MessageBox
-            sap.m.MessageBox.error(sErrorMessage, {
+            MessageBox.error(sErrorMessage, {
                 title: "Error",
                 onClose: function() {
                     // Optional: Add analytics logging for errors here
@@ -61,7 +63,7 @@ sap.ui.define([], function () {
                                  `This may be because the question catalog is still being developed. ` +
                                  `Please try another object type or contact the administrator.`;
                 
-                sap.m.MessageBox.information(sMessage, {
+                MessageBox.information(sMessage, {
                     title: "No Questions Available"
                 });
                 return true;
@@ -74,7 +76,7 @@ sap.ui.define([], function () {
                 const sMessage = "There is an issue with the decision tree navigation. " +
                                 "This has been logged and will be fixed by the administrators.";
                 
-                sap.m.MessageBox.error(sMessage, {
+                MessageBox.error(sMessage, {
                     title: "Decision Tree Error"
                 });
                 return true;

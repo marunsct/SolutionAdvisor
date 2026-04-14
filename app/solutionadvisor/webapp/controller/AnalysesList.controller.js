@@ -50,18 +50,32 @@ sap.ui.define([
         },
 
         _attachTableEvents() {
+            if (this._tableEventsAttached) return;
+
             const oTable = this.byId("analysesTable");
             if (!oTable) return;
 
             const oBinding = oTable.getBinding("items");
             if (oBinding) {
-                // Attach change event to style draft items whenever table is updated
-                oBinding.attachChange(() => {
+                // Keep reference to detach on exit
+                this._fnStyleDraftItems = () => {
                     this._styleDraftItems();
-                });
+                };
+                oBinding.attachChange(this._fnStyleDraftItems);
+                this._tableEventsAttached = true;
 
                 // Initial styling
                 this._styleDraftItems();
+            }
+        },
+
+        onExit() {
+            const oTable = this.byId("analysesTable");
+            if (oTable && this._fnStyleDraftItems) {
+                const oBinding = oTable.getBinding("items");
+                if (oBinding) {
+                    oBinding.detachChange(this._fnStyleDraftItems);
+                }
             }
         },
 
@@ -249,14 +263,6 @@ sap.ui.define([
             ];
 
             oBinding.filter(aFilters);
-
-            // Attach updateFinished event to style draft items
-            if (!this._updateFinishedAttached) {
-                oBinding.attachChange(() => {
-                    this._styleDraftItems();
-                });
-                this._updateFinishedAttached = true;
-            }
         },
 
         _styleDraftItems() {

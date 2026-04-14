@@ -207,7 +207,7 @@ sap.ui.define([
       oModel.submitBatch("$auto").then(() => {
         MessageToast.show("Saved successfully");
         if (this._oEditDialog) this._oEditDialog.close();
-        setTimeout(() => this._loadData(), 300);
+        setTimeout(() => this._loadData(), 300); // 300ms debounce after save
       }).catch((e) => {
         Log.error("Save failed", e);
         MessageBox.error("Failed to save changes");

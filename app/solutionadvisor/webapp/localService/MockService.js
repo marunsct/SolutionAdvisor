@@ -1,8 +1,9 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/model/json/JSONModel",
+    "sap/base/Log",
     "./MockAnalysisService"
-], function (UIComponent, JSONModel, MockAnalysisService) {
+], function (UIComponent, JSONModel, Log, MockAnalysisService) {
     "use strict";
     
     /**
@@ -28,9 +29,7 @@ sap.ui.define([
             this._component.mockAnalysisService = this._mockAnalysisService;
             
             // Log initialization
-            if (sap.base && sap.base.Log) {
-                sap.base.Log.info("MockService: Mock services initialized");
-            }
+            Log.info("MockService: Mock services initialized");
         },
         
         /**
@@ -204,9 +203,7 @@ sap.ui.define([
         _loadSampleData: function () {
             // Add more projects, analyses, and decision paths
             // This would be expanded in a full implementation
-            if (sap.base && sap.base.Log) {
-                sap.base.Log.info("MockService: Loading additional sample data");
-            }
+            Log.info("MockService: Loading additional sample data");
         },
         
         /**

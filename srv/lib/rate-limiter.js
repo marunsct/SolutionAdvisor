@@ -17,7 +17,14 @@ const LOG = cds.log('rate-limiter');
 class RateLimiter {
     constructor() {
         // In-memory storage for rate limit tracking
-        // In production, use Redis for distributed rate limiting
+        // TODO(Phase 7 - Production hardening):
+        // Migrate this limiter to a distributed backend (Redis or SAP-managed shared store)
+        // so all app instances enforce a single global/tenant/user budget.
+        // Current in-memory Maps are instance-local and not cluster-safe:
+        // - limits can be bypassed across multiple instances behind a load balancer
+        // - counters reset on instance restart/redeploy
+        // - enforcement can be inconsistent under horizontal scaling
+        // Keep this implementation only as an interim single-instance baseline.
         this.userBuckets = new Map(); // userId -> { tokens: number, lastRefill: timestamp }
         this.tenantBuckets = new Map(); // tenantId -> { tokens: number, lastRefill: timestamp }
         
@@ -43,7 +50,9 @@ class RateLimiter {
                     '/exportAnalysis',
                     '/generateReport'
                 ]
-            }
+            },
+            maxUserBuckets: 10000,   // Maximum tracked users before LRU eviction
+            maxTenantBuckets: 1000   // Maximum tracked tenants before LRU eviction
         };
 
         // Whitelist admin users from rate limits
@@ -54,18 +63,29 @@ class RateLimiter {
     }
 
     /**
-     * Get or create token bucket for a key
+     * Get or create token bucket for a key.
+     * Enforces maximum bucket count via LRU eviction.
      * @private
      */
     _getBucket(bucketMap, key, config) {
+        const maxSize = (bucketMap === this.userBuckets)
+            ? this.config.maxUserBuckets
+            : this.config.maxTenantBuckets;
+
         if (!bucketMap.has(key)) {
+            // Evict oldest-accessed bucket if at capacity
+            if (bucketMap.size >= maxSize) {
+                this._evictOldest(bucketMap);
+            }
             bucketMap.set(key, {
                 tokens: config.capacity,
-                lastRefill: Date.now()
+                lastRefill: Date.now(),
+                lastAccessed: Date.now()
             });
         }
         
         const bucket = bucketMap.get(key);
+        bucket.lastAccessed = Date.now();
         
         // Refill tokens based on elapsed time
         const now = Date.now();
@@ -78,6 +98,26 @@ class RateLimiter {
         }
         
         return bucket;
+    }
+
+    /**
+     * Evict the least-recently-accessed bucket from a map
+     * @private
+     */
+    _evictOldest(bucketMap) {
+        let oldestKey = null;
+        let oldestTime = Infinity;
+        for (const [k, v] of bucketMap.entries()) {
+            const t = v.lastAccessed || v.lastRefill;
+            if (t < oldestTime) {
+                oldestTime = t;
+                oldestKey = k;
+            }
+        }
+        if (oldestKey !== null) {
+            bucketMap.delete(oldestKey);
+            LOG.info('Evicted oldest rate-limit bucket', { key: oldestKey, mapSize: bucketMap.size });
+        }
     }
 
     /**

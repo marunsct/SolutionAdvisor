@@ -72,7 +72,11 @@ class CacheService {
      * @returns {string} Cache key
      */
     _getCacheKey(entity, id, tenant = null) {
-        const tenantId = tenant || cds.context?.tenant || 'default';
+        const tenantId = tenant || cds.context?.tenant;
+        if (!tenantId) {
+            LOG.warn(`Cache key generated without tenant context for ${entity}:${id}, using 'system'`);
+            return `system:${entity}:${id}`;
+        }
         return `${tenantId}:${entity}:${id}`;
     }
     

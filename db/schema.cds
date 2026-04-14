@@ -498,16 +498,12 @@ entity UserNotifications : cuid, managed {
 @cds.persistence.skip: false
 define view CV_ANALYSIS_AGGREGATES as
     select from CleanCoreAnalysis {
-        // Dimensions (Primary Key)
-        key  ID,
+        // Dimensions
         key tenant,
         key projectConfig.ID                             as project_ID,
         key objectType                                   as objectType_typeCode,
         key finalRecommendation                          as recommendedLevel,
-        key analysisDate,
         key status,
-        key createdAt,
-        key createdBy,
         key riskAssessment                               as riskLevel,
 
         // Measures - Aggregated Scores
@@ -538,15 +534,11 @@ define view CV_ANALYSIS_AGGREGATES as
                                                      as countCriticalRisk     : Integer
     }
     group by
-        ID,
         tenant,
         projectConfig.ID,
         objectType,
         finalRecommendation,
-        analysisDate,
         status,
-        createdAt,
-        createdBy,
         riskAssessment;
 
 /**
@@ -556,16 +548,12 @@ define view CV_ANALYSIS_AGGREGATES as
 @cds.persistence.skip: false
 define view CV_RICEFW_DISTRIBUTION as
     select from CleanCoreAnalysis {
-        key  ID,
-        // Dimensions (Primary Key)
+        // Dimensions
         key tenant,
         key objectType                                   as objectType_typeCode,
-        key objectName                                   as typeName,
-        key objectDescription                            as description,
         key finalRecommendation                          as recommendedLevel,
         key status,
         key projectConfig.ID                             as project_ID,
-        key analysisDate,
 
         // Measures - Counts
         count(*)                                     as countByType           : Integer,
@@ -591,15 +579,11 @@ define view CV_RICEFW_DISTRIBUTION as
                                                      as countLevelD           : Integer
     }
     group by
-        ID,
         tenant,
         objectType,
-        objectName,
-        objectDescription,
         finalRecommendation,
         status,
-        projectConfig.ID,
-        analysisDate;
+        projectConfig.ID;
 
 /**
  * CV_TREND_ANALYSIS - Time-series trending of analyses over time
@@ -608,15 +592,13 @@ define view CV_RICEFW_DISTRIBUTION as
 @cds.persistence.skip: false
 define view CV_TREND_ANALYSIS as
     select from CleanCoreAnalysis {
-        key  ID,
-        // Dimensions (Primary Key)
+        // Dimensions
         key tenant,
         key projectConfig.ID                             as project_ID,
-        key analysisDate,
         
         // Date Hierarchy (calculated in service layer for better compatibility)
-        cast(year(analysisDate) as Integer)          as year                  : Integer,
-        cast(month(analysisDate) as Integer)         as month                 : Integer,
+        key cast(year(analysisDate) as Integer)          as year                  : Integer,
+        key cast(month(analysisDate) as Integer)         as month                 : Integer,
         
         key objectType                                   as objectType_typeCode,
         key finalRecommendation                          as recommendedLevel,
@@ -651,10 +633,10 @@ define view CV_TREND_ANALYSIS as
                                                      as countHighRisk         : Integer
     }
     group by
-        ID,
         tenant,
         projectConfig.ID,
-        analysisDate,
+        year(analysisDate),
+        month(analysisDate),
         objectType,
         finalRecommendation,
         status,
@@ -681,12 +663,6 @@ define view CV_PROJECT_DASHBOARD as
         projects.businessCriticality,
         projects.status                              as projectStatus,
         projects.createdAt                           as projectCreatedAt,
-
-        // Analysis Dimensions (Primary Key)
-        key analyses.objectType                          as objectType_typeCode,
-        key analyses.finalRecommendation                 as recommendedLevel,
-        key analyses.status                              as analysisStatus,
-        key analyses.riskAssessment                      as riskLevel,
 
         // KPI Measures - Counts
         count(distinct analyses.ID)                  as totalAnalyses         : Integer,
@@ -740,9 +716,5 @@ define view CV_PROJECT_DASHBOARD as
         projects.s4HanaFlavor,
         projects.businessCriticality,
         projects.status,
-        projects.createdAt,
-        analyses.objectType,
-        analyses.finalRecommendation,
-        analyses.status,
-        analyses.riskAssessment;
+        projects.createdAt;
 

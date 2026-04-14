@@ -8,6 +8,19 @@ sap.ui.define([
      * FlowchartGenerator - Generate SVG flowcharts from decision paths using D3.js
      */
     return {
+
+        /**
+         * Escape HTML to prevent XSS in tooltip content
+         * @param {string} str - Raw string
+         * @returns {string} HTML-safe string
+         * @private
+         */
+        _escapeHtml: function (str) {
+            if (!str) return "";
+            const div = document.createElement("div");
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        },
         /**
          * Generate D3.js hierarchical tree flowchart
          * @param {Object} analysisData - Analysis data including decision paths
@@ -993,25 +1006,25 @@ sap.ui.define([
             let html = "";
 
             if (data.step) {
-                html += `<div style="font-weight: bold; margin-bottom: 6px;">Step ${data.step}</div>`;
+                html += `<div style="font-weight: bold; margin-bottom: 6px;">Step ${this._escapeHtml(String(data.step))}</div>`;
             }
 
             if (data.question) {
-                html += `<div style="margin-bottom: 4px;"><strong>Question:</strong><br/>${data.question}</div>`;
+                html += `<div style="margin-bottom: 4px;"><strong>Question:</strong><br/>${this._escapeHtml(data.question)}</div>`;
             }
 
             if (data.answer) {
-                html += `<div style="margin-bottom: 4px;"><strong>Answer:</strong><br/>${data.answer}</div>`;
+                html += `<div style="margin-bottom: 4px;"><strong>Answer:</strong><br/>${this._escapeHtml(data.answer)}</div>`;
             }
 
             if (data.hint) {
                 html += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3);">
-                    <strong>Hint:</strong><br/>${data.hint}
+                    <strong>Hint:</strong><br/>${this._escapeHtml(data.hint)}
                 </div>`;
             }
 
             if (data.type) {
-                html += `<div style="margin-top: 4px; color: #87CEEB;"><em>Node Type: ${data.type}</em></div>`;
+                html += `<div style="margin-top: 4px; color: #87CEEB;"><em>Node Type: ${this._escapeHtml(data.type)}</em></div>`;
             }
 
             return html || "<div>No additional information</div>";

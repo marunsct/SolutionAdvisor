@@ -1,6 +1,6 @@
 {
   "xsappname": "SolutionAdvisor",
-  "tenant-mode": "dedicated",
+  "tenant-mode": "shared",
   "description": "SAP Clean Core Solution Advisor - Enhanced Security Configuration with ABAC and Role Collections",
   
   "scopes": [
@@ -176,6 +176,7 @@
   
   "oauth2-configuration": {
     "redirect-uris": [
+      "https://*-SolutionAdvisor.cfapps.*.hana.ondemand.com/**",
       "https://*.applicationstudio.cloud.sap/**",
       "https://*.github*/**",
       "https://*.hana.ondemand.com/**",

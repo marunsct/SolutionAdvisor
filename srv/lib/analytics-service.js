@@ -1,5 +1,6 @@
 const cds = require('@sap/cds');
 const LOG = cds.log('analytics-service');
+const TenantContext = require('./tenant-context');
 
 /**
  * Analytics Service - Aggregates and computes dashboard metrics
@@ -38,6 +39,7 @@ class AnalyticsService {
    * @param {Array<string>} [filters.ricefwTypes] - Object type codes to include
    * @param {Array<string>} [filters.cleanCoreLevels] - Levels to include (A/B/C/D)
    * @param {string} [filters.projectId] - Filter by specific project UUID
+   * @param {string} tenant - Request tenant ID (required)
    * 
    * @returns {Promise<Object>} Complete analytics payload
    * @returns {number} totalAnalyses - Total count of analyses
@@ -55,11 +57,13 @@ class AnalyticsService {
    * Main entry point for dashboard analytics. Applies tenant filtering,
    * date ranges, and type filters. Returns empty structure if no data found.
    */
-  async getAnalyticsData(filters = {}) {
+  async getAnalyticsData(filters = {}, tenant) {
     try {
+      if (!tenant) {
+        throw new Error('tenant parameter required for analytics queries');
+      }
       // Build where clause with tenant filtering and optional filters
-      const whereClause = { tenant:'default' };
-      //{ tenant: cds.context.tenant || 'default' };
+      const whereClause = TenantContext.addTenantFilter({}, tenant);
 
       // Add date range filter
       if (filters.dateFrom) {
@@ -104,7 +108,7 @@ class AnalyticsService {
       // Prepare chart data
       const levelDistribution = this._prepareLevelDistribution(analyses);
       const ricefwTypeDistribution = this._prepareRicefwTypeDistribution(analyses);
-      const trendData = await this._prepareTrendData();
+      const trendData = await this._prepareTrendData(tenant);
       const riskMatrixData = this._prepareRiskMatrixData(analyses);
       const topObjects = this._prepareTopObjectsData(analyses);
       const projectComparison = await this._prepareProjectComparison(analyses);
@@ -240,13 +244,14 @@ class AnalyticsService {
    * Prepare time-series trend data using CAP query API for database portability
    * Works with both SQLite (development) and HANA Cloud (production)
    * @private
+   * @param {string} tenant - Request tenant ID
    */
-  async _prepareTrendData() {
+  async _prepareTrendData(tenant) {
     try {
       // Use CAP query API for database portability instead of raw SQL
       // Get all analyses with tenant filter, then group in JavaScript
       const analyses = await SELECT.from('sd.CleanCoreAnalysis')
-        .where({ tenant: cds.context.tenant || 'default' })
+        .where(TenantContext.addTenantFilter({}, tenant))
         .orderBy('createdAt');
 
       if (!analyses || analyses.length === 0) {

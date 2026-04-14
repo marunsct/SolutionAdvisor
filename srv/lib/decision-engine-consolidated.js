@@ -81,12 +81,12 @@ class DecisionEngine {
      * looks up the rule for the selected answer, and either returns the
      * next question or marks the flow as complete with a recommendation.
      */
-    async getNextQuestion(currentQuestionId, selectedAnswer) {
+    async getNextQuestion(currentQuestionId, selectedAnswer, objectType) {
         const { QuestionFlow } = cds.entities('sd');
         
         // Get current question to access navigation rules
         const currentQuestion = await SELECT.one.from(QuestionFlow)
-            .where({ questionId: currentQuestionId });
+            .where({ questionId: currentQuestionId, objectType: objectType });
         
         if (!currentQuestion || !currentQuestion.navigationRules) {
             throw new Error('Invalid question or missing navigation rules');
@@ -117,7 +117,7 @@ class DecisionEngine {
         
         // Get the next question
         const nextQuestion = await SELECT.one.from(QuestionFlow)
-            .where({ questionId: nextStep.nextQuestion, isActive: true });
+            .where({ questionId: nextStep.nextQuestion, objectType: objectType, isActive: true });
         
         if (!nextQuestion) {
             throw new Error(`Next question not found: ${nextStep.nextQuestion}`);
@@ -237,10 +237,10 @@ class DecisionEngine {
     /**
      * Get questions for a decision path visualization
      */
-    async getDecisionPathQuestions(analysisId) {
+    async getDecisionPathQuestions(analysisId, objectType) {
         const { DecisionPath, QuestionFlow } = cds.entities('sd');
         
-        // Get all decision path entries for this analysis
+        // Get all decision path entries for this analysis  
         const decisionPath = await SELECT.from(DecisionPath)
             .where({ analysis_ID: analysisId })
             .orderBy('stepOrder');
@@ -249,13 +249,16 @@ class DecisionEngine {
             return [];
         }
         
-        // Build result with question details
+        // OPTIMIZATION: Fetch all questions in one query instead of N queries (was N+1 pattern)
+        const questionIds = decisionPath.map(step => step.questionId);
+        const questions = await SELECT.from(QuestionFlow)
+            .where({ questionId: { in: questionIds }, objectType: objectType });
+        
+        // Build lookup map for efficient access
+        const questionMap = new Map(questions.map(q => [q.questionId, q]));
         const result = [];
         for (const step of decisionPath) {
-            // Get question details
-            const question = await SELECT.one.from(QuestionFlow)
-                .where({ questionId: step.questionId });
-                
+            const question = questionMap.get(step.questionId);
             if (question) {
                 result.push({
                     stepOrder: step.stepOrder,

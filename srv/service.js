@@ -68,6 +68,10 @@ module.exports = cds.service.impl(async function () {
     // Rate Limiting Enforcement
     // ===============================
 
+    // TODO(Phase 7): Replace in-memory rate limiting/cache with a distributed shared store
+    // (e.g., Redis or SAP-managed session/cache service) before enabling multi-instance production scale-out.
+    // Current implementation keeps state per app instance, which can cause inconsistent throttling/cache behavior
+    // behind a load balancer. Keep this enabled for now in single-instance/non-critical environments.
     this.before('*', (req) => {
         // Apply rate limiting to all requests
         const result = rateLimiter.checkLimit(req);
@@ -123,8 +127,7 @@ module.exports = cds.service.impl(async function () {
 
         if (cached) {
             LOG.debug('Returning cached CleanCoreLevels');
-            req.results = cached;
-            return; // Return cached data without calling database
+            return req.reply(cached); // Use req.reply() in CAP v9 to short-circuit DB call
         }
     });
 
@@ -139,8 +142,7 @@ module.exports = cds.service.impl(async function () {
 
         if (cached) {
             LOG.debug('Returning cached ObjectTypes');
-            req.results = cached;
-            return; // Return cached data without calling database
+            return req.reply(cached); // Use req.reply() in CAP v9 to short-circuit DB call
         }
     });
 
@@ -155,8 +157,7 @@ module.exports = cds.service.impl(async function () {
 
         if (cached) {
             LOG.debug('Returning cached PerformanceThresholds');
-            req.results = cached;
-            return; // Return cached data without calling database
+            return req.reply(cached); // Use req.reply() in CAP v9 to short-circuit DB call
         }
     });
 
@@ -174,8 +175,8 @@ module.exports = cds.service.impl(async function () {
         if (!sel) return;
 
         // Do not override columns for either entity or collection reads; let CAP infer
-        // Only enforce safe pagination defaults
-        if (!sel.limit) {
+        // Only enforce safe pagination defaults when client didn't specify $top
+        if (!sel.limit && !sel.count) {
             sel.limit = { rows: { val: 50 } };
             LOG.debug('Applied default pagination (50 rows) for Analyses');
         } else if (sel.limit?.rows?.val > 1000) {
@@ -207,8 +208,9 @@ module.exports = cds.service.impl(async function () {
             return req.error(400, 'Analysis ID is required');
         }
 
-        // Fetch the analysis to check ownership
-        const analysis = await SELECT.one.from(Analyses).where({ ID: analysisID });
+        // Fetch the analysis to check ownership (tenant-scoped to prevent cross-tenant access)
+        const tenant = req.user?.tenant || 'default';
+        const analysis = await SELECT.one.from(Analyses).where({ ID: analysisID, tenant: tenant });
 
         if (!analysis) {
             return req.error(404, 'Analysis not found');
@@ -299,6 +301,33 @@ module.exports = cds.service.impl(async function () {
     // ===============================
     // Custom Action Handlers
     // ===============================
+    /**
+     * Tenant Isolation for WizardSessions READ
+     * Auto-filters sessions by tenant
+     */
+    this.before('READ', 'WizardSessions', async (req) => {
+        const tenant = req.tenant;
+
+        // Add base tenant filter to all session queries
+        if (req.query && req.query.SELECT) {
+            const sel = req.query.SELECT;
+            const tenantFilter = [{ ref: ['tenant'] }, '=', { val: tenant }];
+
+            if (Array.isArray(sel.where) && sel.where.length > 0) {
+                sel.where = ['(', ...sel.where, ')', 'and', ...tenantFilter];
+            } else if (sel.where) {
+                sel.where = ['(', sel.where, ')', 'and', ...tenantFilter];
+            } else {
+                sel.where = tenantFilter;
+            }
+
+            LOG.debug(`Added tenant filter for WizardSessions READ (tenant=${tenant})`);
+        }
+    });
+
+    // ===============================
+    // Custom Action Handlers
+    // ===============================
 
     /**
      * Start Wizard - Initialize a new wizard session
@@ -370,7 +399,8 @@ module.exports = cds.service.impl(async function () {
             }
 
             // ✅ No existing draft found, proceed with creating new analysis
-            const analysisID = cds.utils.uuid();
+            let analysisID = cds.utils.uuid();
+            let createdNewAnalysis = true;
             const analysis = {
                 ID: analysisID,
                 projectConfig_ID: projectID,
@@ -384,10 +414,81 @@ module.exports = cds.service.impl(async function () {
                 tenant: tenant
             };
 
-            await INSERT.into(Analyses).entries(analysis);
+            // ✅ RACE CONDITION FIX: Wrap INSERT in try-catch for concurrent requests
+            try {
+                await INSERT.into(Analyses).entries(analysis);
+
+                // Best-effort deduplication: keep the oldest in-progress draft if concurrent inserts slipped through.
+                const concurrentDrafts = await SELECT.from(Analyses)
+                    .where({
+                        projectConfig_ID: projectID,
+                        ricefwId: ricefwId,
+                        status: 'In Progress',
+                        tenant: tenant
+                    })
+                    .orderBy({ createdAt: 'asc' });
+
+                if (concurrentDrafts.length > 1) {
+                    const winner = concurrentDrafts[0];
+                    if (winner?.ID && winner.ID !== analysisID) {
+                        await DELETE.from(Analyses).where({ ID: analysisID, tenant: tenant });
+                        analysisID = winner.ID;
+                        createdNewAnalysis = false;
+                        LOG.warn(`Concurrent draft deduplicated for RICEFW ${ricefwId}; winner=${winner.ID}, removed=${analysis.ID}`);
+                    }
+                }
+            } catch (insertError) {
+                let insertRecovered = false;
+
+                // Handle potential duplicate key violation (race condition recovery)
+                if (insertError.code === 'ERR_DB_CONSTRAINT_VIOLATION' || 
+                    insertError.code === 'ER_DUP_ENTRY' ||
+                    insertError.message?.includes('UNIQUE constraint failed') ||
+                    insertError.message?.includes('Duplicate entry')) {
+                    
+                    LOG.warn(`Duplicate key detected during analysis creation for RICEFW ${ricefwId}, retrying lookup...`);
+                    
+                    // Retry the lookup (another request won the race and created it)
+                    const raceWinnerAnalysis = await SELECT.one.from(Analyses)
+                        .where({
+                            projectConfig_ID: projectID,
+                            ricefwId: ricefwId,
+                            status: 'In Progress',
+                            tenant: tenant
+                        });
+                    
+                    if (raceWinnerAnalysis?.ID) {
+                        LOG.info(`Race condition recovered: Found analysis ${raceWinnerAnalysis.ID} created by concurrent request`);
+                        const existingSession = await SELECT.one.from(WizardSessions)
+                            .where({ analysis_ID: raceWinnerAnalysis.ID, tenant: tenant })
+                            .orderBy({ lastActivity: 'desc' });
+                        
+                        if (existingSession?.ID && existingSession.sessionStatus !== 'Completed') {
+                            const firstQuestion = await decisionEngine.getFirstQuestion(objectType);
+                            return {
+                                sessionID: existingSession.ID,
+                                analysisID: raceWinnerAnalysis.ID,
+                                firstQuestion: firstQuestion,
+                                isResumed: true
+                            };
+                        }
+
+                        // Continue using winner analysis if no session exists yet
+                        analysisID = raceWinnerAnalysis.ID;
+                        createdNewAnalysis = false;
+                        insertRecovered = true;
+                    }
+                }
+
+                if (!insertRecovered) {
+                    throw insertError; // Re-throw if we can't recover
+                }
+            }
 
             // Audit log: Analysis created
-            await auditService.logDataChange(req, 'CREATE', 'CleanCoreAnalysis', analysisID, null, analysis);
+            if (createdNewAnalysis) {
+                await auditService.logDataChange(req, 'CREATE', 'CleanCoreAnalysis', analysisID, null, analysis);
+            }
 
             // Create wizard session
             const sessionID = cds.utils.uuid();
@@ -476,9 +577,23 @@ module.exports = cds.service.impl(async function () {
                 return req.error(404, req.t('error.wizardSessionNotFound'));
             }
 
-            // Get question details
+            // Get analysis FIRST to determine object type for question filtering
+            // Also expand projectConfig upfront to avoid a second query in the completion block
+            const analysis = await SELECT.one.from(Analyses)
+                .where({ ID: session.analysis_ID, tenant: tenant })
+                .columns(a => a('*', a.projectConfig('*')));
+
+            if (!analysis) {
+                return req.error(404, `Analysis ${session.analysis_ID} not found`);
+            }
+
+            // Get question details WITH objectType filter to prevent cross-flow question mismatches
             const question = await SELECT.one.from(QuestionFlows)
-                .where({ questionId: questionId });
+                .where({ questionId: questionId, objectType: analysis.objectType });
+
+            if (!question) {
+                return req.error(404, `Question ${questionId} not found for object type ${analysis.objectType}`);
+            }
 
             // Create decision path entry
             const decisionPathID = cds.utils.uuid();
@@ -499,10 +614,6 @@ module.exports = cds.service.impl(async function () {
 
             await INSERT.into(DecisionPaths).entries(decisionPath);
 
-            // Get analysis to determine object type
-            const analysis = await SELECT.one.from(Analyses)
-                .where({ ID: session.analysis_ID });
-
             // Get next question or completion
             const nextStep = await decisionEngine.getNextQuestion(
                 questionId,
@@ -511,7 +622,13 @@ module.exports = cds.service.impl(async function () {
             );
 
             // Update answered path
-            const answeredPath = JSON.parse(session.answeredPath || '[]');
+            let answeredPath;
+            try {
+                answeredPath = JSON.parse(session.answeredPath || '[]');
+            } catch (_parseErr) {
+                LOG.warn('Malformed answeredPath JSON, resetting to empty array', { sessionID });
+                answeredPath = [];
+            }
             answeredPath.push({
                 questionId: questionId,
                 questionText: question.questionText,
@@ -536,13 +653,10 @@ module.exports = cds.service.impl(async function () {
 
                 // Get decision paths to calculate additional metrics
                 const decisionPaths = await SELECT.from(DecisionPaths)
-                    .where({ analysis_ID: session.analysis_ID })
+                    .where({ analysis_ID: session.analysis_ID, tenant: tenant })
                     .orderBy('stepOrder');
 
-                // Get analysis data to extract project config
-                const analysis = await SELECT.one.from(Analyses)
-                    .where({ ID: session.analysis_ID })
-                    .columns(a => a('*', a.projectConfig('*')));
+                // Reuse `analysis` (already expanded with projectConfig above)
 
                 // Calculate risk assessment and compliance status
                 const riskAssessment = scoringService.calculateRiskAssessment(
@@ -614,8 +728,8 @@ module.exports = cds.service.impl(async function () {
                         await notificationService.notifyHighTechnicalDebt(analysisData, userData);
                     }
 
-                    // Check for low cloud readiness (threshold: 50%)
-                    if (scores.cloudReadiness < 50) {
+                    // Check for low cloud readiness (threshold: 40)
+                    if (scores.cloudReadiness <= 40) {
                         await notificationService.notifyLowCloudReadiness(analysisData, userData);
                     }
 
@@ -751,7 +865,7 @@ module.exports = cds.service.impl(async function () {
 
             // Get decision paths for effort and complexity calculations
             const decisionPaths = await SELECT.from(DecisionPaths)
-                .where({ analysis_ID: analysisID })
+                .where({ analysis_ID: analysisID, tenant: tenant })
                 .orderBy('stepOrder');
 
             // Calculate risk and compliance data
@@ -1045,9 +1159,20 @@ module.exports = cds.service.impl(async function () {
                 })
                 .where({ ID: sessionID });
 
+            const analysis = await SELECT.one.from(Analyses)
+                .where({ ID: session.analysis_ID, tenant: tenant });
+
+            if (!analysis) {
+                return req.error(404, `Analysis ${session.analysis_ID} not found`);
+            }
+
             // Get current question
             const question = await SELECT.one.from(QuestionFlows)
-                .where({ questionId: session.currentQuestionId });
+                .where({ questionId: session.currentQuestionId, objectType: analysis.objectType });
+
+            if (!question) {
+                return req.error(404, `Question ${session.currentQuestionId} not found for object type ${analysis.objectType}`);
+            }
 
             return {
                 currentQuestion: decisionEngine.formatQuestion(question),
@@ -1070,14 +1195,25 @@ module.exports = cds.service.impl(async function () {
         const { analysisID, format } = req.data;
 
         try {
-            // This is a placeholder - actual implementation would generate SVG/PNG/PDF
-            const filename = `flowchart_${analysisID}.${format}`;
-            const downloadUrl = `/exports/${filename}`;
+            if (!analysisID) {
+                return req.error(400, 'Analysis ID is required');
+            }
 
-            return {
-                downloadUrl: downloadUrl,
-                filename: filename
-            };
+            const validFormats = ['svg', 'png', 'pdf'];
+            if (!format || !validFormats.includes(format.toLowerCase())) {
+                return req.error(400, `Unsupported format. Supported formats: ${validFormats.join(', ')}`);
+            }
+
+            // Verify analysis exists
+            const tenant = req.user?.tenant || 'default';
+            const analysis = await SELECT.one.from(Analyses)
+                .where({ ID: analysisID, tenant: tenant });
+
+            if (!analysis) {
+                return req.error(404, 'Analysis not found');
+            }
+
+            return req.error(501, 'Flowchart export is not yet implemented. Use the client-side flowchart download feature instead.');
         } catch (error) {
             LOG.error('Error exporting flowchart:', error);
             return req.error(500, req.t('error.exportFlowchartFailed', [error.message]));
@@ -1154,11 +1290,12 @@ module.exports = cds.service.impl(async function () {
         const tenant = req.user?.tenant || 'default';
 
         try {
-            // If admin, return all projects
+            // If admin, return all projects (paginated)
             if (req.user?.is('Admin')) {
                 const projects = await SELECT.from(Projects)
                     .where({ tenant: tenant })
-                    .columns('ID', 'projectName', 'clientName', 'status', 's4HanaFlavor');
+                    .columns('ID', 'projectName', 'clientName', 'status', 's4HanaFlavor')
+                    .limit(100);
                 return projects;
             }
 
@@ -1242,7 +1379,7 @@ module.exports = cds.service.impl(async function () {
             LOG.info(`Cascade deleted all analyses for project ${projectID}`);
         } catch (error) {
             LOG.error('Error cascade deleting analyses for project:', error);
-            // Continue with project deletion even if analyses deletion fails
+            return req.error(500, 'Cannot delete project: failed to delete associated analyses');
         }
     });
 
@@ -1362,7 +1499,7 @@ module.exports = cds.service.impl(async function () {
                 try {
                     filters.ricefwTypes = JSON.parse(req.data.ricefwTypes);
                 } catch {
-                    LOG.warning('Failed to parse ricefwTypes, ignoring filter');
+                    LOG.warn('Failed to parse ricefwTypes, ignoring filter');
                 }
             }
 
@@ -1370,12 +1507,13 @@ module.exports = cds.service.impl(async function () {
                 try {
                     filters.cleanCoreLevels = JSON.parse(req.data.cleanCoreLevels);
                 } catch {
-                    LOG.warning('Failed to parse cleanCoreLevels, ignoring filter');
+                    LOG.warn('Failed to parse cleanCoreLevels, ignoring filter');
                 }
             }
 
             LOG.debug('Resolved filters:', filters);
-            const analyticsData = await analyticsService.getAnalyticsData(filters);
+            const tenant = req.user?.tenant || req.tenant;
+            const analyticsData = await analyticsService.getAnalyticsData(filters, tenant);
             LOG.debug('Analytics data retrieved:', analyticsData ? 'success' : 'empty');
             return analyticsData;
         } catch (error) {
@@ -1417,97 +1555,8 @@ module.exports = cds.service.impl(async function () {
 
     // ===============================
     // Rate Limiting Management Handlers
+    // (see handlers below, after notification handlers)
     // ===============================
-
-    /**
-     * Get rate limit status
-     */
-    this.on('getRateLimitStatus', async (req) => {
-        try {
-            const { userId, tenantId } = req.data;
-
-            // Use current user if not specified (non-admins can only check their own status)
-            const targetUserId = userId || req.user.id;
-            const targetTenantId = tenantId || req.user.tenant;
-
-            // Admins can check any user's status, others only their own
-            if (!req.user.is('Admin') && !req.user.is('TenantAdmin')) {
-                if (targetUserId !== req.user.id) {
-                    return req.error(403, 'You can only check your own rate limit status');
-                }
-            }
-
-            const status = rateLimiter.getStatus(targetUserId, targetTenantId);
-            return status;
-        } catch (error) {
-            LOG.error('Error getting rate limit status:', error);
-            return req.error(500, `Failed to get rate limit status: ${error.message}`);
-        }
-    });
-
-    /**
-     * Reset user rate limit (Admin only)
-     */
-    this.on('resetUserRateLimit', async (req) => {
-        try {
-            const { userId } = req.data;
-
-            if (!userId) {
-                return { success: false, message: 'User ID is required' };
-            }
-
-            rateLimiter.resetUser(userId);
-
-            // Audit log
-            await auditService.logSecurityEvent(req, 'RATE_LIMIT_RESET', 'User', userId, {
-                resetBy: req.user.id,
-                reason: 'Manual reset by administrator'
-            });
-
-            return {
-                success: true,
-                message: `Rate limit reset successfully for user ${userId}`
-            };
-        } catch (error) {
-            LOG.error('Error resetting user rate limit:', error);
-            return {
-                success: false,
-                message: `Failed to reset rate limit: ${error.message}`
-            };
-        }
-    });
-
-    /**
-     * Reset tenant rate limit (Admin only)
-     */
-    this.on('resetTenantRateLimit', async (req) => {
-        try {
-            const { tenantId } = req.data;
-
-            if (!tenantId) {
-                return { success: false, message: 'Tenant ID is required' };
-            }
-
-            rateLimiter.resetTenant(tenantId);
-
-            // Audit log
-            await auditService.logSecurityEvent(req, 'RATE_LIMIT_RESET', 'Tenant', tenantId, {
-                resetBy: req.user.id,
-                reason: 'Manual reset by administrator'
-            });
-
-            return {
-                success: true,
-                message: `Rate limit reset successfully for tenant ${tenantId}`
-            };
-        } catch (error) {
-            LOG.error('Error resetting tenant rate limit:', error);
-            return {
-                success: false,
-                message: `Failed to reset rate limit: ${error.message}`
-            };
-        }
-    });
 
 
 
@@ -1523,13 +1572,14 @@ module.exports = cds.service.impl(async function () {
             const tenant = req.user?.tenant || 'default';
 
             // Delete expired notifications for this user (fire-and-forget)
-            DELETE.from(Notifications)
-                .where({
-                    userId: userId,
-                    tenant: tenant,
-                    expiresAt: { '<': now.toISOString() }
-                })
-                .catch(err => LOG.error('Failed to cleanup expired notifications:', err));
+            cds.run(
+                DELETE.from(Notifications)
+                    .where({
+                        userId: userId,
+                        tenant: tenant,
+                        expiresAt: { '<': now.toISOString() }
+                    })
+            ).catch(err => LOG.error('Failed to cleanup expired notifications:', err));
 
         } catch (error) {
             LOG.error('Error in notifications after hook:', error);

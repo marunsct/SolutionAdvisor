@@ -8,7 +8,7 @@ modules:
   path: gen/srv
   requires:
   - name: SolutionAdvisor-auth
-  - name: SolutionAdvisor-db
+  - name: SolutionAdvisor-sm
   - name: SolutionAdvisor-alerts
   - name: SolutionAdvisor-logging
   provides:
@@ -22,22 +22,41 @@ modules:
     disk-quota: 1024M
   build-parameters:
     builder: npm-ci
-- name: SolutionAdvisor-db-deployer
-  type: hdb
-  path: gen/db
+- name: SolutionAdvisor-mtx
+  type: nodejs
+  path: gen/mtx/sidecar
   requires:
-  - name: SolutionAdvisor-db
+  - name: SolutionAdvisor-auth
+  - name: SolutionAdvisor-sm
+  - name: SolutionAdvisor-registry
+  provides:
+  - name: mtx-api
+    properties:
+      mtx-url: ${default-url}
   parameters:
     buildpack: nodejs_buildpack
+    instances: 1
+    memory: 256M
+    disk-quota: 512M
+  build-parameters:
+    builder: npm-ci
 - name: solutionadvisor-approuter
   type: approuter.nodejs
   path: app
+  properties:
+    TENANT_HOST_PATTERN: "^(.*)-${default-uri}"
   requires:
   - name: srv-api
     group: destinations
     properties:
       name: srv-api
       url: ~{srv-url}
+      forwardAuthToken: true
+  - name: mtx-api
+    group: destinations
+    properties:
+      name: mtx-api
+      url: ~{mtx-url}
       forwardAuthToken: true
   - name: SolutionAdvisor-auth
   - name: SolutionAdvisor_html_repo_runtime
@@ -47,6 +66,11 @@ modules:
       forwardAuthToken: false
       name: ui5
       url: https://ui5.sap.com
+  provides:
+  - name: app-api
+    properties:
+      url: ${default-url}
+      domain: ${domain}
   parameters:
     buildpack: nodejs_buildpack
     disk-quota: 512M
@@ -82,16 +106,32 @@ resources:
   type: org.cloudfoundry.managed-service
   parameters:
     config:
-      tenant-mode: dedicated
+      tenant-mode: shared
       xsappname: SolutionAdvisor
     path: ./xs-security.json
     service: xsuaa
     service-plan: application
-- name: SolutionAdvisor-db
-  type: com.sap.xs.hdi-container
+- name: SolutionAdvisor-sm
+  type: org.cloudfoundry.managed-service
   parameters:
-    service: hana
-    service-plan: hdi-shared
+    service: service-manager
+    service-plan: container
+- name: SolutionAdvisor-registry
+  type: org.cloudfoundry.managed-service
+  requires:
+  - name: mtx-api
+  parameters:
+    service: saas-registry
+    service-plan: application
+    config:
+      appName: SolutionAdvisor-${org}-${space}
+      xsappname: SolutionAdvisor
+      appUrls:
+        getDependencies: ~{mtx-api/mtx-url}/-/cds/saas-provisioning/dependencies
+        onSubscription: ~{mtx-api/mtx-url}/-/cds/saas-provisioning/tenant/{tenantId}
+        onSubscriptionAsync: true
+        onUnSubscriptionAsync: true
+        callbackTimeoutMillis: 300000
 - name: SolutionAdvisor_html_repo_runtime
   type: org.cloudfoundry.managed-service
   parameters:

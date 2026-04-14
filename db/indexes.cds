@@ -2,7 +2,7 @@ namespace sd;
 
 using { sd } from './schema';
 
-/**
+/*
  * Database Indexes for Performance Optimization
  * 
  * Indexes are created on frequently queried columns to improve:
@@ -84,7 +84,7 @@ annotate sd.CleanCoreAnalysis with @(cds.persistence.indexes: {
     },
     idx_level_tenant: { 
         unique: false, 
-        elements: ['recommendedLevel_levelCode', 'tenant'] 
+        elements: ['finalRecommendation', 'tenant']
     }
 });
 
@@ -234,7 +234,7 @@ annotate sd.CleanCoreLevels with @(cds.persistence.indexes: {
 annotate sd.ObjectTypes with @(cds.persistence.indexes: {
     idx_code_unique: { 
         unique: true, 
-        elements: ['code'] 
+        elements: ['objectCode'] 
     },
     idx_active: { 
         unique: false, 
@@ -254,9 +254,9 @@ annotate sd.ConstraintLog with @(cds.persistence.indexes: {
         unique: false, 
         elements: ['analysis_ID'] 
     },
-    idx_threshold_violated: { 
+    idx_constraint_type: { 
         unique: false, 
-        elements: ['threshold_ID', 'wasViolated'] 
+        elements: ['constraintType'] 
     },
     idx_displayed_tenant: { 
         unique: false, 
@@ -320,16 +320,16 @@ annotate sd.AuditLog with @(cds.persistence.indexes: {
         unique: false, 
         elements: ['entityType', 'entityId'] 
     },
-    idx_action_tenant: { 
+    idx_event_tenant: { 
         unique: false, 
-        elements: ['actionType', 'tenant'] 
+        elements: ['eventType', 'tenant'] 
     },
     idx_user_timestamp: { 
         unique: false, 
-        elements: ['userId', 'actionTimestamp'] 
+        elements: ['userId', 'timestamp'] 
     },
     idx_timestamp_tenant: { 
         unique: false, 
-        elements: ['actionTimestamp', 'tenant'] 
+        elements: ['timestamp', 'tenant'] 
     }
 });

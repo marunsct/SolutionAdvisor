@@ -79,6 +79,19 @@ service AdminService {
     // ===============================
 
     /**
+     * Cleanup expired wizard sessions
+     * Triggered manually by admin or via scheduled job
+     */
+    action   cleanupExpiredSessions(dryRun : Boolean) returns {
+        success    : Boolean;
+        cleaned    : Integer;
+        expired    : Integer;
+        errors     : Integer;
+        durationMs : Integer;
+        message    : String;
+    };
+
+    /**
      * Validate QuestionFlow navigation logic
      * Ensures JSON navigation logic is valid and all references exist
      */
@@ -368,4 +381,6 @@ service AdminService {
             };
         };
     };
+
+
 }

@@ -8,6 +8,7 @@
     "@sap-cloud-sdk/http-client": "^4.1.2",
     "@sap-cloud-sdk/util": "^4.1.2",
     "@sap/cds": "^9",
+    "@sap/cds-mtxs": "^3.8.1",
     "@sap/low-code-event-handler": "^1.2.5",
     "@sap/xsenv": "^6.0.0",
     "@sap/xssec": "^4.10.0",
@@ -74,8 +75,11 @@
   },
   "private": true,
   "cds": {
+    "profile": "with-mtx-sidecar",
     "requires": {
       "[production]": {
+        "multitenancy": true,
+        "toggles": true,
         "db": "hana",
         "auth": "xsuaa",
         "mail": {

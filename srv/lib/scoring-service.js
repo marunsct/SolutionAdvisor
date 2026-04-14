@@ -86,9 +86,15 @@ class ScoringService {
             };
         }
         
+        // Get project config for deployment bonus calculation
+        const { ProjectConfiguration } = cds.entities('sd');
+        const projectConfig = analysis.projectConfig_ID ? 
+            await SELECT.one.from(ProjectConfiguration).where({ ID: analysis.projectConfig_ID }) : 
+            null;
+
         // Calculate individual scores
         const technicalDebtScore = this.calculateTechnicalDebt(decisionPaths, level);
-    const cloudReadinessScore = this.calculateCloudReadiness({ ...analysis, finalRecommendation: canonicalLevel }, level);
+        const cloudReadinessScore = this.calculateCloudReadiness({ ...analysis, finalRecommendation: canonicalLevel }, level, projectConfig);
         const upgradeImpactScore = this.calculateUpgradeImpact(decisionPaths, level);
         const compositeHealthScore = this.calculateCompositeHealth(
             technicalDebtScore,
@@ -146,7 +152,7 @@ class ScoringService {
      * Formula: CRS = (Count_Level_A + 0.5 × Count_Level_B) / Total × 100
      * Higher is better - 100 means fully cloud ready
      */
-    calculateCloudReadiness(analysis, level) {
+    calculateCloudReadiness(analysis, level, projectConfig) {
         // Based on final recommendation level (canonical form)
         const levelScores = {
             'Level A': 100,
@@ -156,10 +162,12 @@ class ScoringService {
         };
         
         const baseScore = levelScores[analysis.finalRecommendation] || 50;
-    const levelFactor = (level.cloudReadinessFactor ?? 0.5);
+        const levelFactor = (level.cloudReadinessFactor ?? 0.5);
         
-        // Apply level factor and ensure score is between 0-100
-        const score = Math.min(100, Math.max(0, baseScore * levelFactor * 2));
+        // Apply level factor + deployment flavor bonus
+        const baseCalculatedScore = baseScore * levelFactor;
+        const deploymentBonus = this.getDeploymentBonus(projectConfig) || 0;
+        const score = Math.min(100, Math.max(0, baseCalculatedScore + deploymentBonus));
         return parseFloat(score.toFixed(2));
     }
 
@@ -240,12 +248,26 @@ class ScoringService {
     /**
      * Get deployment type bonus for cloud readiness
      */
+    /**
+     * Get deployment type bonus for cloud readiness
+     * Returns bonus points based on S/4HANA deployment flavor
+     * Cloud-native deployments get higher bonuses since less migration work needed
+     * @param {Object} projectConfig - Project configuration object with s4HanaFlavor
+     * @returns {number} Bonus points (0-25) to add to cloud readiness score
+     */
     getDeploymentBonus(projectConfig) {
-        if (!projectConfig) return 0;
+        if (!projectConfig || !projectConfig.s4HanaFlavor) return 0;
         
-        // This would typically fetch project config from database
-        // For now, return a default bonus
-        return 10;
+        // Bonus points by S/4HANA deployment flavor
+        // Higher bonus = already closer to cloud-native, less migration work
+        const bonusByFlavor = {
+            'Cloud Public': 25,      // Already cloud-native, highest readiness
+            'Cloud Private': 15,     // Some cloud infrastructure, moderate effort
+            'On-Premise': 0,         // Traditional deployment, maximum work needed
+            'Hybrid': 10             // Mix of on-prem and cloud
+        };
+        
+        return bonusByFlavor[projectConfig.s4HanaFlavor] || 0;
     }
 
     /**
