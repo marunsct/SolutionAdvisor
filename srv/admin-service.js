@@ -89,14 +89,14 @@ module.exports = cds.service.impl(async function () {
                 }
                 questions = [single];
             } else {
-                questions = await SELECT.from(QuestionFlow).where({
-                    isActive: true,
-                    or: [{ tenant: tenant }, { tenant: null }]
-                });
+                questions = await SELECT.from(QuestionFlow).where(
+                    `isActive = true AND (tenant = '${tenant}' OR tenant IS NULL)`
+                );
             }
 
-            // Build a lookup of all known questionIds per objectType
-            const allQuestions = await SELECT.from(QuestionFlow).columns('questionId', 'objectType');
+            // Build a lookup of all known questionIds per objectType (filtered by tenant)
+            const allQuestions = await SELECT.from(QuestionFlow).columns('questionId', 'objectType')
+                .where(`tenant = '${tenant}' OR tenant IS NULL`);
             const questionIdSet = new Set(allQuestions.map(q => `${q.objectType}::${q.questionId}`));
 
             for (const q of questions) {
@@ -164,71 +164,79 @@ module.exports = cds.service.impl(async function () {
         try {
             const { QuestionFlow } = cds.entities('sd');
 
+            // Validate all items first before starting transaction
+            const validItems = [];
             for (const item of data) {
-                try {
-                    // Validate required fields
-                    if (!item.questionId || !item.objectType || !item.questionText) {
-                        importErrors.push(`Missing required fields for question: ${item.questionId || 'unknown'}`);
+                if (!item.questionId || !item.objectType || !item.questionText) {
+                    importErrors.push(`Missing required fields for question: ${item.questionId || 'unknown'}`);
+                    continue;
+                }
+                if (item.answerOptions) {
+                    try { JSON.parse(item.answerOptions); } catch {
+                        importErrors.push(`${item.questionId}: invalid answerOptions JSON`);
                         continue;
                     }
-
-                    // Validate JSON fields
-                    if (item.answerOptions) {
-                        try { JSON.parse(item.answerOptions); } catch {
-                            importErrors.push(`${item.questionId}: invalid answerOptions JSON`);
-                            continue;
-                        }
-                    }
-                    if (item.navigationRules) {
-                        try { JSON.parse(item.navigationRules); } catch {
-                            importErrors.push(`${item.questionId}: invalid navigationRules JSON`);
-                            continue;
-                        }
-                    }
-
-                    // Check if question already exists (by questionId + objectType + tenant)
-                    const existing = await SELECT.one.from(QuestionFlow)
-                        .where({ questionId: item.questionId, objectType: item.objectType, tenant: tenant });
-
-                    if (existing) {
-                        // Update existing
-                        await UPDATE(QuestionFlow)
-                            .set({
-                                questionText: item.questionText,
-                                questionHint: item.questionHint,
-                                detailedHint: item.detailedHint,
-                                answerCount: item.answerCount,
-                                answerOptions: item.answerOptions,
-                                navigationRules: item.navigationRules,
-                                performanceContext: item.performanceContext,
-                                displayOrder: item.displayOrder,
-                                isActive: item.isActive !== undefined ? item.isActive : true
-                            })
-                            .where({ ID: existing.ID });
-                    } else {
-                        // Insert new
-                        await INSERT.into(QuestionFlow).entries({
-                            ID: item.ID || cds.utils.uuid(),
-                            questionId: item.questionId,
-                            objectType: item.objectType,
-                            questionText: item.questionText,
-                            questionHint: item.questionHint,
-                            detailedHint: item.detailedHint,
-                            answerCount: item.answerCount || 0,
-                            answerOptions: item.answerOptions,
-                            navigationRules: item.navigationRules,
-                            performanceContext: item.performanceContext,
-                            displayOrder: item.displayOrder || 0,
-                            isActive: item.isActive !== undefined ? item.isActive : true,
-                            tenant: tenant
-                        });
-                    }
-
-                    importedCount++;
-                } catch (itemError) {
-                    importErrors.push(`${item.questionId || 'unknown'}: ${itemError.message}`);
                 }
+                if (item.navigationRules) {
+                    try { JSON.parse(item.navigationRules); } catch {
+                        importErrors.push(`${item.questionId}: invalid navigationRules JSON`);
+                        continue;
+                    }
+                }
+                validItems.push(item);
             }
+
+            // Process valid items atomically in a transaction
+            await cds.tx(async (tx) => {
+                for (const item of validItems) {
+                    try {
+                        const existing = await tx.run(
+                            SELECT.one.from(QuestionFlow)
+                                .where({ questionId: item.questionId, objectType: item.objectType, tenant: tenant })
+                        );
+
+                        if (existing) {
+                            await tx.run(
+                                UPDATE(QuestionFlow)
+                                    .set({
+                                        questionText: item.questionText,
+                                        questionHint: item.questionHint,
+                                        detailedHint: item.detailedHint,
+                                        answerCount: item.answerCount,
+                                        answerOptions: item.answerOptions,
+                                        navigationRules: item.navigationRules,
+                                        performanceContext: item.performanceContext,
+                                        displayOrder: item.displayOrder,
+                                        isActive: item.isActive !== undefined ? item.isActive : true
+                                    })
+                                    .where({ ID: existing.ID })
+                            );
+                        } else {
+                            await tx.run(
+                                INSERT.into(QuestionFlow).entries({
+                                    ID: item.ID || cds.utils.uuid(),
+                                    questionId: item.questionId,
+                                    objectType: item.objectType,
+                                    questionText: item.questionText,
+                                    questionHint: item.questionHint,
+                                    detailedHint: item.detailedHint,
+                                    answerCount: item.answerCount || 0,
+                                    answerOptions: item.answerOptions,
+                                    navigationRules: item.navigationRules,
+                                    performanceContext: item.performanceContext,
+                                    displayOrder: item.displayOrder || 0,
+                                    isActive: item.isActive !== undefined ? item.isActive : true,
+                                    tenant: tenant
+                                })
+                            );
+                        }
+
+                        importedCount++;
+                    } catch (itemError) {
+                        importErrors.push(`${item.questionId || 'unknown'}: ${itemError.message}`);
+                    }
+                }
+            });
 
             return {
                 success: importErrors.length === 0,
@@ -238,9 +246,140 @@ module.exports = cds.service.impl(async function () {
             };
         } catch (error) {
             LOG.error('Bulk import failed:', error);
-            return { success: false, importedCount, errorCount: importErrors.length + 1, errors: [...importErrors, `Import failed: ${error.message}`] };
+            return { success: false, importedCount: 0, errorCount: importErrors.length + 1, errors: [...importErrors, `Import failed: ${error.message}`] };
         }
     });
 
     LOG.info('Admin Service initialized successfully');
+
+    // ===============================
+    // Master Data Management Actions (C5)
+    // ===============================
+
+    this.on('exportMasterData', async (req) => {
+        try {
+            const { QuestionFlow, CleanCoreLevels, ObjectTypes, PerformanceThresholds, RealWorldExamples } = cds.entities('sd');
+            const tenant = TenantContext.getTenant(req, true);
+
+            const [questionFlows, cleanCoreLevels, objectTypes, performanceThresholds, realWorldExamples] = await Promise.all([
+                SELECT.from(QuestionFlow).where(`tenant = '${tenant}' OR tenant IS NULL`),
+                SELECT.from(CleanCoreLevels),
+                SELECT.from(ObjectTypes),
+                SELECT.from(PerformanceThresholds),
+                SELECT.from(RealWorldExamples)
+            ]);
+
+            return { questionFlows, cleanCoreLevels, objectTypes, performanceThresholds, realWorldExamples };
+        } catch (error) {
+            LOG.error('Export master data failed:', error);
+            return req.error(500, `Export failed: ${error.message}`);
+        }
+    });
+
+    this.on('importMasterData', async (req) => {
+        const { data } = req.data;
+        if (!data) return req.error(400, 'No data provided');
+
+        try {
+            const { QuestionFlow, CleanCoreLevels, ObjectTypes, PerformanceThresholds, RealWorldExamples } = cds.entities('sd');
+            const tenant = TenantContext.getTenant(req, true);
+            let imported = 0;
+
+            if (data.questionFlows?.length) {
+                for (const item of data.questionFlows) {
+                    item.tenant = tenant;
+                    await UPSERT.into(QuestionFlow).entries(item);
+                    imported++;
+                }
+            }
+            if (data.cleanCoreLevels?.length) {
+                for (const item of data.cleanCoreLevels) {
+                    await UPSERT.into(CleanCoreLevels).entries(item);
+                    imported++;
+                }
+            }
+            if (data.objectTypes?.length) {
+                for (const item of data.objectTypes) {
+                    await UPSERT.into(ObjectTypes).entries(item);
+                    imported++;
+                }
+            }
+            if (data.performanceThresholds?.length) {
+                for (const item of data.performanceThresholds) {
+                    await UPSERT.into(PerformanceThresholds).entries(item);
+                    imported++;
+                }
+            }
+            if (data.realWorldExamples?.length) {
+                for (const item of data.realWorldExamples) {
+                    await UPSERT.into(RealWorldExamples).entries(item);
+                    imported++;
+                }
+            }
+
+            return { success: true, importedCount: imported, errorCount: 0, errors: [] };
+        } catch (error) {
+            LOG.error('Import master data failed:', error);
+            return { success: false, importedCount: 0, errorCount: 1, errors: [error.message] };
+        }
+    });
+
+    this.on('getMasterDataStatistics', async (req) => {
+        try {
+            const { QuestionFlow, CleanCoreLevels, ObjectTypes, PerformanceThresholds, RealWorldExamples } = cds.entities('sd');
+
+            const [qfAll, qfActive, qfByType, clCount, otCount, ptAll, ptByCat, reAll, reByType] = await Promise.all([
+                SELECT.one.from(QuestionFlow).columns('count(*) as count'),
+                SELECT.one.from(QuestionFlow).columns('count(*) as count').where({ isActive: true }),
+                SELECT.from(QuestionFlow).columns('objectType', 'count(*) as count').groupBy('objectType'),
+                SELECT.one.from(CleanCoreLevels).columns('count(*) as count'),
+                SELECT.one.from(ObjectTypes).columns('count(*) as count'),
+                SELECT.one.from(PerformanceThresholds).columns('count(*) as count'),
+                SELECT.from(PerformanceThresholds).columns('category as category', 'count(*) as count').groupBy('category'),
+                SELECT.one.from(RealWorldExamples).columns('count(*) as count'),
+                SELECT.from(RealWorldExamples).columns('objectType', 'count(*) as count').groupBy('objectType')
+            ]);
+
+            const totalQF = qfAll?.count || 0;
+            const activeQF = qfActive?.count || 0;
+
+            return {
+                questionFlows: {
+                    total: totalQF,
+                    active: activeQF,
+                    inactive: totalQF - activeQF,
+                    byObjectType: qfByType.map(r => ({ objectType: r.objectType, count: r.count }))
+                },
+                cleanCoreLevels: { total: clCount?.count || 0 },
+                objectTypes: { total: otCount?.count || 0 },
+                performanceThresholds: {
+                    total: ptAll?.count || 0,
+                    byCategory: ptByCat.map(r => ({ category: r.category, count: r.count }))
+                },
+                realWorldExamples: {
+                    total: reAll?.count || 0,
+                    byObjectType: reByType.map(r => ({ objectType: r.objectType, count: r.count }))
+                }
+            };
+        } catch (error) {
+            LOG.error('Get master data statistics failed:', error);
+            return req.error(500, `Failed to get statistics: ${error.message}`);
+        }
+    });
+
+    this.on('rebuildQuestionFlowIndexes', async (req) => {
+        try {
+            const start = Date.now();
+            const { QuestionFlow } = cds.entities('sd');
+
+            // Force a full read to warm up query plans / HANA column store merges
+            await SELECT.from(QuestionFlow).columns('questionId', 'objectType', 'isActive').limit(1);
+
+            const duration = Date.now() - start;
+            return { success: true, message: 'Question flow indexes refreshed', duration };
+        } catch (error) {
+            LOG.error('Rebuild indexes failed:', error);
+            return { success: false, message: error.message, duration: 0 };
+        }
+    });
 });

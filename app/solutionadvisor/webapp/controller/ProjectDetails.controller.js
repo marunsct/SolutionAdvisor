@@ -5,8 +5,10 @@ sap.ui.define([
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/core/Fragment",
-    "sap/base/Log"
-], (Controller, History, JSONModel, MessageToast, MessageBox, Fragment, Log) => {
+    "sap/base/Log",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator"
+], (Controller, History, JSONModel, MessageToast, MessageBox, Fragment, Log, Filter, FilterOperator) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.ProjectDetails", {
@@ -33,30 +35,22 @@ sap.ui.define([
             const oViewModel = this.getView().getModel("viewModel");
             oViewModel.setProperty("/editMode", false);
             
-            // Bind element with expand and attach request completed
-            const oBinding = this.getView().bindElement({
+            // Bind element with $expand for OData V4
+            this.getView().bindElement({
                 path: `/Projects(${sProjectId})`,
                 parameters: {
-                    expand: "analyses"
+                    $expand: "analyses"
                 }
             });
             
-            // Hide loading when binding context is available
-            if (oBinding.attachDataReceived) {
-                oBinding.attachDataReceived(() => {
+            // Use getElementBinding() to attach data events (OData V4 pattern)
+            const oElementBinding = this.getView().getElementBinding();
+            if (oElementBinding) {
+                oElementBinding.attachEventOnce("dataReceived", () => {
                     this.getView().setBusy(false);
                 });
             } else {
-                // Fallback: use requestObject for OData V4
-                const oModel = this.getView().getModel();
-                if (oModel) {
-                    const oContext = oModel.bindContext(`/Projects(${sProjectId})`);
-                    oContext.requestObject().then(() => {
-                        this.getView().setBusy(false);
-                    }).catch(() => {
-                        this.getView().setBusy(false);
-                    });
-                }
+                this.getView().setBusy(false);
             }
         },
 
@@ -123,8 +117,8 @@ sap.ui.define([
                 return;
             }
             
-            // Submit changes using OData V4
-            oModel.submitBatch("updateGroup").then(() => {
+            // Submit changes using OData V4 ($auto is the default group)
+            oModel.submitBatch("$auto").then(() => {
                 MessageToast.show("Project updated successfully");
                 this._exitEditMode();
                 
@@ -146,10 +140,17 @@ sap.ui.define([
                 oModel.resetChanges();
             }
             
-            // Restore original data if available
+            // Restore original data if available (skip read-only managed fields)
+            const aReadOnlyFields = ['ID', 'createdAt', 'createdBy', 'modifiedAt', 'modifiedBy'];
             if (this._originalData && oBindingContext) {
                 Object.keys(this._originalData).forEach((sKey) => {
-                    oBindingContext.setProperty(sKey, this._originalData[sKey]);
+                    if (!aReadOnlyFields.includes(sKey)) {
+                        try {
+                            oBindingContext.setProperty(sKey, this._originalData[sKey]);
+                        } catch (e) {
+                            Log.warning(`Could not restore property ${sKey}:`, e);
+                        }
+                    }
                 });
             }
             
@@ -164,7 +165,11 @@ sap.ui.define([
         },
 
         onNewAnalysis() {
-            this.getOwnerComponent().getRouter().navTo("Wizard");
+            const oParams = {};
+            if (this._sCurrentProjectId) {
+                oParams.projectId = this._sCurrentProjectId;
+            }
+            this.getOwnerComponent().getRouter().navTo("Wizard", oParams);
         },
 
         onManageUsers() {
@@ -192,7 +197,7 @@ sap.ui.define([
         _loadProjectUsers(sProjectId) {
             const oModel = this.getView().getModel();
             
-            const aFilters = [new sap.ui.model.Filter("project_ID", sap.ui.model.FilterOperator.EQ, sProjectId)];
+            const aFilters = [new Filter("project_ID", FilterOperator.EQ, sProjectId)];
             const oBinding = oModel.bindList("/ProjectUsers", null, null, aFilters);
             
             oBinding.requestContexts().then((aContexts) => {

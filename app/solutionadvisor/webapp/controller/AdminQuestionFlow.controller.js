@@ -118,13 +118,19 @@ sap.ui.define([
       
       // Check if the binding or model has pending changes before refreshing
       if (oModel.hasPendingChanges() || oBinding.hasPendingChanges()) {
-        console.warn("Model or binding has pending changes, waiting for them to clear...");
-        // Don't refresh if there are pending changes - it will cause an error
-        // Instead, schedule a retry
-        setTimeout(() => {
-          this._loadData();
-        }, 200);
-        return;
+        this._loadRetryCount = (this._loadRetryCount || 0) + 1;
+        if (this._loadRetryCount > 5) {
+          console.warn("Max retries reached, forcing refresh");
+          this._loadRetryCount = 0;
+        } else {
+          console.warn("Model or binding has pending changes, waiting for them to clear...");
+          setTimeout(() => {
+            this._loadData();
+          }, 200);
+          return;
+        }
+      } else {
+        this._loadRetryCount = 0;
       }
       
       // Set up event handler to update count when data is received
@@ -364,7 +370,7 @@ sap.ui.define([
       const sSelect = [
         "ID","questionId","objectType","questionText","questionHint","detailedHint",
         "answerCount","answerOptions","navigationRules","performanceContext","displayOrder",
-        "isActive","createdAt","createdBy","modifiedAt","modifiedBy","tenant"
+        "isActive","createdAt","createdBy","modifiedAt","modifiedBy"
       ].join(",");
 
       // Bind a context with a full $select to guarantee complete data
@@ -497,10 +503,14 @@ sap.ui.define([
           this._loadData();
         }, 300);
       }).catch((error) => {
-        // On error, reset changes for the specific group
-        // Note: In OData V4, we should use the group ID used in submitBatch
+        // On error, reset only the specific context's changes, not all pending changes
         if (oModel.hasPendingChanges()) {
-          oModel.resetChanges();
+          try {
+            oModel.resetChanges([oCtx.getPath()]);
+          } catch (e) {
+            // Fallback to full reset if targeted reset fails
+            oModel.resetChanges();
+          }
         }
         console.error("Save failed", error);
         MessageBox.error("Failed to save changes");
@@ -671,12 +681,16 @@ sap.ui.define([
             throw new Error(`Row ${index + 2}: questionId and questionText are required`);
           }
           
-          // Parse JSON fields
+          // Validate JSON fields - parse to validate, but keep as strings (Edm.String)
           if (typeof record.answerOptions === 'string') {
-            record.answerOptions = JSON.parse(record.answerOptions);
+            JSON.parse(record.answerOptions); // validate only
+          } else if (record.answerOptions && typeof record.answerOptions === 'object') {
+            record.answerOptions = JSON.stringify(record.answerOptions);
           }
           if (typeof record.navigationRules === 'string') {
-            record.navigationRules = JSON.parse(record.navigationRules);
+            JSON.parse(record.navigationRules); // validate only
+          } else if (record.navigationRules && typeof record.navigationRules === 'object') {
+            record.navigationRules = JSON.stringify(record.navigationRules);
           }
           
           // Create record
@@ -748,8 +762,8 @@ sap.ui.define([
       }
 
       const oBinding = oModel.bindList("/QuestionFlow");
-      // Request all contexts (0, Infinity) to get all records
-      oBinding.requestContexts(0, Infinity).then((aContexts) => {
+      // Request all contexts with a large but finite limit
+      oBinding.requestContexts(0, 10000).then((aContexts) => {
         const aData = aContexts.map(ctx => ctx.getObject());
         
         // Convert JSON fields to strings for Excel

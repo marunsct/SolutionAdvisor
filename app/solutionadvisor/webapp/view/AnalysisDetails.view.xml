@@ -27,7 +27,7 @@
                     <ObjectStatus
                         id="analysisDetails_RecommendationStatus"
                         text="{finalRecommendation}"
-                        state="{= ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error' }"
+                        state="{= !${finalRecommendation} ? 'None' : ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error' }"
                     />
                     <ObjectStatus
                         id="analysisDetails_AnalysisStatus"
@@ -228,7 +228,7 @@
                                 <ObjectStatus
                                     id="analysisDetails_RecommendedLevelValue"
                                     text="{finalRecommendation}"
-                                    state="{= ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error' }"
+                                    state="{= !${finalRecommendation} ? 'None' : ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error' }"
                                 />
 
                                 <Label
@@ -416,7 +416,7 @@
                         icon="sap-icon://warning2"
                     >
                         <VBox id="analysisDetails_ConstraintsBox" class="sapUiSmallMargin">
-                            <core:Fragment fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel" type="XML" />
+                            <core:Fragment id="analysisDetails_ConstraintsFragment" fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel" type="XML" />
                         </VBox>
                     </IconTabFilter>
                 </items>

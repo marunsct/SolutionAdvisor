@@ -30,7 +30,7 @@
                     class="sapUiSmallMarginBottom"/>
                 
                 <!-- Violation Warnings (Critical) -->
-                <VBox id="violationsVBox" visible="{= ${constraintsModel>/violations}.length > 0 }" class="sapUiSmallMarginBottom">
+                <VBox id="violationsVBox" visible="{= ${constraintsModel>/violations} &amp;&amp; ${constraintsModel>/violations}.length > 0 }" class="sapUiSmallMarginBottom">
                     <MessageStrip
                         id="violationsWarningMessage"
                         text="⚠️ CONSTRAINT VIOLATIONS DETECTED - Review the issues below"
@@ -72,7 +72,7 @@
                 </VBox>
                 
                 <!-- Performance Constraints Section -->
-                <VBox id="performanceConstraintsVBox" visible="{= ${constraintsModel>/performanceConstraints}.length > 0 }">
+                <VBox id="performanceConstraintsVBox" visible="{= ${constraintsModel>/performanceConstraints} &amp;&amp; ${constraintsModel>/performanceConstraints}.length > 0 }">
                     <Title id="performanceConstraintsTitle" text="Performance Thresholds" level="H4" class="sapUiTinyMarginTop"/>
                     <List
                         id="performanceConstraintsList"
@@ -96,7 +96,7 @@
                 </VBox>
                 
                 <!-- Deployment Constraints Section -->
-                <VBox id="deploymentConstraintsVBox" visible="{= ${constraintsModel>/deploymentConstraints}.length > 0 }" class="sapUiSmallMarginTop">
+                <VBox id="deploymentConstraintsVBox" visible="{= ${constraintsModel>/deploymentConstraints} &amp;&amp; ${constraintsModel>/deploymentConstraints}.length > 0 }" class="sapUiSmallMarginTop">
                     <Title id="deploymentConstraintsTitle" text="Deployment Constraints" level="H4" class="sapUiTinyMarginTop"/>
                     <List
                         id="deploymentConstraintsList"
@@ -112,7 +112,7 @@
                 </VBox>
                 
                 <!-- Compliance Constraints Section -->
-                <VBox id="complianceConstraintsVBox" visible="{= ${constraintsModel>/complianceConstraints}.length > 0 }" class="sapUiSmallMarginTop">
+                <VBox id="complianceConstraintsVBox" visible="{= ${constraintsModel>/complianceConstraints} &amp;&amp; ${constraintsModel>/complianceConstraints}.length > 0 }" class="sapUiSmallMarginTop">
                     <Title id="complianceConstraintsTitle" text="Compliance &amp; Regulatory Constraints" level="H4" class="sapUiTinyMarginTop"/>
                     <List
                         id="complianceConstraintsList"
@@ -131,7 +131,7 @@
                 <!-- No Constraints Message -->
                 <MessageStrip
                     id="noConstraintsMessage"
-                    visible="{= ${constraintsModel>/performanceConstraints}.length === 0 &amp;&amp; ${constraintsModel>/deploymentConstraints}.length === 0 &amp;&amp; ${constraintsModel>/complianceConstraints}.length === 0 }"
+                    visible="{= (!${constraintsModel>/performanceConstraints} || ${constraintsModel>/performanceConstraints}.length === 0) &amp;&amp; (!${constraintsModel>/deploymentConstraints} || ${constraintsModel>/deploymentConstraints}.length === 0) &amp;&amp; (!${constraintsModel>/complianceConstraints} || ${constraintsModel>/complianceConstraints}.length === 0) }"
                     text="No specific constraints identified for the current context. Continue with standard best practices."
                     type="Success"
                     showIcon="true"

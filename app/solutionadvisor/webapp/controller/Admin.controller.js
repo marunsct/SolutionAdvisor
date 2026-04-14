@@ -233,12 +233,12 @@ sap.ui.define([
      */
     _loadEntityCount: function(oModel, sEntityName) {
       return new Promise((resolve, reject) => {
-        const oBinding = oModel.bindList(`/${sEntityName}`);
+        const oBinding = oModel.bindList(`/${sEntityName}`, null, null, null, { $count: true });
         
         // Request contexts to trigger the query and get count
-        oBinding.requestContexts(0, 0).then(() => {
-          const iCount = oBinding.getLength();
-          resolve(iCount);
+        oBinding.requestContexts(0, 1).then(() => {
+          const iCount = oBinding.getCount();
+          resolve(iCount !== undefined ? iCount : 0);
         }).catch((oError) => {
           Log.error(`Failed to load count for ${sEntityName}:`, oError);
           reject(oError);

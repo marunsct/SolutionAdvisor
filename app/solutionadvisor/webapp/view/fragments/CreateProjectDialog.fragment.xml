@@ -1,7 +1,6 @@
 <core:FragmentDefinition
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
-    xmlns:f="sap.f"
     xmlns:form="sap.ui.layout.form"
 >
     <Dialog
@@ -51,7 +50,7 @@
                             required="true"
                         />
                         <Input
-                            id="clientNameInput"
+                            id="cpdClientNameInput"
                             value="{projectModel>/clientName}"
                             placeholder="Enter client name..."
                             required="true"
@@ -64,7 +63,7 @@
                             required="true"
                         />
                         <Input
-                            id="projectNameInput"
+                            id="cpdProjectNameInput"
                             value="{projectModel>/projectName}"
                             placeholder="Enter project name..."
                             required="true"
@@ -77,7 +76,7 @@
                             required="true"
                         />
                         <Select
-                            id="projectTypeSelect"
+                            id="cpdProjectTypeSelect"
                             selectedKey="{projectModel>/projectType}"
                             required="true"
                             forceSelection="false"
@@ -116,7 +115,7 @@
                             text="Expected Duration (months)"
                         />
                         <Input
-                            id="expectedDurationInput"
+                            id="cpdExpectedDurationInput"
                             value="{projectModel>/expectedDuration}"
                             placeholder="e.g., 12"
                             type="Number"
@@ -141,7 +140,7 @@
                             text="Status"
                         />
                         <Select
-                            id="statusSelect"
+                            id="cpdStatusSelect"
                             selectedKey="{projectModel>/status}"
                         >
                             <items>
@@ -175,7 +174,7 @@
                             required="true"
                         />
                         <Select
-                            id="s4HanaFlavorSelect"
+                            id="cpdS4HanaFlavorSelect"
                             selectedKey="{projectModel>/s4HanaFlavor}"
                             required="true"
                             forceSelection="false"
@@ -216,7 +215,7 @@
                             text="Third Party Services"
                         />
                         <TextArea
-                            id="thirdPartyServicesInput"
+                            id="cpdThirdPartyServicesInput"
                             value="{projectModel>/thirdPartyServices}"
                             placeholder="Enter external systems and services..."
                             rows="2"
@@ -234,7 +233,7 @@
                             text="Governance Model"
                         />
                         <Select
-                            id="governanceModelSelect"
+                            id="cpdGovernanceModelSelect"
                             selectedKey="{projectModel>/governanceModel}"
                         >
                             <items>
@@ -261,7 +260,7 @@
                             text="Compliance Requirements"
                         />
                         <MultiComboBox
-                            id="complianceRequirementsInput"
+                            id="cpdComplianceRequirementsInput"
                             selectedKeys="{projectModel>/complianceRequirementsArray}"
                             placeholder="Select compliance requirements..."
                         >
@@ -304,7 +303,7 @@
                             text="Business Criticality"
                         />
                         <Select
-                            id="businessCriticalitySelect"
+                            id="cpdBusinessCriticalitySelect"
                             selectedKey="{projectModel>/businessCriticality}"
                         >
                             <items>
@@ -342,7 +341,7 @@
                             text="Technical Team Size"
                         />
                         <Input
-                            id="technicalTeamSizeInput"
+                            id="cpdTechnicalTeamSizeInput"
                             value="{projectModel>/technicalTeamSize}"
                             placeholder="Number of team members"
                             type="Number"
@@ -391,7 +390,7 @@
                 press="onCreateProjectConfirm"
             />
             <Button
-                id="cancelButton"
+                id="cpdCancelButton"
                 text="Cancel"
                 press="onCancelCreateProject"
             />

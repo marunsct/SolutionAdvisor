@@ -297,7 +297,7 @@
                                 <ObjectStatus
                                     id="finalRecommendationCell"
                                     text="{finalRecommendation}"
-                                    state="{= ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error'}"
+                                    state="{= !${finalRecommendation} ? 'None' : ${finalRecommendation}.indexOf('Level A') &gt; -1 ? 'Success' : ${finalRecommendation}.indexOf('Level B') &gt; -1 ? 'Information' : ${finalRecommendation}.indexOf('Level C') &gt; -1 ? 'Warning' : 'Error'}"
                                 />
                                 <ProgressIndicator
                                     id="techDebtCell"

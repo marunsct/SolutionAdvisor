@@ -482,11 +482,6 @@ entity AuditLog : cuid, managed {
     reviewedAt              : DateTime; // Review timestamp
     reviewNotes             : LargeString; // Compliance review findings
     alertTriggered          : Boolean default false; // Alert sent to compliance team
-    
-    // Index for high-performance queries
-    @cds.autoexpose
-    @assert.unique: {audit_event: [timestamp, userId, entityId]}
-    index_timestamp_user    : Integer;
 }
 
 // ===============================
@@ -524,11 +519,6 @@ entity UserNotifications : cuid, managed {
     // Metadata
     expiresAt               : DateTime; // Auto-delete after this date
     groupKey                : String(100); // For grouping related notifications
-    
-    // Index for performance
-    @cds.autoexpose
-    @assert.unique: {userId: [userId, createdAt]}
-    index_user_created      : Integer;
 }
 
 // ===============================

@@ -147,9 +147,13 @@ sap.ui.define([
       // Get filter values
       const filters = oFilterModel ? oFilterModel.getData() : {};
       
-      // Build filter parameters
-      const dateFrom = filters.dateFrom ? filters.dateFrom.toISOString().split('T')[0] : null;
-      const dateTo = filters.dateTo ? filters.dateTo.toISOString().split('T')[0] : null;
+      // Build filter parameters - safely handle both Date objects and strings
+      const dateFrom = filters.dateFrom
+        ? (filters.dateFrom instanceof Date ? filters.dateFrom.toISOString().split('T')[0] : String(filters.dateFrom).split('T')[0])
+        : null;
+      const dateTo = filters.dateTo
+        ? (filters.dateTo instanceof Date ? filters.dateTo.toISOString().split('T')[0] : String(filters.dateTo).split('T')[0])
+        : null;
       const ricefwTypes = filters.selectedRicefwTypes && filters.selectedRicefwTypes.length > 0 
         ? JSON.stringify(filters.selectedRicefwTypes) : null;
       const cleanCoreLevels = filters.selectedCleanCoreLevels && filters.selectedCleanCoreLevels.length > 0 
@@ -1214,6 +1218,7 @@ sap.ui.define([
       });
       
       oVizFrame.setDataset(oDataset);
+      oVizFrame.removeAllFeeds();
       oVizFrame.addFeed(new FeedItem({
         uid: "categoryAxis",
         type: "Dimension",
@@ -1279,8 +1284,8 @@ sap.ui.define([
         return;
       }
       
-      // Configure radar/spider chart for multi-dimensional comparison
-      oVizFrame.setVizType("radar");
+      // Configure bar chart for multi-dimensional comparison (VizFrame does not support radar)
+      oVizFrame.setVizType("bar");
       oVizFrame.setModel(oComparisonModel);
       
       const oDataset = new FlattenedDataset({

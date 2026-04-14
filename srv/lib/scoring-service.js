@@ -71,9 +71,23 @@ class ScoringService {
         // Normalize recommendation to extract canonical level (e.g., "Level A")
         const canonicalLevel = this.extractLevel(analysis.finalRecommendation);
 
-        // Get clean core level weights
-        let level = await SELECT.one.from(CleanCoreLevels)
-            .where({ level: canonicalLevel });
+        // Extract single-char level key (e.g., "A") and RICEFW code for composite key lookup
+        const levelChar = canonicalLevel ? canonicalLevel.replace('Level ', '') : null;
+        const ricefwCode = analysis.objectType ? analysis.objectType.charAt(0) : null;
+
+        // Get clean core level weights using composite key (level + ricefwType)
+        let level = null;
+        if (levelChar) {
+            if (ricefwCode) {
+                level = await SELECT.one.from(CleanCoreLevels)
+                    .where({ level: levelChar, ricefwType: ricefwCode });
+            }
+            // Fallback: try without ricefwType for generic level data
+            if (!level) {
+                level = await SELECT.one.from(CleanCoreLevels)
+                    .where({ level: levelChar });
+            }
+        }
 
         // Fallback: if master data missing or level not found, derive weights from level name
         if (!level) {
@@ -217,9 +231,9 @@ class ScoringService {
     getCloudFactorByName(levelName) {
         const factors = {
             'Level A': 1.00,
-            'Level B': 0.50,
-            'Level C': 0.20,
-            'Level D': 0.00
+            'Level B': 0.80,
+            'Level C': 0.50,
+            'Level D': 0.20
         };
         return factors[levelName] ?? 0.50;
     }

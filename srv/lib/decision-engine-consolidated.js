@@ -86,7 +86,7 @@ class DecisionEngine {
         
         // Get current question to access navigation rules
         const currentQuestion = await SELECT.one.from(QuestionFlow)
-            .where({ questionId: currentQuestionId, objectType: objectType });
+            .where({ questionId: currentQuestionId, objectType: objectType, isActive: true });
         
         if (!currentQuestion || !currentQuestion.navigationRules) {
             throw new Error('Invalid question or missing navigation rules');
@@ -188,7 +188,7 @@ class DecisionEngine {
         const { QuestionFlow } = cds.entities('sd');
         
         const question = await SELECT.one.from(QuestionFlow)
-            .where({ questionId });
+            .where({ questionId, ...(projectConfig?.objectType ? { objectType: projectConfig.objectType } : {}) });
         
         if (!question || !question.performanceContext) {
             return false;

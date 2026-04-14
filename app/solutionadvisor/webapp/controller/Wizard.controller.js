@@ -4,8 +4,11 @@ sap.ui.define([
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sd/solutionadvisor/utils/ErrorHandler",
-    "sap/base/Log"
-], (Controller, JSONModel, MessageToast, MessageBox, ErrorHandler, Log) => {
+    "sap/base/Log",
+    "sap/ui/core/Fragment",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator"
+], (Controller, JSONModel, MessageToast, MessageBox, ErrorHandler, Log, Fragment, Filter, FilterOperator) => {
     "use strict";
 
     /**
@@ -709,11 +712,13 @@ sap.ui.define([
         _loadQuestionById: function (sQuestionId) {
             const oModel = this.getView().getModel();
 
-            const oQuestionBinding = oModel.bindContext(`/QuestionFlows?$filter=questionId eq '${sQuestionId}'`);
+            const oListBinding = oModel.bindList("/QuestionFlows", null, null, [
+                new Filter("questionId", FilterOperator.EQ, sQuestionId)
+            ]);
 
-            oQuestionBinding.requestObject().then((oData) => {
-                if (oData && oData.value && oData.value.length > 0) {
-                    const oQuestion = oData.value[0];
+            oListBinding.requestContexts(0, 1).then((aContexts) => {
+                if (aContexts && aContexts.length > 0) {
+                    const oQuestion = aContexts[0].getObject();
                     this._displayQuestion({
                         questionId: oQuestion.questionId,
                         questionText: oQuestion.questionText,
@@ -908,7 +913,7 @@ sap.ui.define([
             const sFragmentId = "guidanceDialog_" + Date.now();
 
             // Load the dialog fragment with unique ID
-            sap.ui.core.Fragment.load({
+            Fragment.load({
                 id: sFragmentId,
                 name: "sd.solutionadvisor.view.fragments.GuidanceDialog",
                 controller: this
@@ -920,8 +925,10 @@ sap.ui.define([
                 this.getView().addDependent(oDialog);
                 
                 // Load guidance content in the dialog
-                const oGuidanceView = sap.ui.core.Fragment.byId(sFragmentId, "guidanceViewDialog");
+                const oGuidanceView = Fragment.byId(sFragmentId, "guidanceViewDialog");
                 if (oGuidanceView) {
+                    // H10 Fix: Explicitly propagate OData model to nested view
+                    oGuidanceView.setModel(this.getView().getModel());
                     const oGuidanceController = oGuidanceView.getController();
                     if (oGuidanceController && typeof oGuidanceController.loadGuidance === 'function') {
                         oGuidanceController.loadGuidance(sRicefwType);
@@ -1334,23 +1341,24 @@ sap.ui.define([
 
             // Open dialog
             if (!this._exampleDialog) {
-                this._exampleDialog = sap.ui.xmlfragment(
-                    "sd.solutionadvisor.view.fragments.ExamplesPanel",
-                    this
-                );
-                this.getView().addDependent(this._exampleDialog);
+                Fragment.load({
+                    id: this.getView().getId(),
+                    name: "sd.solutionadvisor.view.fragments.ExamplesPanel",
+                    controller: this
+                }).then((oDialog) => {
+                    this._exampleDialog = oDialog;
+                    this.getView().addDependent(oDialog);
+                    oDialog.open();
+                });
+                return;
             }
 
-            const oDialog = sap.ui.getCore().byId("exampleDetailsDialog");
-            if (oDialog) {
-                oDialog.open();
-            }
+            this._exampleDialog.open();
         },
 
         onCloseExampleDialog() {
-            const oDialog = sap.ui.getCore().byId("exampleDetailsDialog");
-            if (oDialog) {
-                oDialog.close();
+            if (this._exampleDialog) {
+                this._exampleDialog.close();
             }
         },
 
@@ -1930,7 +1938,7 @@ sap.ui.define([
                 oContext.setProperty("sessionStatus", "Paused");
                 oContext.setProperty("currentStep", oDraftModel.getProperty("/currentStep"));
                 oContext.setProperty("totalSteps", oDraftModel.getProperty("/totalSteps"));
-                oContext.setProperty("timeSpentTotal", oDraftModel.getProperty("/timeSpent") * 60); // Convert to seconds
+                oContext.setProperty("timeSpentTotal", oDraftModel.getProperty("/timeSpent")); // Already in seconds
                 oContext.setProperty("lastActivity", new Date().toISOString());
                 oContext.setProperty("draftName", sDraftName || `Draft - ${new Date().toLocaleDateString()}`);
 

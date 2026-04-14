@@ -47,7 +47,6 @@
                             type="Emphasized"
                             icon="sap-icon://pdf-attachment"
                             tooltip="Export analytics dashboard as PDF document"
-                            ariaLabelledBy="exportPDFButton"
                             class="sapUiTinyMarginEnd"
                         />
                         <Button
@@ -56,7 +55,6 @@
                             press="onExportExcel"
                             icon="sap-icon://excel-attachment"
                             tooltip="Export analytics data as Excel spreadsheet"
-                            ariaLabelledBy="exportExcelButton"
                         />
                     </HBox>
                 </FlexBox>
@@ -475,7 +473,7 @@
                             <Table
                                 id="topObjectsTable"
                                 items="{analytics>/topObjects}"
-                                mode="SingleSelectMaster"
+                                mode="SingleSelectLeft"
                             >
                                 <columns>
                                     <Column

@@ -474,6 +474,7 @@ module.exports = cds.service.impl(async function () {
                                 sessionID: existingSession.ID,
                                 analysisID: raceWinnerAnalysis.ID,
                                 firstQuestion: firstQuestion,
+                                totalSteps: totalSteps,
                                 isResumed: true
                             };
                         }
@@ -1475,6 +1476,14 @@ module.exports = cds.service.impl(async function () {
                         upgradeImpactScore: scores.upgradeImpact,
                         compositeHealthScore: scores.compositeHealth
                     });
+                    // Persist so we don't recalculate on every read
+                    cds.run(UPDATE(Analyses).set({
+                        technicalDebtScore: scores.technicalDebt,
+                        cloudReadinessScore: scores.cloudReadiness,
+                        upgradeImpactScore: scores.upgradeImpact,
+                        compositeHealthScore: scores.compositeHealth
+                    }).where({ ID: analysis.ID }))
+                    .catch(err => LOG.error('Failed to persist recalculated scores:', err));
                 } catch (error) {
                     LOG.error('Error enriching analysis with scores:', error);
                 }
@@ -1523,6 +1532,139 @@ module.exports = cds.service.impl(async function () {
         } catch (error) {
             LOG.error('Error getting analytics data:', error);
             return req.error(500, `Failed to get analytics data: ${error.message}`);
+        }
+    });
+
+    // ===============================
+    // Additional Analytics Handlers
+    // ===============================
+
+    this.on('getYearOverYearComparison', async (req) => {
+        try {
+            const tenant = req.user?.tenant || req.tenant;
+            const rows = await SELECT.from(Analyses)
+                .columns('createdAt', 'technicalDebtScore', 'cloudReadinessScore', 'upgradeImpactScore')
+                .where(tenant ? { tenant } : {});
+
+            const yearMap = {};
+            for (const row of rows) {
+                if (!row.createdAt) continue;
+                const year = new Date(row.createdAt).getFullYear().toString();
+                if (!yearMap[year]) yearMap[year] = { count: 0, debt: 0, cloud: 0, upgrade: 0 };
+                yearMap[year].count++;
+                yearMap[year].debt += (row.technicalDebtScore || 0);
+                yearMap[year].cloud += (row.cloudReadinessScore || 0);
+                yearMap[year].upgrade += (row.upgradeImpactScore || 0);
+            }
+
+            const yearlyData = Object.keys(yearMap).sort().map(year => ({
+                year,
+                totalAnalyses: yearMap[year].count,
+                technicalDebt: yearMap[year].count ? +(yearMap[year].debt / yearMap[year].count).toFixed(2) : 0,
+                cloudReadiness: yearMap[year].count ? +(yearMap[year].cloud / yearMap[year].count).toFixed(2) : 0,
+                upgradeImpact: yearMap[year].count ? +(yearMap[year].upgrade / yearMap[year].count).toFixed(2) : 0
+            }));
+
+            return { yearlyData };
+        } catch (error) {
+            LOG.error('Error in getYearOverYearComparison:', error);
+            return req.error(500, `Failed to get year-over-year data: ${error.message}`);
+        }
+    });
+
+    this.on('compareProjects', async (req) => {
+        try {
+            const projectIds = req.data?.projectIds || [];
+            if (!projectIds.length) return req.error(400, 'No project IDs provided');
+
+            const tenant = req.user?.tenant || req.tenant;
+            const whereClause = tenant
+                ? { project_ID: { in: projectIds }, tenant }
+                : { project_ID: { in: projectIds } };
+
+            const rows = await SELECT.from(Analyses)
+                .columns('project_ID', 'technicalDebtScore', 'cloudReadinessScore', 'upgradeImpactScore', 'compositeHealthScore')
+                .where(whereClause);
+
+            const projectMap = {};
+            for (const row of rows) {
+                const pid = row.project_ID;
+                if (!projectMap[pid]) projectMap[pid] = { debt: 0, cloud: 0, upgrade: 0, health: 0, count: 0 };
+                projectMap[pid].count++;
+                projectMap[pid].debt += (row.technicalDebtScore || 0);
+                projectMap[pid].cloud += (row.cloudReadinessScore || 0);
+                projectMap[pid].upgrade += (row.upgradeImpactScore || 0);
+                projectMap[pid].health += (row.compositeHealthScore || 0);
+            }
+
+            // Fetch project names
+            const projRows = await SELECT.from(Projects).columns('ID', 'projectName')
+                .where({ ID: { in: projectIds } });
+            const nameMap = {};
+            for (const p of projRows) nameMap[p.ID] = p.projectName || p.ID;
+
+            const orderedIds = projectIds.filter(id => projectMap[id]);
+            const projects = orderedIds.map(id => ({ projectId: id, projectName: nameMap[id] || id }));
+
+            const metrics = ['Technical Debt', 'Cloud Readiness', 'Upgrade Impact', 'Composite Health'];
+            const keys = ['debt', 'cloud', 'upgrade', 'health'];
+            const comparisonData = metrics.map((metric, mi) => {
+                const row = { metric };
+                orderedIds.forEach((id, idx) => {
+                    const d = projectMap[id];
+                    row[`value${idx}`] = d.count ? +(d[keys[mi]] / d.count).toFixed(2) : 0;
+                });
+                return row;
+            });
+
+            return { projects, comparisonData };
+        } catch (error) {
+            LOG.error('Error in compareProjects:', error);
+            return req.error(500, `Failed to compare projects: ${error.message}`);
+        }
+    });
+
+    this.on('getMonthlyTrends', async (req) => {
+        try {
+            const dateFrom = req.data?.dateFrom || null;
+            const dateTo = req.data?.dateTo || null;
+            const tenant = req.user?.tenant || req.tenant;
+
+            let query = SELECT.from(Analyses)
+                .columns('createdAt', 'technicalDebtScore', 'cloudReadinessScore', 'upgradeImpactScore');
+
+            const where = {};
+            if (tenant) where.tenant = tenant;
+            if (dateFrom) where.createdAt = { '>=': dateFrom };
+            if (Object.keys(where).length) query = query.where(where);
+            if (dateTo) query = query.and({ createdAt: { '<=': dateTo } });
+
+            const rows = await query;
+
+            const monthMap = {};
+            for (const row of rows) {
+                if (!row.createdAt) continue;
+                const d = new Date(row.createdAt);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                if (!monthMap[key]) monthMap[key] = { count: 0, debt: 0, cloud: 0, upgrade: 0 };
+                monthMap[key].count++;
+                monthMap[key].debt += (row.technicalDebtScore || 0);
+                monthMap[key].cloud += (row.cloudReadinessScore || 0);
+                monthMap[key].upgrade += (row.upgradeImpactScore || 0);
+            }
+
+            const monthlyData = Object.keys(monthMap).sort().map(month => ({
+                month,
+                technicalDebt: monthMap[month].count ? +(monthMap[month].debt / monthMap[month].count).toFixed(2) : 0,
+                cloudReadiness: monthMap[month].count ? +(monthMap[month].cloud / monthMap[month].count).toFixed(2) : 0,
+                upgradeImpact: monthMap[month].count ? +(monthMap[month].upgrade / monthMap[month].count).toFixed(2) : 0,
+                analysisCount: monthMap[month].count
+            }));
+
+            return { monthlyData };
+        } catch (error) {
+            LOG.error('Error in getMonthlyTrends:', error);
+            return req.error(500, `Failed to get monthly trends: ${error.message}`);
         }
     });
 

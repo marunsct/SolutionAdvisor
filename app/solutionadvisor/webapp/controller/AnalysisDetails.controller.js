@@ -2,14 +2,14 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/core/routing/History",
     "sap/ui/model/json/JSONModel",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sd/solutionadvisor/utils/ErrorHandler",
     "sap/base/Log",
-    "sap/viz/ui5/data/FlattenedDataset",
-    "sap/viz/ui5/controls/common/feeds/FeedItem",
     "sap/ui/core/Fragment"
-], (Controller, History, JSONModel, MessageToast, MessageBox, ErrorHandler, Log, FlattenedDataset, FeedItem, Fragment) => {
+], (Controller, History, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, ErrorHandler, Log, Fragment) => {
     "use strict";
 
     return Controller.extend("sd.solutionadvisor.controller.AnalysisDetails", {
@@ -96,7 +96,7 @@ sap.ui.define([
                 this.getView().bindElement({
                     path: this._getAnalysisKeyPath(sAnalysisId),
                     parameters: {
-                        $expand: "projectConfig,decisionPaths"
+                        $expand: "projectConfig,decisionPaths,businessArea"
                     },
                     events: {
                         dataReceived: () => {
@@ -273,15 +273,15 @@ sap.ui.define([
 
             // Performance thresholds from backend - filter by object type AND clean core level
             const aThresholdFilters = [
-                new sap.ui.model.Filter("applicableObjectTypes", sap.ui.model.FilterOperator.Contains, sObjectType.charAt(0)),
-                new sap.ui.model.Filter("isActive", sap.ui.model.FilterOperator.EQ, true)
+                new Filter("applicableObjectTypes", FilterOperator.Contains, sObjectType.charAt(0)),
+                new Filter("isActive", FilterOperator.EQ, true)
             ];
 
             // Add clean core level filter if finalized analysis has a recommended level
             if (sCleanCoreLevel) {
                 Log.info(`Filtering constraints for clean core level: ${sCleanCoreLevel}`);
                 aThresholdFilters.push(
-                    new sap.ui.model.Filter("cleanCoreLevel", sap.ui.model.FilterOperator.EQ, sCleanCoreLevel)
+                    new Filter("cleanCoreLevel", FilterOperator.EQ, sCleanCoreLevel)
                 );
             }
 
@@ -386,7 +386,7 @@ sap.ui.define([
             });
 
             const sMessage = `Guidance when exceeded:\n${sGuidance}\n\nAlternative solution:\n${sAlternative}`;
-            sap.m.MessageBox.information(sMessage, {
+            MessageBox.information(sMessage, {
                 title: "Constraint Details",
                 contentWidth: "500px"
             });
@@ -462,7 +462,7 @@ sap.ui.define([
                 this.getView().bindElement({
                     path: this._getAnalysisKeyPath(sAnalysisId),
                     parameters: {
-                        $expand: "projectConfig,decisionPaths"
+                        $expand: "projectConfig,decisionPaths,businessArea"
                     }
                 });
             }).catch((oError) => {
@@ -552,7 +552,7 @@ sap.ui.define([
                 this.getView().bindElement({
                     path: this._getAnalysisKeyPath(sAnalysisId),
                     parameters: {
-                        $expand: "projectConfig,decisionPaths"
+                        $expand: "projectConfig,decisionPaths,businessArea"
                     }
                 });
 
@@ -830,101 +830,6 @@ sap.ui.define([
                     .duration(300)
                     .call(zoom.transform, newTransform);
             }
-        },
-
-        /**
-         * Setup radar chart for scoring visualization
-         * @private
-         */
-        _setupRadarChart: function () {
-            const oContext = this.getView().getBindingContext();
-            if (!oContext) {
-                return;
-            }
-
-            const oAnalysis = oContext.getObject();
-
-            // Prepare radar chart data
-            const radarData = [
-                {
-                    metric: "Technical Debt",
-                    value: oAnalysis.technicalDebtScore || 0
-                },
-                {
-                    metric: "Cloud Readiness",
-                    value: oAnalysis.cloudReadinessScore || 0
-                },
-                {
-                    metric: "Upgrade Impact",
-                    value: oAnalysis.upgradeImpactScore || 0
-                }
-            ];
-
-            // Create JSON model for radar data
-            const oRadarModel = new JSONModel({ radarData: radarData });
-            this.getView().setModel(oRadarModel, "radarModel");
-
-            // Load and configure radar chart fragment if not already loaded
-            if (!this._oRadarChartFragment) {
-                Fragment.load({
-                    id: this.getView().getId(),
-                    name: "sd.solutionadvisor.view.fragments.RadarChart",
-                    controller: this
-                }).then(function (oFragment) {
-                    this._oRadarChartFragment = oFragment;
-                    // Add fragment to the container in the view
-                    const oContainer = this.byId("analysisDetails_RadarChartContainer");
-                    if (oContainer) {
-                        oContainer.addItem(oFragment);
-                    }
-                    this._configureRadarChart();
-                }.bind(this));
-            } else {
-                this._configureRadarChart();
-            }
-        },
-
-        /**
-         * Configure radar chart with data
-         * @private
-         */
-        _configureRadarChart: function () {
-            const oVizFrame = this.byId("analysisDetails_RadarChart");
-            if (!oVizFrame) {
-                return;
-            }
-
-            const oDataset = new FlattenedDataset({
-                dimensions: [{
-                    name: "Metric",
-                    value: "{radarModel>metric}"
-                }],
-                measures: [{
-                    name: "Score",
-                    value: "{radarModel>value}"
-                }],
-                data: {
-                    path: "radarModel>/radarData"
-                }
-            });
-
-            oVizFrame.setDataset(oDataset);
-
-            const feedValueAxis = new FeedItem({
-                uid: "valueAxis",
-                type: "Measure",
-                values: ["Score"]
-            });
-
-            const feedCategoryAxis = new FeedItem({
-                uid: "categoryAxis",
-                type: "Dimension",
-                values: ["Metric"]
-            });
-
-            oVizFrame.removeAllFeeds();
-            oVizFrame.addFeed(feedValueAxis);
-            oVizFrame.addFeed(feedCategoryAxis);
         },
 
         /**

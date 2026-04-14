@@ -112,10 +112,10 @@
                                     selectedKey="{projectType}"
                                     enabled="{viewModel>/editMode}">
                                     <items>
-                                        <core:Item key="Greenfield" text="Greenfield"/>
-                                        <core:Item key="Brownfield" text="Brownfield"/>
-                                        <core:Item key="System Conversion" text="System Conversion"/>
-                                        <core:Item key="Selective Data Transition" text="Selective Data Transition"/>
+                                        <core:Item id="pdGreenfieldItem" key="Greenfield" text="Greenfield"/>
+                                        <core:Item id="pdBrownfieldItem" key="Brownfield" text="Brownfield"/>
+                                        <core:Item id="pdSysConvItem" key="System Conversion" text="System Conversion"/>
+                                        <core:Item id="pdSelDataItem" key="Selective Data Transition" text="Selective Data Transition"/>
                                     </items>
                                 </Select>
                                 
@@ -144,10 +144,10 @@
                                     selectedKey="{status}"
                                     enabled="{viewModel>/editMode}">
                                     <items>
-                                        <core:Item key="Planning" text="Planning"/>
-                                        <core:Item key="Active" text="Active"/>
-                                        <core:Item key="On Hold" text="On Hold"/>
-                                        <core:Item key="Completed" text="Completed"/>
+                                        <core:Item id="pdPlanningItem" key="Planning" text="Planning"/>
+                                        <core:Item id="pdActiveItem" key="Active" text="Active"/>
+                                        <core:Item id="pdOnHoldItem" key="On Hold" text="On Hold"/>
+                                        <core:Item id="pdCompletedItem" key="Completed" text="Completed"/>
                                     </items>
                                 </Select>
                             </form:content>
@@ -170,9 +170,9 @@
                                     selectedKey="{s4HanaFlavor}"
                                     enabled="{viewModel>/editMode}">
                                     <items>
-                                        <core:Item key="Cloud Public" text="Cloud Public"/>
-                                        <core:Item key="Cloud Private" text="Cloud Private"/>
-                                        <core:Item key="On-Premise" text="On-Premise"/>
+                                        <core:Item id="pdCloudPublicItem" key="Cloud Public" text="Cloud Public"/>
+                                        <core:Item id="pdCloudPrivateItem" key="Cloud Private" text="Cloud Private"/>
+                                        <core:Item id="pdOnPremiseItem" key="On-Premise" text="On-Premise"/>
                                     </items>
                                 </Select>
                                 
@@ -214,9 +214,9 @@
                                     selectedKey="{governanceModel}"
                                     enabled="{viewModel>/editMode}">
                                     <items>
-                                        <core:Item key="Centralized" text="Centralized"/>
-                                        <core:Item key="Federated" text="Federated"/>
-                                        <core:Item key="Hybrid" text="Hybrid"/>
+                                        <core:Item id="pdCentralizedItem" key="Centralized" text="Centralized"/>
+                                        <core:Item id="pdFederatedItem" key="Federated" text="Federated"/>
+                                        <core:Item id="pdHybridItem" key="Hybrid" text="Hybrid"/>
                                     </items>
                                 </Select>
                                 
@@ -232,10 +232,10 @@
                                     selectedKey="{businessCriticality}"
                                     enabled="{viewModel>/editMode}">
                                     <items>
-                                        <core:Item key="Low" text="Low"/>
-                                        <core:Item key="Medium" text="Medium"/>
-                                        <core:Item key="High" text="High"/>
-                                        <core:Item key="Critical" text="Critical"/>
+                                        <core:Item id="pdLowCritItem" key="Low" text="Low"/>
+                                        <core:Item id="pdMediumCritItem" key="Medium" text="Medium"/>
+                                        <core:Item id="pdHighCritItem" key="High" text="High"/>
+                                        <core:Item id="pdCriticalCritItem" key="Critical" text="Critical"/>
                                     </items>
                                 </Select>
                                 

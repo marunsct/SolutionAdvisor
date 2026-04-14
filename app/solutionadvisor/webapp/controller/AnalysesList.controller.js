@@ -35,17 +35,11 @@ sap.ui.define([
             // Load counts when model is available
             const oModel = this.getView().getModel();
             if (oModel) {
-                if (oModel.getMetadata && oModel.getMetadata()) {
-                    this._loadCounts();
-                    this._attachTableEvents();
-                    this._attachColumnHeaderEvents();
-                } else {
-                    oModel.attachMetadataLoaded(() => {
-                        this._loadCounts();
-                        this._attachTableEvents();
-                        this._attachColumnHeaderEvents();
-                    });
-                }
+                // OData V4 models are ready to use immediately after instantiation;
+                // getMetadata()/attachMetadataLoaded() are V2-only APIs.
+                this._loadCounts();
+                this._attachTableEvents();
+                this._attachColumnHeaderEvents();
             }
         },
 
@@ -332,11 +326,11 @@ sap.ui.define([
             const aCountPromises = [];
 
             // Get total analyses count using OData V4 binding
-            const oListBinding = oModel.bindList("/Analyses", null, null, aBaseFilters);
+            const oListBinding = oModel.bindList("/Analyses", null, null, aBaseFilters, { $count: true });
             aCountPromises.push(
-                oListBinding.requestContexts(0, 0).then(() => {
-                    const iCount = oListBinding.getLength();
-                    oViewModel.setProperty("/analysesCount", iCount);
+                oListBinding.requestContexts(0, 1).then(() => {
+                    const iCount = oListBinding.getCount();
+                    oViewModel.setProperty("/analysesCount", iCount !== undefined ? iCount : 0);
                 }).catch((oError) => {
                     Log.error("Failed to load analyses count:", oError);
                     oViewModel.setProperty("/analysesCount", 0);
@@ -345,11 +339,11 @@ sap.ui.define([
 
             // Get Level A count
             const aLevelAFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level A")];
-            const oLevelABinding = oModel.bindList("/Analyses", null, null, aLevelAFilters);
+            const oLevelABinding = oModel.bindList("/Analyses", null, null, aLevelAFilters, { $count: true });
             aCountPromises.push(
-                oLevelABinding.requestContexts(0, 0).then(() => {
-                    const iCount = oLevelABinding.getLength();
-                    oViewModel.setProperty("/levelACount", iCount);
+                oLevelABinding.requestContexts(0, 1).then(() => {
+                    const iCount = oLevelABinding.getCount();
+                    oViewModel.setProperty("/levelACount", iCount !== undefined ? iCount : 0);
                 }).catch((oError) => {
                     Log.error("Failed to load Level A count:", oError);
                     oViewModel.setProperty("/levelACount", 0);
@@ -358,11 +352,11 @@ sap.ui.define([
 
             // Get Level B count
             const aLevelBFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level B")];
-            const oLevelBBinding = oModel.bindList("/Analyses", null, null, aLevelBFilters);
+            const oLevelBBinding = oModel.bindList("/Analyses", null, null, aLevelBFilters, { $count: true });
             aCountPromises.push(
-                oLevelBBinding.requestContexts(0, 0).then(() => {
-                    const iCount = oLevelBBinding.getLength();
-                    oViewModel.setProperty("/levelBCount", iCount);
+                oLevelBBinding.requestContexts(0, 1).then(() => {
+                    const iCount = oLevelBBinding.getCount();
+                    oViewModel.setProperty("/levelBCount", iCount !== undefined ? iCount : 0);
                 }).catch((oError) => {
                     Log.error("Failed to load Level B count:", oError);
                     oViewModel.setProperty("/levelBCount", 0);
@@ -371,11 +365,11 @@ sap.ui.define([
 
             // Get Level C count
             const aLevelCFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level C")];
-            const oLevelCBinding = oModel.bindList("/Analyses", null, null, aLevelCFilters);
+            const oLevelCBinding = oModel.bindList("/Analyses", null, null, aLevelCFilters, { $count: true });
             aCountPromises.push(
-                oLevelCBinding.requestContexts(0, 0).then(() => {
-                    const iCount = oLevelCBinding.getLength();
-                    oViewModel.setProperty("/levelCCount", iCount);
+                oLevelCBinding.requestContexts(0, 1).then(() => {
+                    const iCount = oLevelCBinding.getCount();
+                    oViewModel.setProperty("/levelCCount", iCount !== undefined ? iCount : 0);
                 }).catch((oError) => {
                     Log.error("Failed to load Level C count:", oError);
                     oViewModel.setProperty("/levelCCount", 0);
@@ -384,11 +378,11 @@ sap.ui.define([
 
             // Get Level D count
             const aLevelDFilters = [...aBaseFilters, new Filter("finalRecommendation", FilterOperator.Contains, "Level D")];
-            const oLevelDBinding = oModel.bindList("/Analyses", null, null, aLevelDFilters);
+            const oLevelDBinding = oModel.bindList("/Analyses", null, null, aLevelDFilters, { $count: true });
             aCountPromises.push(
-                oLevelDBinding.requestContexts(0, 0).then(() => {
-                    const iCount = oLevelDBinding.getLength();
-                    oViewModel.setProperty("/levelDCount", iCount);
+                oLevelDBinding.requestContexts(0, 1).then(() => {
+                    const iCount = oLevelDBinding.getCount();
+                    oViewModel.setProperty("/levelDCount", iCount !== undefined ? iCount : 0);
                 }).catch((oError) => {
                     Log.error("Failed to load Level D count:", oError);
                     oViewModel.setProperty("/levelDCount", 0);
@@ -407,6 +401,13 @@ sap.ui.define([
         onSearch(oEvent) {
             const sQuery = oEvent.getParameter("query");
             const aFilters = [];
+
+            // Preserve project filter if active
+            const oViewModel = this.getView().getModel("viewModel");
+            const sProjectId = oViewModel.getProperty("/projectId");
+            if (sProjectId && sProjectId !== "all") {
+                aFilters.push(new Filter("projectConfig_ID", FilterOperator.EQ, sProjectId));
+            }
 
             if (sQuery && sQuery.length > 0) {
                 aFilters.push(new Filter({

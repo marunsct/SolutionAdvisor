@@ -417,6 +417,50 @@ service solutionAdvisorService {
         };
     };
 
+    /**
+     * Get year-over-year comparison data for analytics dashboard
+     */
+    function getYearOverYearComparison() returns {
+        yearlyData : array of {
+            year           : String;
+            totalAnalyses  : Integer;
+            technicalDebt  : Decimal(5, 2);
+            cloudReadiness : Decimal(5, 2);
+            upgradeImpact  : Decimal(5, 2);
+        };
+    };
+
+    /**
+     * Compare analytics between projects
+     */
+    function compareProjects(projectIds : array of String) returns {
+        projects       : array of {
+            projectName : String;
+            projectId   : String;
+        };
+        comparisonData : array of {
+            metric : String;
+            value0 : Decimal(5, 2);
+            value1 : Decimal(5, 2);
+            value2 : Decimal(5, 2);
+            value3 : Decimal(5, 2);
+            value4 : Decimal(5, 2);
+        };
+    };
+
+    /**
+     * Get monthly trend data with date range
+     */
+    function getMonthlyTrends(dateFrom : Date, dateTo : Date) returns {
+        monthlyData : array of {
+            month          : String;
+            technicalDebt  : Decimal(5, 2);
+            cloudReadiness : Decimal(5, 2);
+            upgradeImpact  : Decimal(5, 2);
+            analysisCount  : Integer;
+        };
+    };
+
     // ===============================
     // Notification Actions (FLP Shell Integration)
     // ===============================
