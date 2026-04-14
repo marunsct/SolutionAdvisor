@@ -1,0 +1,391 @@
+<mvc:View
+    controllerName="sd.solutionadvisor.controller.Guidance"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.uxap"
+    xmlns:m="sap.m"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+>
+    <ObjectPageLayout
+        id="guidanceObjectPage"
+        enableLazyLoading="false"
+        showTitleInHeaderContent="false"
+        alwaysShowContentHeader="false"
+        upperCaseAnchorBar="false"
+        flexEnabled="false"
+    >
+        <headerTitle>
+            <ObjectPageHeader
+                id="guidanceHeader"
+                objectTitle="{guidance>/guidance/title}"
+                objectSubtitle="Clean Core Educational Content"
+            />
+        </headerTitle>
+        
+        <headerContent>
+            <m:VBox id="headerContentVBox">
+                <m:Text id="introductionText" text="{guidance>/guidance/introduction}" class="sapUiSmallMarginBottom" />
+                <m:Text
+                    id="apiExplanationText"
+                    text="{guidance>/guidance/apiExplanation}"
+                    visible="{= ${guidance>/guidance/apiExplanation} !== null &amp;&amp; ${guidance>/guidance/apiExplanation} !== '' }"
+                />
+            </m:VBox>
+        </headerContent>
+        
+        <sections>
+            <!-- Section 1: Clean Core Levels - Detailed Breakdown -->
+            <ObjectPageSection id="levelsSection" title="Clean Core Levels - Detailed Breakdown">
+                <subSections>
+                    <!-- Level A -->
+                    <ObjectPageSubSection id="levelASubSection" title="{= ${guidance>/levelA/title} || '🟩 Level A - Cleanest (Gold Standard)' }">
+                        <blocks>
+                            <m:VBox id="levelAVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelAContentBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelAWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelAWhatText" text="{guidance>/levelA/whatItMeans}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+                                                              
+                                <m:VBox id="levelAToolsBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelAToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelAToolsText" text="{guidance>/levelA/toolsUsed}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelAExampleBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelAExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelAExampleText" text="{guidance>/levelA/exampleReport}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelAAnalogyBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelAAnalogyLabel" text="Beginner Analogy (Comparing Windows PC):" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelAAnalogyText" text="{guidance>/levelA/beginnerAnalogy}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+
+                                <m:VBox id="levelAWhyBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelAWhyLabel" text="Why it's best:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelAWhyText" text="{guidance>/levelA/whyReasoning}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelADescBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelADescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelADescText" text="{guidance>/levelA/description}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelATechBox" class="sapUiTinyMarginBottom">
+                                    <m:Label id="levelATechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelATechText" text="{guidance>/levelA/technology}" class="sapUiTinyMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelAMetricsContainer" class="sapUiTinyMarginTop">
+                                    <m:Label id="levelAMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelAMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelAUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelAUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelAUpgradeText" text="{guidance>/levelA/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelAMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelAMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelAMaintenanceText" text="{guidance>/levelA/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelACloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelACloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelACloudText" text="{guidance>/levelA/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelARiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelARiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelARiskText" text="{guidance>/levelA/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Level B -->
+                    <ObjectPageSubSection id="levelBSubSection" title="{= ${guidance>/levelB/title} || '🟦 Level B - Classic but Acceptable' }">
+                        <blocks>
+                            <m:VBox id="levelBVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelBContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBWhatText" text="{guidance>/levelB/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBToolsText" text="{guidance>/levelB/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBExampleText" text="{guidance>/levelB/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBAnalogyLabel" text="Beginner Analogy (Comparing Windows PC):" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBAnalogyText" text="{guidance>/levelB/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>                                
+                                
+                                <m:VBox id="levelBWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBWhyLabel" text="Why it's acceptable:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBWhyText" text="{guidance>/levelB/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBDescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBDescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBDescText" text="{guidance>/levelB/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelBTechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelBTechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelBTechText" text="{guidance>/levelB/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelBMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelBMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelBMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelBUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBUpgradeText" text="{guidance>/levelB/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelBMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBMaintenanceText" text="{guidance>/levelB/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelBCloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBCloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBCloudText" text="{guidance>/levelB/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelBRiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelBRiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelBRiskText" text="{guidance>/levelB/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Level C -->
+                    <ObjectPageSubSection id="levelCSubSection" title="{= ${guidance>/levelC/title} || '🟨 Level C - Risky Legacy' }">
+                        <blocks>
+                            <m:VBox id="levelCVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelCContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCWhatText" text="{guidance>/levelC/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCToolsText" text="{guidance>/levelC/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCExampleText" text="{guidance>/levelC/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCAnalogyLabel" text="Beginner Analogy (Comparing Windows PC):" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCAnalogyText" text="{guidance>/levelC/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>                                
+                                
+                                <m:VBox id="levelCWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCWhyLabel" text="Why it's risky:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCWhyText" text="{guidance>/levelC/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCDescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCDescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCDescText" text="{guidance>/levelC/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelCTechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelCTechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelCTechText" text="{guidance>/levelC/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelCMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelCMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelCMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelCUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCUpgradeText" text="{guidance>/levelC/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelCMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCMaintenanceText" text="{guidance>/levelC/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelCCloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCCloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCCloudText" text="{guidance>/levelC/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelCRiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelCRiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelCRiskText" text="{guidance>/levelC/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Level D -->
+                    <ObjectPageSubSection id="levelDSubSection" title="{= ${guidance>/levelD/title} || '🟥 Level D - Do Not Do This (Modifications)' }">
+                        <blocks>
+                            <m:VBox id="levelDVBox" class="sapUiNoMargin">
+                                <m:VBox id="levelDContentBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDWhatLabel" text="What it means:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDWhatText" text="{guidance>/levelD/whatItMeans}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDToolsBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDToolsLabel" text="Tools You Use:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDToolsText" text="{guidance>/levelD/toolsUsed}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDExampleBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDExampleLabel" text="Example:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDExampleText" text="{guidance>/levelD/exampleReport}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDAnalogyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDAnalogyLabel" text="Beginner Analogy (Comparing Windows PC):" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDAnalogyText" text="{guidance>/levelD/beginnerAnalogy}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>                                
+                                
+                                <m:VBox id="levelDWhyBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDWhyLabel" text="Why it's bad:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDWhyText" text="{guidance>/levelD/whyReasoning}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDDescBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDDescLabel" text="Description:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDDescText" text="{guidance>/levelD/description}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <m:VBox id="levelDTechBox" class="sapUiSmallMarginBottom">
+                                    <m:Label id="levelDTechLabel" text="Technology:" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:Text id="levelDTechText" text="{guidance>/levelD/technology}" class="sapUiSmallMarginBottom" />
+                                </m:VBox>
+                                
+                                <!-- Metrics -->
+                                <m:VBox id="levelDMetricsContainer" class="sapUiMediumMarginTop">
+                                    <m:Label id="levelDMetricsTitle" text="Key Metrics" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <m:HBox id="levelDMetricsBox" justifyContent="SpaceBetween" width="100%">
+                                        <m:VBox id="levelDUpgradeBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDUpgradeLabel" text="Upgrade Complexity" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDUpgradeText" text="{guidance>/levelD/upgradeComplexity}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelDMaintenanceBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDMaintenanceLabel" text="Maintenance Effort" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDMaintenanceText" text="{guidance>/levelD/maintenanceEffort}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelDCloudBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDCloudLabel" text="Cloud Readiness" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDCloudText" text="{guidance>/levelD/cloudReadiness}" />
+                                        </m:VBox>
+                                        <m:VBox id="levelDRiskBox" alignItems="Start" class="sapUiTinyMargin">
+                                            <m:Label id="levelDRiskLabel" text="Technical Risk" class="sapUiTinyMarginBottom" />
+                                            <m:Text id="levelDRiskText" text="{guidance>/levelD/technicalRisk}" />
+                                        </m:VBox>
+                                    </m:HBox>
+                                </m:VBox>
+                            </m:VBox>
+                        </blocks>
+                    </ObjectPageSubSection>
+                    
+                    <!-- Summary Table for all levels -->
+                    <ObjectPageSubSection id="levelsSummarySubSection" title="Summary Table">
+                        <blocks>
+                            <m:Table
+                                id="levelsSummaryTable"
+                                items="{guidance>/levels}"
+                                width="auto"
+                                growing="false"
+                            >
+                                <m:columns>
+                                    <m:Column id="levelColumn" width="5em"><m:Text id="levelColumnHeader" text="Level" /></m:Column>
+                                    <m:Column id="descriptionColumn"><m:Text id="descriptionColumnHeader" text="Description" /></m:Column>
+                                    <m:Column id="technologyColumn"><m:Text id="technologyColumnHeader" text="Technology" /></m:Column>
+                                    <m:Column id="upgradeComplexityColumn"><m:Text id="upgradeComplexityColumnHeader" text="Upgrade Complexity" /></m:Column>
+                                    <m:Column id="maintenanceEffortColumn"><m:Text id="maintenanceEffortColumnHeader" text="Maintenance Effort" /></m:Column>
+                                    <m:Column id="cloudReadinessColumn"><m:Text id="cloudReadinessColumnHeader" text="Cloud Readiness" /></m:Column>
+                                    <m:Column id="technicalRiskColumn"><m:Text id="technicalRiskColumnHeader" text="Technical Risk" /></m:Column>
+                                </m:columns>
+                                <m:items>
+                                    <m:ColumnListItem id="levelsSummaryTableItem">
+                                        <m:cells>
+                                            <m:Text id="levelCell" text="{guidance>level}" />
+                                            <m:Text id="descriptionCell" text="{guidance>description}" />
+                                            <m:Text id="technologyCell" text="{guidance>technology}" />
+                                            <m:Text id="upgradeComplexityCell" text="{guidance>upgradeComplexity}" />
+                                            <m:Text id="maintenanceEffortCell" text="{guidance>maintenanceEffort}" />
+                                            <m:Text id="cloudReadinessCell" text="{guidance>cloudReadiness}" />
+                                            <m:Text id="technicalRiskCell" text="{guidance>technicalRisk}" />
+                                        </m:cells>
+                                    </m:ColumnListItem>
+                                </m:items>
+                            </m:Table>
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+
+            <!-- Section 2: Real-World Examples -->
+            <ObjectPageSection
+                id="realWorldExamplesSection"
+                title="Real-World Examples"
+                visible="{= ${guidance>/examples} &amp;&amp; ${guidance>/examples}.length > 0}"
+            >
+                <subSections>
+                    <ObjectPageSubSection id="realWorldExamplesSubSection">
+                        <blocks>
+                            <m:List id="examplesListGuidanceView" items="{guidance>/examples}">
+                                <m:StandardListItem
+                                    id="exampleListItem"
+                                    title="{guidance>title}"
+                                    description="{guidance>scenario}"
+                                    info="Level {guidance>associatedLevel}"
+                                    type="Active"
+                                    press="onExamplePress"
+                                />
+                            </m:List>
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+            
+            <!-- Section 3: Additional Guidance (optional sections) -->
+            <ObjectPageSection
+                id="additionalGuidanceSection"
+                title="Additional Guidance"
+                visible="{= (${guidance>/guidance/designGuidance} &amp;&amp; ${guidance>/guidance/designGuidance} !== '') || (${guidance>/guidance/beginnerFaq} &amp;&amp; ${guidance>/guidance/beginnerFaq} !== '')}"
+            >
+                <subSections>
+                    <ObjectPageSubSection
+                        id="designGuidanceSubSection"
+                        title="Design Guidance"
+                        visible="{= ${guidance>/guidance/designGuidance} &amp;&amp; ${guidance>/guidance/designGuidance} !== ''}"
+                    >
+                        <blocks>
+                            <m:Text id="designGuidanceText" text="{guidance>/guidance/designGuidance}" />
+                        </blocks>
+                    </ObjectPageSubSection>
+                    <ObjectPageSubSection
+                        id="beginnerFaqSubSection"
+                        title="Beginner FAQ"
+                        visible="{= ${guidance>/guidance/beginnerFaq} &amp;&amp; ${guidance>/guidance/beginnerFaq} !== ''}"
+                    >
+                        <blocks>
+                            <m:Text id="beginnerFaqText" text="{guidance>/guidance/beginnerFaq}" />
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+        </sections>
+    </ObjectPageLayout>
+</mvc:View>

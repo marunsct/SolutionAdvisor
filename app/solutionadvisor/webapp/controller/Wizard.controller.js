@@ -813,6 +813,151 @@ sap.ui.define([
             this._updateNextButtonState();
         },
 
+        /**
+         * Handler for guidance step activation
+         * Loads the full guidance content for the selected RICEFW type
+         * @public
+         */
+        onGuidanceStepActivate() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            
+            // Extract RICEFW type (first character) from objectType
+            // objectType could be "Reports", "Interfaces", etc.
+            // We need to map it to R, I, C, E, F, W
+            let sRicefwType = "";
+            if (sObjectType) {
+                // Try to get from ricefwId first
+                const sRicefwId = oWizardModel.getProperty("/ricefwId");
+                if (sRicefwId && sRicefwId.length > 0) {
+                    sRicefwType = sRicefwId.charAt(0);
+                } else {
+                    // Fallback: map object type name to RICEFW code
+                    const typeMapping = {
+                        "Reports": "R",
+                        "Interfaces": "I",
+                        "Conversions": "C",
+                        "Enhancements": "E",
+                        "Forms": "F",
+                        "Workflows": "W"
+                    };
+                    sRicefwType = typeMapping[sObjectType] || "";
+                }
+            }
+            
+            if (sRicefwType && ['R', 'I', 'C', 'E', 'F', 'W'].includes(sRicefwType)) {
+                // Get reference to the Guidance view and controller
+                const oGuidanceView = this.byId("guidanceView");
+                if (oGuidanceView) {
+                    const oGuidanceController = oGuidanceView.getController();
+                    if (oGuidanceController && typeof oGuidanceController.loadGuidance === 'function') {
+                        oGuidanceController.loadGuidance(sRicefwType);
+                    }
+                }
+            } else {
+                MessageToast.show("Unable to determine RICEFW type for guidance");
+            }
+        },
+
+        /**
+         * Handler for "Learn Clean Core Levels" button click
+         * Opens the guidance content as a modal dialog
+         * @public
+         */
+        onLearnCleanCoreLevels() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const sObjectType = oWizardModel.getProperty("/objectType");
+            const sRicefwId = oWizardModel.getProperty("/ricefwId");
+            
+            // Extract RICEFW type
+            let sRicefwType = "";
+            if (sRicefwId && sRicefwId.length > 0) {
+                sRicefwType = sRicefwId.charAt(0);
+            } else {
+                const typeMapping = {
+                    "Reports": "R",
+                    "Interfaces": "I",
+                    "Conversions": "C",
+                    "Enhancements": "E",
+                    "Forms": "F",
+                    "Workflows": "W"
+                };
+                sRicefwType = typeMapping[sObjectType] || "";
+            }
+
+            if (!sRicefwType) {
+                MessageToast.show("Unable to determine object type for guidance");
+                return;
+            }
+
+            // Store reference to the dialog for later cleanup
+            if (!this._guidanceDialogStack) {
+                this._guidanceDialogStack = [];
+            }
+
+            // Close and destroy any previously opened dialogs
+            while (this._guidanceDialogStack.length > 0) {
+                const oOldDialog = this._guidanceDialogStack.pop();
+                if (oOldDialog && !oOldDialog.isDestroyed()) {
+                    oOldDialog.close();
+                    oOldDialog.destroy();
+                }
+            }
+
+            // Generate unique ID for this fragment instance
+            const sFragmentId = "guidanceDialog_" + Date.now();
+
+            // Load the dialog fragment with unique ID
+            sap.ui.core.Fragment.load({
+                id: sFragmentId,
+                name: "sd.solutionadvisor.view.fragments.GuidanceDialog",
+                controller: this
+            }).then((oDialog) => {
+                // Store dialog reference
+                this._guidanceDialogStack.push(oDialog);
+
+                // Add dialog to view
+                this.getView().addDependent(oDialog);
+                
+                // Load guidance content in the dialog
+                const oGuidanceView = sap.ui.core.Fragment.byId(sFragmentId, "guidanceViewDialog");
+                if (oGuidanceView) {
+                    const oGuidanceController = oGuidanceView.getController();
+                    if (oGuidanceController && typeof oGuidanceController.loadGuidance === 'function') {
+                        oGuidanceController.loadGuidance(sRicefwType);
+                    }
+                }
+                
+                // Open dialog
+                oDialog.open();
+            }).catch((oError) => {
+                console.error("Failed to load guidance dialog:", oError);
+                MessageToast.show("Unable to load guidance content");
+            });
+        },
+
+        /**
+         * Handler for closing the guidance dialog
+         * Destroys the dialog to clean up resources
+         * @public
+         */
+        onCloseGuidanceDialog() {
+            // Close the most recent dialog in the stack
+            if (this._guidanceDialogStack && this._guidanceDialogStack.length > 0) {
+                const oDialog = this._guidanceDialogStack[this._guidanceDialogStack.length - 1];
+                if (oDialog && !oDialog.isDestroyed()) {
+                    oDialog.close();
+                    // Destroy dialog after closing to free up resources and remove all controls
+                    setTimeout(() => {
+                        if (oDialog && !oDialog.isDestroyed()) {
+                            oDialog.destroy();
+                            this._guidanceDialogStack.pop();
+                        }
+                    }, 300);
+                }
+            }
+        },
+
         onProjectSelect(oEvent) {
             const oSelectedItem = oEvent.getParameter("selectedItem");
             if (oSelectedItem) {
@@ -1547,6 +1692,7 @@ sap.ui.define([
 
                 // Initialize step counters
                 oWizardModel.setProperty("/currentStep", 1);
+                oWizardModel.setProperty("/totalSteps", oResult.totalSteps);
 
                 // Update progress with actual question number and total steps
                 this._updateProgress(oResult.firstQuestion.questionId, oResult.totalSteps);

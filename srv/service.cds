@@ -114,6 +114,13 @@ service solutionAdvisorService {
     }]
     entity RealWorldExamples     as projection on my.RealWorldExample;
 
+    @readonly
+    @restrict: [{
+        grant: 'READ',
+        to   : 'authenticated-user'
+    }]
+    entity CleanCoreGuidance     as projection on my.CleanCoreGuidance;
+
     // ===============================
     // Logging Entities
     // ===============================
@@ -478,6 +485,57 @@ service solutionAdvisorService {
     action resetTenantRateLimit(tenantId : String) returns {
         success : Boolean;
         message : String;
+    };
+
+    /**
+     * Get full guidance content for a RICEFW type
+     * Returns comprehensive educational content including levels and examples
+     */
+    function getFullGuidance(ricefwType : String) returns {
+        guidance : {
+            ricefwType          : String;
+            title               : String;
+            introduction        : LargeString;
+            apiExplanation      : LargeString;
+            decisionTree        : LargeString;
+            determinationFactors : LargeString;
+            performanceThresholds : LargeString;
+            deploymentConstraints : LargeString;
+            realWorldScenarios  : LargeString;
+            officialGuidance    : LargeString;
+            strategyMatrix      : LargeString;
+            summaryTable        : LargeString;
+            designGuidance      : LargeString;
+            beginnerFaq         : LargeString;
+        };
+        levels   : array of {
+            level             : String;
+            ricefwType        : String;
+            title             : String;
+            levelName         : String;
+            whatItMeans       : LargeString;
+            beginnerAnalogy   : LargeString;
+            toolsUsed         : LargeString;
+            exampleReport     : LargeString;
+            whyReasoning      : LargeString;
+            description       : LargeString;
+            technology        : LargeString;
+            upgradeComplexity : String;
+            maintenanceEffort : String;
+            cloudReadiness    : String;
+            technicalRisk     : String;
+        };
+        examples : array of {
+            exampleId       : String;
+            title           : String;
+            scenario        : LargeString;
+            design          : LargeString;
+            whyLevel        : LargeString;
+            outcome         : LargeString;
+            associatedLevel : String;
+            industry        : String;
+            businessBenefit : LargeString;
+        };
     };
 }
 

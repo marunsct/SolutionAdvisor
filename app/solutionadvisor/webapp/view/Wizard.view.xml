@@ -208,7 +208,43 @@
                     </VBox>
                 </WizardStep>
 
-                <!-- Step 3: Ready to Start -->
+                <!-- Step 3: Clean Core Guidance -->
+                <WizardStep
+                    id="guidanceStep"
+                    title="Clean Core Guidance"
+                    validated="true"
+                    activate="onGuidanceStepActivate"
+                >
+                    <VBox
+                        id="guidanceStepVBox"
+                        class="sapUiSmallMargin"
+                        alignItems="Center"
+                    >
+                        <Title
+                            id="guidanceStepTitle"
+                            text="Learn About Clean Core Levels"
+                            level="H3"
+                            class="sapUiMediumMarginTop"
+                        />
+                        <Text
+                            id="guidanceStepDescription"
+                            text="Before starting the analysis, explore the Clean Core levels (A, B, C, D) and understand what each level means for your selected object type. This will help you make informed decisions during the wizard."
+                            class="sapUiSmallMarginTop sapUiSmallMarginBottom"
+                            textAlign="Center"
+                            width="80%"
+                        />
+                        <Button
+                            id="learnCleanCoreLevelsButton"
+                            text="Learn Clean Core Levels"
+                            type="Emphasized"
+                            icon="sap-icon://learning-assistant"
+                            press="onLearnCleanCoreLevels"
+                            class="sapUiMediumMarginTop"
+                        />
+                    </VBox>
+                </WizardStep>
+
+                <!-- Step 4: Ready to Start -->
                 <WizardStep
                     id="readyStep"
                     title="Ready to Start"
@@ -298,25 +334,10 @@
                                 />
                             </VBox>
                         </VBox>
-
-                        <!-- Add Constraints and Examples Panels -->
-                        <VBox id="constraintsPanelContainer" class="sapUiMediumMarginTop">
-                            <core:Fragment
-                                fragmentName="sd.solutionadvisor.view.fragments.ConstraintsPanel"
-                                type="XML"
-                            />
-                        </VBox>
-
-                        <VBox id="examplesPanelContainer" class="sapUiMediumMarginTop">
-                            <core:Fragment
-                                fragmentName="sd.solutionadvisor.view.fragments.ExamplesPanel"
-                                type="XML"
-                            />
-                        </VBox>
                     </VBox>
                 </WizardStep>
 
-                <!-- Step 4: Dynamic Questions -->
+                <!-- Step 5: Dynamic Questions -->
                 <WizardStep
                     id="questionStep"
                     title="Analysis Questions"

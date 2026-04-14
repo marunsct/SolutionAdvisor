@@ -363,6 +363,10 @@ module.exports = cds.service.impl(async function () {
                 return req.error(400, req.t('error.invalidRicefwId'));
             }
 
+            // ✅ Calculate totalSteps early so it's available for both new and resumed sessions
+            const totalSteps = await decisionEngine.getTotalSteps(objectType);
+            LOG.info(`Total steps for ${objectType}: ${totalSteps}`);
+
             // ✅ FIX #1: Check if draft session already exists for this RICEFW ID
             // This prevents creating duplicate analyses when resuming
             const existingDraft = await SELECT.one.from(Analyses)
@@ -393,6 +397,7 @@ module.exports = cds.service.impl(async function () {
                         sessionID: existingSession.ID,
                         analysisID: existingDraft.ID,
                         firstQuestion: firstQuestion,
+                        totalSteps: totalSteps,  // ✅ Return totalSteps for resume too
                         isResumed: true  // Flag to indicate this is a resume, not a new start
                     };
                 }
@@ -492,7 +497,6 @@ module.exports = cds.service.impl(async function () {
 
             // Create wizard session
             const sessionID = cds.utils.uuid();
-            const totalSteps = await decisionEngine.getTotalSteps(objectType);
 
             const session = {
                 ID: sessionID,
@@ -1752,6 +1756,45 @@ module.exports = cds.service.impl(async function () {
                 success: false,
                 message: `Failed to reset rate limit: ${error.message}`
             };
+        }
+    });
+
+    // ===============================
+    // Clean Core Guidance
+    // ===============================
+
+    this.on('getFullGuidance', async (req) => {
+        const { ricefwType } = req.data;
+
+        // Validate ricefwType
+        if (!ricefwType || !['R', 'I', 'C', 'E', 'F', 'W'].includes(ricefwType)) {
+            return req.error(400, 'Invalid RICEFW type. Must be one of: R, I, C, E, F, W');
+        }
+
+        try {
+            const { CleanCoreGuidance, CleanCoreLevels, RealWorldExamples } = this.entities;
+
+            // Fetch guidance content for this RICEFW type
+            const guidance = await SELECT.one.from(CleanCoreGuidance)
+                .where({ ricefwType: ricefwType });
+
+            // Fetch clean core levels for this RICEFW type
+            const levels = await SELECT.from(CleanCoreLevels)
+                .where({ ricefwType: ricefwType })
+                .orderBy({ displayOrder: 'asc' });
+
+            // Fetch real-world examples for this RICEFW type
+            const examples = await SELECT.from(RealWorldExamples)
+                .where({ ricefwType: ricefwType });
+
+            return {
+                guidance: guidance || null,
+                levels: levels || [],
+                examples: examples || []
+            };
+        } catch (error) {
+            LOG.error('Error fetching guidance:', error);
+            return req.error(500, `Failed to load guidance: ${error.message}`);
         }
     });
 });
