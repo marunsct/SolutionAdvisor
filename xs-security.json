@@ -1,8 +1,7 @@
 {
-  "xsappname": "SolutionAdvisor",
+  "xsappname": "SolutionAdvisor-${space}",
   "tenant-mode": "shared",
   "description": "SAP Clean Core Solution Advisor - Enhanced Security Configuration with ABAC and Role Collections",
-  
   "scopes": [
     {
       "name": "$XSAPPNAME.Admin",
@@ -31,9 +30,15 @@
     {
       "name": "$XSAPPNAME.ServiceProviderAdmin",
       "description": "Service Provider Administrator - Cross-tenant analytics and master data management for SaaS operations"
+    },
+    {
+      "name": "$XSAPPNAME.mtcallback",
+      "description": "Subscribe to SaaS Application",
+      "grant-as-authority-to-apps": [
+        "$XSAPPNAME(application,sap-provisioning,tenant-onboarding)"
+      ]
     }
   ],
-  
   "attributes": [
     {
       "name": "projectId",
@@ -51,7 +56,6 @@
       "valueType": "string"
     }
   ],
-  
   "role-templates": [
     {
       "name": "Administrator",
@@ -121,7 +125,6 @@
       ]
     }
   ],
-  
   "role-collections": [
     {
       "name": "SolutionAdvisor_Administrator",
@@ -173,12 +176,16 @@
       ]
     }
   ],
-  
+  "authorities": [
+    "$XSAPPNAME.mtcallback"
+  ],
   "oauth2-configuration": {
     "redirect-uris": [
+      "https://*hana*/**",
       "https://*-SolutionAdvisor.cfapps.*.hana.ondemand.com/**",
       "https://*.applicationstudio.cloud.sap/**",
       "https://*.github*/**",
+      "https://*.sap*/**",
       "https://*.hana.ondemand.com/**",
       "https://*.cfapps.*.hana.ondemand.com/**",
       "http://localhost:4004/**",

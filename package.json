@@ -9,15 +9,16 @@
     "@sap-cloud-sdk/util": "^4.1.2",
     "@sap/cds": "^9",
     "@sap/cds-mtxs": "^3.8.1",
-    "@sap/low-code-event-handler": "^1.2.5",
+    "@sap/eslint-plugin-ui5-jsdocs": "2.0.1",
+    "@sap/low-code-event-handler": "^1.2.2",
     "@sap/xsenv": "^6.0.0",
     "@sap/xssec": "^4.10.0",
     "express": "^4",
     "hdb": "^2.26.1",
-    "jspdf": "^3.0.3",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.2",
     "node-cache": "^5.1.2",
-    "nodemailer": "^7.0.10",
+    "nodemailer": "^8.0.5",
     "passport": "^0.7.0",
     "xlsx": "^0.18.5"
   },
@@ -25,7 +26,7 @@
     "@cap-js/cds-test": "^0.4.0",
     "@cap-js/mcp-server": "^0.0.3",
     "@cap-js/sqlite": "^2",
-    "@sap/approuter": "^20.8.2",
+    "@sap/approuter": "^21.3.0",
     "@sap/cds-dk": "^9",
     "@sap/dev-cap-tools": "^1.47.10",
     "@sap/hdi-deploy": "^5.5.1",
@@ -125,6 +126,9 @@
         "[production]": {
           "kind": "xsuaa"
         }
+      },
+      "[with-mtx]": {
+        "multitenancy": true
       }
     }
   },
