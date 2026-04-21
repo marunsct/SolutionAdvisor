@@ -150,28 +150,28 @@ service solutionAdvisorService {
     @readonly
     @restrict: [{
         grant: 'READ',
-        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer', 'ServiceProviderAdmin']
     }]
     entity AnalysisAggregates    as projection on my.CV_ANALYSIS_AGGREGATES;
 
     @readonly
     @restrict: [{
         grant: 'READ',
-        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer', 'ServiceProviderAdmin']
     }]
     entity RicefwDistribution    as projection on my.CV_RICEFW_DISTRIBUTION;
 
     @readonly
     @restrict: [{
         grant: 'READ',
-        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer', 'ServiceProviderAdmin']
     }]
     entity TrendAnalysis         as projection on my.CV_TREND_ANALYSIS;
 
     @readonly
     @restrict: [{
         grant: 'READ',
-        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer']
+        to   : ['Admin', 'TenantAdmin', 'SolutionArchitect', 'Viewer', 'ServiceProviderAdmin']
     }]
     entity ProjectDashboard      as projection on my.CV_PROJECT_DASHBOARD;
 
@@ -414,6 +414,38 @@ service solutionAdvisorService {
             objectType      : String;
             complexityScore : Integer;
             level           : String;
+        };
+    };
+
+    /**
+     * Get cross-tenant analytics for provider administrators
+     * Aggregates analytics across subscribed tenants by querying each tenant context
+     */
+    @restrict: [{
+        grant: 'READ',
+        to   : ['Admin', 'ServiceProviderAdmin']
+    }]
+    function getCrossTenantAnalyticsData(dateFrom: Date,
+                                         dateTo: Date,
+                                         ricefwTypes: String,
+                                         cleanCoreLevels: String,
+                                         projectId: String,
+                                         tenantIds: String)                                                                                                 returns {
+        totalTenants          : Integer;
+        activeTenants         : Integer;
+        totalAnalyses         : Integer;
+        technicalDebtScore    : Integer;
+        cloudReadinessScore   : Integer;
+        upgradeImpactScore    : Integer;
+        compositeHealthScore  : Integer;
+        tenantAnalytics       : array of {
+            tenant                : String;
+            totalAnalyses         : Integer;
+            projectCount          : Integer;
+            technicalDebtScore    : Integer;
+            cloudReadinessScore   : Integer;
+            upgradeImpactScore    : Integer;
+            compositeHealthScore  : Integer;
         };
     };
 

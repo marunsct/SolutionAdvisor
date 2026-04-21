@@ -12,6 +12,8 @@ const { rateLimiter } = require('./lib/rate-limiter');
 const { batchOptimizer } = require('./lib/batch-optimizer');
 const queryOptimizer = require('./lib/query-optimizer');
 const cacheService = require('./lib/cache-service');
+const TenantContext = require('./lib/tenant-context');
+const ProviderAnalyticsService = require('./lib/provider-analytics-service');
 
 /**
  * Solution Advisor Service Implementation
@@ -59,10 +61,17 @@ module.exports = cds.service.impl(async function () {
     const constraintsService = new ConstraintsService(this);
     const examplesService = new ExamplesService(this);
     const analyticsService = new AnalyticsService();
+    const providerAnalyticsService = new ProviderAnalyticsService();
     const auditService = new AuditService();
 
     // Initialize audit service
     await auditService.init();
+
+    // ===============================
+    // Tenant Context Enforcement
+    // ===============================
+
+    TenantContext.registerMiddleware(this, process.env.NODE_ENV !== 'production');
 
     // ===============================
     // Rate Limiting Enforcement
@@ -81,24 +90,7 @@ module.exports = cds.service.impl(async function () {
         }
     });
 
-    // ===============================
-    // Tenant Context Enforcement
-    // ===============================
-
     this.before('*', (req) => {
-        // Add tenant context to all operations
-        const tenant = req.user?.tenant || 'default';
-
-        if (req.data && !req.data.tenant) {
-            req.data.tenant = tenant;
-        }
-
-        // For queries, add tenant filter
-        if (req.query && req.query.SELECT) {
-            // This would be enhanced with proper tenant filtering in production
-            req.tenant = tenant;
-        }
-
         // Ensure i18n translator exists on request (req.t)
         if (typeof req.t !== 'function') {
             try {
@@ -112,6 +104,37 @@ module.exports = cds.service.impl(async function () {
                 req.t = (key) => key; // graceful fallback
             }
         }
+    });
+
+    const tenantScopedEntities = [
+        'Projects',
+        'Analyses',
+        'DecisionPaths',
+        'WizardSessions',
+        'ConstraintLogs',
+        'ExampleLogs',
+        'ProjectUsers',
+        'Notifications'
+    ];
+
+    tenantScopedEntities.forEach((entityName) => {
+        this.before(['CREATE', 'UPDATE'], entityName, (req) => {
+            if (req.data && Object.prototype.hasOwnProperty.call(req.target?.elements || {}, 'tenant')) {
+                req.data.tenant = req.tenant;
+            }
+        });
+    });
+
+    this.before(['CREATE', 'UPDATE'], 'QuestionFlows', (req) => {
+        if (!req.data || !Object.prototype.hasOwnProperty.call(req.target?.elements || {}, 'tenant')) {
+            return;
+        }
+
+        if (req.data.tenant === null && req.user.is('Admin')) {
+            return;
+        }
+
+        req.data.tenant = req.tenant;
     });
 
     // ===============================
@@ -209,7 +232,7 @@ module.exports = cds.service.impl(async function () {
         }
 
         // Fetch the analysis to check ownership (tenant-scoped to prevent cross-tenant access)
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
         const analysis = await SELECT.one.from(Analyses).where({ ID: analysisID, tenant: tenant });
 
         if (!analysis) {
@@ -354,7 +377,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('startWizard', async (req) => {
         const { projectID, ricefwId, objectType, objectName, businessArea_ID, complexity } = req.data;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             // Validate RICEFW ID format
@@ -571,7 +594,7 @@ module.exports = cds.service.impl(async function () {
             timeSpent
         } = req.data;
 
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             // Get session
@@ -721,7 +744,7 @@ module.exports = cds.service.impl(async function () {
                         id: req.user?.id || req.user?.email,
                         email: req.user?.id || req.user?.email || 'user@example.com',
                         name: req.user?.name || 'User',
-                        tenant: req.user?.tenant || 'default',
+                        tenant: req.tenant,
                         preferences: { emailNotifications: true, pushNotifications: false }
                     };
 
@@ -771,7 +794,7 @@ module.exports = cds.service.impl(async function () {
                     const userData = {
                         id: req.user?.id || req.user?.email,
                         email: req.user?.id || req.user?.email || 'user@example.com',
-                        tenant: req.user?.tenant || 'default'
+                        tenant: req.tenant
                     };
                     notificationService.notifySessionSaved(sessionData, userData).catch(err =>
                         LOG.warn('Failed to send session saved notification:', err)
@@ -849,7 +872,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('recalculateScores', async (req) => {
         const { analysisID } = req.data;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             // Verify analysis exists and has a final recommendation
@@ -984,7 +1007,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('batchRecalculateScores', async (req) => {
         const { analysisIDs } = req.data;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
         const startTime = Date.now();
 
         const results = {
@@ -1146,7 +1169,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('resumeWizard', async (req) => {
         const { sessionID } = req.data;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             const session = await SELECT.one.from(WizardSessions)
@@ -1210,7 +1233,7 @@ module.exports = cds.service.impl(async function () {
             }
 
             // Verify analysis exists
-            const tenant = req.user?.tenant || 'default';
+            const tenant = req.tenant;
             const analysis = await SELECT.one.from(Analyses)
                 .where({ ID: analysisID, tenant: tenant });
 
@@ -1230,7 +1253,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('assignUserToProject', async (req) => {
         const { projectId, userId, userEmail, userName, role } = req.data;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             // Check if user already assigned
@@ -1271,7 +1294,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('removeUserFromProject', async (req) => {
         const { projectUserId } = req.data;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             await DELETE.from(ProjectUsers)
@@ -1292,7 +1315,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.on('getAccessibleProjects', async (req) => {
         const user = req.user?.id || 'anonymous';
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         try {
             // If admin, return all projects (paginated)
@@ -1333,7 +1356,7 @@ module.exports = cds.service.impl(async function () {
      * Before creating an analysis
      */
     this.before('CREATE', Analyses, async (req) => {
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
         req.data.tenant = tenant;
         req.data.analysisDate = req.data.analysisDate || new Date().toISOString().split('T')[0];
     });
@@ -1342,7 +1365,7 @@ module.exports = cds.service.impl(async function () {
      * Before creating a project
      */
     this.before('CREATE', Projects, async (req) => {
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         // Ensure ID is set (CAP should do this automatically, but let's be explicit)
         if (!req.data.ID) {
@@ -1370,7 +1393,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.before('DELETE', Projects, async (req) => {
         const projectID = req.data.ID;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         if (!projectID) {
             return;
@@ -1393,7 +1416,7 @@ module.exports = cds.service.impl(async function () {
      */
     this.before('DELETE', Analyses, async (req) => {
         const analysisID = req.data.ID;
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
 
         if (!analysisID) {
             return;
@@ -1418,7 +1441,7 @@ module.exports = cds.service.impl(async function () {
     /*
     this.before('READ', Projects, async (req) => {
         const user = req.user?.id || 'anonymous';
-        const tenant = req.user?.tenant || 'default';
+        const tenant = req.tenant;
         
         // Admins see all projects
         if (req.user?.is('Admin') || req.user?.is('TenantAdmin')) {
@@ -1525,7 +1548,7 @@ module.exports = cds.service.impl(async function () {
             }
 
             LOG.debug('Resolved filters:', filters);
-            const tenant = req.user?.tenant || req.tenant;
+            const tenant = req.tenant;
             const analyticsData = await analyticsService.getAnalyticsData(filters, tenant);
             LOG.debug('Analytics data retrieved:', analyticsData ? 'success' : 'empty');
             return analyticsData;
@@ -1535,13 +1558,59 @@ module.exports = cds.service.impl(async function () {
         }
     });
 
+    this.on('getCrossTenantAnalyticsData', async (req) => {
+        try {
+            if (!req.user.is('Admin') && !req.user.is('ServiceProviderAdmin')) {
+                return req.error(403, 'Cross-tenant analytics requires Admin or ServiceProviderAdmin role');
+            }
+
+            const filters = {
+                dateFrom: req.data?.dateFrom || null,
+                dateTo: req.data?.dateTo || null,
+                ricefwTypes: null,
+                cleanCoreLevels: null,
+                projectId: req.data?.projectId || null
+            };
+
+            if (req.data?.ricefwTypes && typeof req.data.ricefwTypes === 'string') {
+                try {
+                    filters.ricefwTypes = JSON.parse(req.data.ricefwTypes);
+                } catch {
+                    LOG.warn('Failed to parse ricefwTypes for cross-tenant analytics, ignoring filter');
+                }
+            }
+
+            if (req.data?.cleanCoreLevels && typeof req.data.cleanCoreLevels === 'string') {
+                try {
+                    filters.cleanCoreLevels = JSON.parse(req.data.cleanCoreLevels);
+                } catch {
+                    LOG.warn('Failed to parse cleanCoreLevels for cross-tenant analytics, ignoring filter');
+                }
+            }
+
+            let tenantIds = [];
+            if (req.data?.tenantIds && typeof req.data.tenantIds === 'string') {
+                try {
+                    tenantIds = JSON.parse(req.data.tenantIds);
+                } catch {
+                    LOG.warn('Failed to parse tenantIds for cross-tenant analytics, using all subscribed tenants');
+                }
+            }
+
+            return await providerAnalyticsService.getCrossTenantAnalyticsData(filters, tenantIds);
+        } catch (error) {
+            LOG.error('Error getting cross-tenant analytics data:', error);
+            return req.error(500, `Failed to get cross-tenant analytics data: ${error.message}`);
+        }
+    });
+
     // ===============================
     // Additional Analytics Handlers
     // ===============================
 
     this.on('getYearOverYearComparison', async (req) => {
         try {
-            const tenant = req.user?.tenant || req.tenant;
+            const tenant = req.tenant;
             const rows = await SELECT.from(Analyses)
                 .columns('createdAt', 'technicalDebtScore', 'cloudReadinessScore', 'upgradeImpactScore')
                 .where(tenant ? { tenant } : {});
@@ -1577,7 +1646,7 @@ module.exports = cds.service.impl(async function () {
             const projectIds = req.data?.projectIds || [];
             if (!projectIds.length) return req.error(400, 'No project IDs provided');
 
-            const tenant = req.user?.tenant || req.tenant;
+            const tenant = req.tenant;
             const whereClause = tenant
                 ? { project_ID: { in: projectIds }, tenant }
                 : { project_ID: { in: projectIds } };
@@ -1628,7 +1697,7 @@ module.exports = cds.service.impl(async function () {
         try {
             const dateFrom = req.data?.dateFrom || null;
             const dateTo = req.data?.dateTo || null;
-            const tenant = req.user?.tenant || req.tenant;
+            const tenant = req.tenant;
 
             let query = SELECT.from(Analyses)
                 .columns('createdAt', 'technicalDebtScore', 'cloudReadinessScore', 'upgradeImpactScore');
@@ -1678,7 +1747,7 @@ module.exports = cds.service.impl(async function () {
     this.before('READ', Notifications, async (req) => {
         try {
             const userId = req.user?.id || req.user?.email;
-            const tenant = req.user?.tenant || 'default';
+            const tenant = req.tenant;
 
             // Admins should see all notifications
             if (req.user.is('Admin')) {
@@ -1715,7 +1784,7 @@ module.exports = cds.service.impl(async function () {
         try {
             const now = new Date();
             const userId = req.user?.id || req.user?.email;
-            const tenant = req.user?.tenant || 'default';
+            const tenant = req.tenant;
 
             // Delete expired notifications for this user (fire-and-forget)
             cds.run(
@@ -1744,7 +1813,7 @@ module.exports = cds.service.impl(async function () {
         try {
             const { notificationId } = req.data;
             const userId = req.user?.id || req.user?.email;
-            const tenant = req.user?.tenant || 'default';
+            const tenant = req.tenant;
 
             if (!notificationId) {
                 return req.error(400, 'Notification ID is required');
@@ -1784,7 +1853,7 @@ module.exports = cds.service.impl(async function () {
     this.on('getUnreadNotificationCount', Notifications, async (req) => {
         try {
             const userId = req.user?.id || req.user?.email;
-            const tenant = req.user?.tenant || 'default';
+            const tenant = req.tenant;
             const now = new Date();
 
             if (!userId) {
@@ -1820,7 +1889,7 @@ module.exports = cds.service.impl(async function () {
 
             // Use current user if not specified (non-admins can only check their own status)
             const targetUserId = userId || req.user.id;
-            const targetTenantId = tenantId || req.user.tenant;
+            const targetTenantId = tenantId || req.tenant;
 
             // Admins can check any user's status, others only their own
             if (!req.user.is('Admin') && !req.user.is('TenantAdmin') && !req.user.is('ServiceProviderAdmin')) {

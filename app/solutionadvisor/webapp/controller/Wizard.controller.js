@@ -244,8 +244,9 @@ sap.ui.define([
             if (!step) return "";
             // If it's an object with getId method, call it
             const stepId = step.getId ? step.getId() : (typeof step === 'string' ? step : "");
-            // Remove container prefix if present (e.g., "container-sd.solutionadvisor---Wizard--projectStep" -> "projectStep")
-            return stepId.replace(/^container-.*?--(.+)$/, "$1");
+            // UI5 container IDs can include multiple '--' segments, so use the last one.
+            // Example: "container-sd.solutionadvisor---Wizard--guidanceStep" -> "guidanceStep"
+            return stepId.split("--").pop() || stepId;
         },
 
         _updateProgress(currentQuestionId, totalSteps) {

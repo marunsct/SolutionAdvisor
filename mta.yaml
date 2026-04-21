@@ -11,6 +11,12 @@ modules:
       - name: SolutionAdvisor-sm1
       - name: SolutionAdvisor-alerts
       - name: SolutionAdvisor-logging
+      - name: mtx-api
+        properties:
+          CDS_REQUIRES_CDS_XT_DEPLOYMENTSERVICE_KIND: cds.xt.DeploymentService-from-sidecar
+          CDS_REQUIRES_CDS_XT_DEPLOYMENTSERVICE_CREDENTIALS_URL: ~{mtx-url}
+          CDS_REQUIRES_CDS_XT_MODELPROVIDERSERVICE_KIND: cds.xt.ModelProviderService-from-sidecar
+          CDS_REQUIRES_CDS_XT_MODELPROVIDERSERVICE_CREDENTIALS_URL: ~{mtx-url}
     provides:
       - name: srv-api
         properties:

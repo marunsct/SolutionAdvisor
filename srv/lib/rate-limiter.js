@@ -132,7 +132,7 @@ class RateLimiter {
         }
 
         const userId = req.user?.id || 'anonymous';
-        const tenantId = req.user?.tenant || 'default';
+        const tenantId = req.tenant || req.user?.tenant || 'default';
         const path = req.path || req._.odataReq?.getPath() || '';
 
         // Determine cost (expensive operations cost more tokens)

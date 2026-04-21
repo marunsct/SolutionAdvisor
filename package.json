@@ -72,7 +72,8 @@
     "test:load": "k6 run test/performance/load-test.js",
     "test:stress": "k6 run test/performance/stress-test.js",
     "cflogin": "cf login -a https://api.cf.us10-001.hana.ondemand.com -u arun.muthukumarasamy@jp.ey.com -o 14ace10ftrial -s dev",
-    "cftarget": "cf target -o 14ace10ftrial -s dev"
+    "cftarget": "cf target -o 14ace10ftrial -s dev",
+    "setup:cross-tenant-hana": "node tools/setup-cross-tenant-hana.js"
   },
   "private": true,
   "cds": {

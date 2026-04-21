@@ -1,0 +1,13 @@
+VIEW "PROVIDER_CROSS_TENANT_ANALYSIS" AS
+SELECT
+  CURRENT_SCHEMA AS reporting_schema,
+  source."tenant",
+  source."ID",
+  source."ricefwId",
+  source."objectType",
+  source."status",
+  source."technicalDebtScore",
+  source."cloudReadinessScore",
+  source."upgradeImpactScore",
+  source."compositeHealthScore"
+FROM "TENANT_ANALYSIS_SOURCE" AS source;

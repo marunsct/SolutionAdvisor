@@ -1,0 +1,8 @@
+{
+  "TENANT_ANALYSIS_SOURCE": {
+    "target": {
+      "object": "sd_CleanCoreAnalysis",
+      "schema.configure": "cross-tenant-grantor/schema"
+    }
+  }
+}

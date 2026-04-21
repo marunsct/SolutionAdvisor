@@ -1,0 +1,14 @@
+{
+  "cross-tenant-grantor": {
+    "object_owner": {
+      "container_roles": [
+        "CROSS_TENANT_SOURCE_ACCESS"
+      ]
+    },
+    "application_user": {
+      "container_roles": [
+        "CROSS_TENANT_SOURCE_ACCESS"
+      ]
+    }
+  }
+}

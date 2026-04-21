@@ -14,6 +14,18 @@ const TenantContext = require('./lib/tenant-context');
 module.exports = cds.service.impl(async function () {
     LOG.info('Initializing Admin Service...');
 
+    TenantContext.registerMiddleware(this, process.env.NODE_ENV !== 'production');
+
+    this.before(['CREATE', 'UPDATE'], 'QuestionFlow', (req) => {
+        if (req.data?.tenant === null && req.user.is('Admin')) {
+            return;
+        }
+
+        if (req.data) {
+            req.data.tenant = req.tenant;
+        }
+    });
+
     // Register audit logging handlers
     await adminHandlers(this);
 
