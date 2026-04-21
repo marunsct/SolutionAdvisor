@@ -41,7 +41,8 @@
                 id="searchThresholdField"
                 width="300px"
                 search="onSearch"
-                placeholder="Search thresholds..."/>
+                placeholder="Search thresholds..."
+                tooltip="Search by category, method, or object type"/>
         </headerContent>
         
         <content>
@@ -92,7 +93,8 @@
                             <Button
                                 id="clearThresholdFiltersButton"
                                 text="Clear Filters"
-                                press="onClearFilters"/>
+                                press="onClearFilters"
+                                tooltip="Reset all filters to defaults"/>
                         </FlexBox>
                     </content>
                 </Panel>
@@ -106,6 +108,7 @@
                 <!-- Threshold Table -->
                 <Table
                     id="thresholdTable"
+                    ariaLabelledBy="thresholdTitle"
                     items="{
                         path: 'admin>/PerformanceThreshold',
                         parameters: {
@@ -115,6 +118,8 @@
                     mode="MultiSelect"
                     growing="true"
                     growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
                     busy="{viewModel>/busy}"
                     noDataText="No thresholds found. Click Create to add new thresholds.">
                     
@@ -125,25 +130,25 @@
                         <Column id="thresholdMethodColumn" width="12%">
                             <Text id="thresholdMethodHeader" text="Method"/>
                         </Column>
-                        <Column id="thresholdVolumeLimitColumn" width="12%">
+                        <Column id="thresholdVolumeLimitColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="thresholdVolumeLimitHeader" text="Volume Limit"/>
                         </Column>
-                        <Column id="thresholdRespTimeColumn" width="12%">
+                        <Column id="thresholdRespTimeColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="thresholdRespTimeHeader" text="Response Time"/>
                         </Column>
-                        <Column id="thresholdConcurrencyColumn" width="12%">
+                        <Column id="thresholdConcurrencyColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="thresholdConcurrencyHeader" text="Concurrency"/>
                         </Column>
                         <Column id="thresholdCleanCoreLevelColumn" width="10%">
                             <Text id="thresholdCleanCoreLevelHeader" text="Level"/>
                         </Column>
-                        <Column id="thresholdObjectTypesColumn" width="18%">
+                        <Column id="thresholdObjectTypesColumn" width="18%" demandPopin="true" minScreenWidth="Tablet">
                             <Text id="thresholdObjectTypesHeader" text="Object Types"/>
                         </Column>
-                        <Column id="thresholdActiveColumn" width="6%">
+                        <Column id="thresholdActiveColumn" width="6%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="thresholdActiveHeader" text="Active"/>
                         </Column>
-                        <Column id="thresholdModifiedColumn" width="10%">
+                        <Column id="thresholdModifiedColumn" width="10%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="thresholdModifiedHeader" text="Modified"/>
                         </Column>
                         <Column id="thresholdActionsColumn" width="6%" hAlign="End">

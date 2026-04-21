@@ -41,7 +41,9 @@
                     <List
                         id="violationsList"
                         items="{constraintsModel>/violations}"
-                        noDataText="">
+                        noDataText="No active violations detected."
+                        growing="true"
+                        growingThreshold="5">
                         <CustomListItem id="violationItem">
                             <VBox id="violationItemVBox" class="sapUiSmallMargin">
                                 <HBox id="violationHeaderHBox" justifyContent="SpaceBetween" alignItems="Center">
@@ -77,12 +79,15 @@
                     <List
                         id="performanceConstraintsList"
                         items="{constraintsModel>/performanceConstraints}"
+                        growing="true"
+                        growingThreshold="8"
                         noDataText="No performance constraints apply to this context">
                         <StandardListItem
                             id="performanceConstraintItem"
                             title="{constraintsModel>category} - {constraintsModel>method}"
                             description="{= ${constraintsModel>volumeLimit} ? 'Volume: ' + ${constraintsModel>volumeLimit} + ' records' : '' }{= ${constraintsModel>sizeThreshold} ? (${constraintsModel>volumeLimit} ? ' | Size: ' : 'Size: ') + ${constraintsModel>sizeThreshold} : '' }{= ${constraintsModel>responseTimeTarget} ? ' | Response: ' + ${constraintsModel>responseTimeTarget} + 'ms' : '' }{= ${constraintsModel>frequencyLimit} ? ' | Frequency: ' + ${constraintsModel>frequencyLimit} : '' }"
                             info="{constraintsModel>cleanCoreLevel}"
+                            tooltip="Open guidance and alternative recommendations"
                             infoState="{= ${constraintsModel>isViolated} ? 'Error' : ${constraintsModel>cleanCoreLevel} === 'Level A' ? 'Success' : ${constraintsModel>cleanCoreLevel} === 'Level B' ? 'Information' : 'Warning' }"
                             type="Navigation"
                             press=".onShowConstraintDetails"
@@ -101,6 +106,8 @@
                     <List
                         id="deploymentConstraintsList"
                         items="{constraintsModel>/deploymentConstraints}"
+                        growing="true"
+                        growingThreshold="8"
                         noDataText="No deployment constraints apply">
                         <StandardListItem
                             id="deploymentConstraintItem"
@@ -117,6 +124,8 @@
                     <List
                         id="complianceConstraintsList"
                         items="{constraintsModel>/complianceConstraints}"
+                        growing="true"
+                        growingThreshold="8"
                         noDataText="No compliance constraints apply">
                         <StandardListItem
                             id="complianceConstraintItem"

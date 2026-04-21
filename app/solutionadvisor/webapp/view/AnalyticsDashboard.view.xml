@@ -59,6 +59,21 @@
                     </HBox>
                 </FlexBox>
 
+                <MessageStrip
+                    id="analyticsStatusStrip"
+                    visible="{uiState>/statusVisible}"
+                    text="{uiState>/statusText}"
+                    type="{uiState>/statusType}"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"
+                />
+                <Text
+                    id="analyticsLastUpdatedText"
+                    visible="{= !!${uiState>/lastUpdated} }"
+                    text="{= 'Last updated: ' + ${uiState>/lastUpdated} }"
+                    class="sapUiTinyMarginBottom sapUiTinyText"
+                />
+
                 <!-- Filter Panel -->
                 <Panel
                     id="filtersPanel"

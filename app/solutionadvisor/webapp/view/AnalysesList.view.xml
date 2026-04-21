@@ -18,7 +18,14 @@
                 <MessageStrip
                     id="projectFilterInfo"
                     visible="{viewModel>/isFiltered}"
-                    text="Showing analyses for project: {viewModel>/projectName}"
+                    text="{= ${viewModel>/isFiltered} ? ${i18n>analysesProjectFilterInfo} + ${viewModel>/projectName} : '' }"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"
+                />
+                <MessageStrip
+                    id="analysesListHelpMessage"
+                    text="{i18n>analysesListHelpMsg}"
                     type="Information"
                     showIcon="true"
                     class="sapUiSmallMarginBottom"
@@ -31,8 +38,8 @@
                     <GenericTile
                         id="totalAnalysesTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Total Analyses"
-                        subheader="All Analyses"
+                        header="{i18n>analysesTotalHeader}"
+                        subheader="{i18n>analysesAllSubheader}"
                     >
                         <TileContent id="totalAnalysesTileContent">
                             <NumericContent
@@ -46,8 +53,8 @@
                     <GenericTile
                         id="levelATile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Level A"
-                        subheader="Fully Clean Core"
+                        header="{i18n>levelA}"
+                        subheader="{i18n>analysesLevelASubheader}"
                     >
                         <TileContent id="levelATileContent">
                             <NumericContent
@@ -62,8 +69,8 @@
                     <GenericTile
                         id="levelBTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Level B"
-                        subheader="Enhanced Clean Core"
+                        header="{i18n>levelB}"
+                        subheader="{i18n>analysesLevelBSubheader}"
                     >
                         <TileContent id="levelBTileContent">
                             <NumericContent
@@ -78,8 +85,8 @@
                     <GenericTile
                         id="levelCTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Level C"
-                        subheader="Compliant Modifications"
+                        header="{i18n>levelC}"
+                        subheader="{i18n>analysesLevelCSubheader}"
                     >
                         <TileContent id="levelCTileContent">
                             <NumericContent
@@ -94,8 +101,8 @@
                     <GenericTile
                         id="levelDTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Level D"
-                        subheader="Non-Compliant/Legacy"
+                        header="{i18n>levelD}"
+                        subheader="{i18n>analysesLevelDSubheader}"
                     >
                         <TileContent id="levelDTileContent">
                             <NumericContent
@@ -122,12 +129,16 @@
                     selectionChange="onSelectionChange"
                     growing="true"
                     growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
+                    ariaLabelledBy="analysesTableTitle"
+                    noDataText="{i18n>analysesNoData}"
                 >
                     <headerToolbar>
                         <OverflowToolbar id="analysesTableToolbar">
                             <Title
                                 id="analysesTableTitle"
-                                text="Analyses"
+                                text="{i18n>analysesListTitle}"
                                 level="H2"
                             />
                             <ToolbarSpacer id="analysesTableToolbarSpacer" />
@@ -135,27 +146,31 @@
                                 id="analysesSearchField"
                                 width="200px"
                                 search="onSearch"
-                                placeholder="Search analyses..."
+                                tooltip="Search by RICEFW ID, object name, or type"
+                                placeholder="{i18n>analysesSearchPlaceholder}"
                             />
                             <Button
                                 id="deleteAnalysisButton"
-                                text="Delete"
+                                text="{i18n>btnDeleteAnalysis}"
                                 icon="sap-icon://delete"
                                 type="Reject"
                                 press="onDeleteAnalysis"
+                                tooltip="Delete the selected analysis"
                                 enabled="{viewModel>/hasSelection}"
                             />
                             <Button
                                 id="newAnalysisButton"
-                                text="New Analysis"
+                                text="{i18n>btnNewAnalysis}"
                                 icon="sap-icon://add"
                                 type="Emphasized"
+                                tooltip="Start a new clean core analysis"
                                 press="onStartWizard"
                             />
                             <Button
                                 id="backToProjectsButton"
-                                text="Back to Projects"
+                                text="{i18n>btnBackToProjects}"
                                 icon="sap-icon://navigation-left-arrow"
+                                tooltip="Return to the project list"
                                 press="onBackToProjects"
                             />
                         </OverflowToolbar>
@@ -167,9 +182,10 @@
                         >
                             <Button
                                 id="ricefwIdHeader"
-                                text="{= ${viewModel>/sortProperty} === 'ricefwId' ? 'RICEFW ID ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'RICEFW ID'}"
+                                text="{= ${viewModel>/sortProperty} === 'ricefwId' ? ${i18n>colRicefwId} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colRicefwId}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
+                                tooltip="Sort by RICEFW ID"
                                 press="onColumnHeaderPress"
                             />
                         </Column>
@@ -179,21 +195,25 @@
                         >
                             <Button
                                 id="objectNameHeader"
-                                text="{= ${viewModel>/sortProperty} === 'objectName' ? 'Object Name ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Object Name'}"
+                                text="{= ${viewModel>/sortProperty} === 'objectName' ? ${i18n>objectName} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>objectName}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
+                                tooltip="Sort by Object Name"
                                 press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="typeColumn"
                             width="10%"
+                            demandPopin="true"
+                            minScreenWidth="Tablet"
                         >
                             <Button
                                 id="typeHeader"
-                                text="{= ${viewModel>/sortProperty} === 'objectType' ? 'Type ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Type'}"
+                                text="{= ${viewModel>/sortProperty} === 'objectType' ? ${i18n>colTypeCol} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colTypeCol}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
+                                tooltip="Sort by Object Type"
                                 press="onColumnHeaderPress"
                             />
                         </Column>
@@ -203,19 +223,22 @@
                         >
                             <Button
                                 id="cleanCoreLevelHeader"
-                                text="{= ${viewModel>/sortProperty} === 'finalRecommendation' ? 'Clean Core Level ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Clean Core Level'}"
+                                text="{= ${viewModel>/sortProperty} === 'finalRecommendation' ? ${i18n>colLevel} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colLevel}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
+                                tooltip="Sort by Clean Core Level"
                                 press="onColumnHeaderPress"
                             />
                         </Column>
                         <Column
                             id="techDebtColumn"
                             width="12%"
+                            demandPopin="true"
+                            minScreenWidth="Desktop"
                         >
                             <Button
                                 id="techDebtHeader"
-                                text="{= ${viewModel>/sortProperty} === 'technicalDebtScore' ? 'Technical Debt ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Technical Debt'}"
+                                text="{= ${viewModel>/sortProperty} === 'technicalDebtScore' ? ${i18n>colTechnicalDebt} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colTechnicalDebt}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
                                 press="onColumnHeaderPress"
@@ -224,10 +247,12 @@
                         <Column
                             id="cloudReadyColumn"
                             width="12%"
+                            demandPopin="true"
+                            minScreenWidth="Desktop"
                         >
                             <Button
                                 id="cloudReadyHeader"
-                                text="{= ${viewModel>/sortProperty} === 'cloudReadinessScore' ? 'Cloud Readiness ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Cloud Readiness'}"
+                                text="{= ${viewModel>/sortProperty} === 'cloudReadinessScore' ? ${i18n>colCloudReadiness} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colCloudReadiness}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
                                 press="onColumnHeaderPress"
@@ -239,7 +264,7 @@
                         >
                             <Button
                                 id="analysesStatusHeader"
-                                text="{= ${viewModel>/sortProperty} === 'status' ? 'Status ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Status'}"
+                                text="{= ${viewModel>/sortProperty} === 'status' ? ${i18n>colStatus} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colStatus}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
                                 press="onColumnHeaderPress"
@@ -248,10 +273,12 @@
                         <Column
                             id="dateColumn"
                             width="12%"
+                            demandPopin="true"
+                            minScreenWidth="Tablet"
                         >
                             <Button
                                 id="dateHeader"
-                                text="{= ${viewModel>/sortProperty} === 'analysisDate' ? 'Date ' + (${viewModel>/sortDescending} ? '⬇' : '⬆') : 'Date'}"
+                                text="{= ${viewModel>/sortProperty} === 'analysisDate' ? ${i18n>colDate} + ' ' + (${viewModel>/sortDescending} ? '\u2B07' : '\u2B06') : ${i18n>colDate}}"
                                 type="Transparent"
                                 class="sortableColumnHeader"
                                 press="onColumnHeaderPress"

@@ -129,6 +129,9 @@
                 <List
                     id="examplesList"
                     items="{examplesModel>/examples}"
+                    growing="true"
+                    growingScrollToLoad="true"
+                    growingThreshold="8"
                     noDataText="No examples found for the current context. Try adjusting filters or continue without examples."
                 >
                     <CustomListItem
@@ -163,6 +166,7 @@
                             <Text
                                 id="examplesItemScenarioText"
                                 text="{examplesModel>scenario}"
+                                maxLines="3"
                                 class="sapUiTinyMarginTop"
                             />
                             <VBox id="examplesItemChallengeVBox" class="sapUiTinyMarginTop">
@@ -213,6 +217,7 @@
                             <Link
                                 id="examplesItemDetailsLink"
                                 text="View full details"
+                                tooltip="Open detailed example information"
                                 press=".onShowExampleDetails"
                                 class="sapUiTinyMarginTop"
                             />

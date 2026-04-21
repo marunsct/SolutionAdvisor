@@ -7,7 +7,7 @@
     xmlns:form="sap.ui.layout.form">
     <Page
         id="projectDetailsPage"
-        title="Project Details"
+        title="{i18n>projectDetailsTitle}"
         showHeader="true"
         showNavButton="true"
         navButtonPress="onNavBack">
@@ -24,9 +24,9 @@
                         state="{= ${status} === 'Active' ? 'Success' : ${status} === 'Completed' ? 'Information' : 'None' }"/>
                 </statuses>
                 <attributes>
-                    <ObjectAttribute id="flavorAttr" title="S/4HANA Flavor" text="{s4HanaFlavor}"/>
-                    <ObjectAttribute id="criticalityAttr" title="Business Criticality" text="{businessCriticality}"/>
-                    <ObjectAttribute id="timelineAttr" title="Timeline" text="{path: 'timeline', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
+                    <ObjectAttribute id="flavorAttr" title="{i18n>attrS4HanaFlavor}" text="{s4HanaFlavor}"/>
+                    <ObjectAttribute id="criticalityAttr" title="{i18n>attrBusinessCriticality}" text="{businessCriticality}"/>
+                    <ObjectAttribute id="timelineAttr" title="{i18n>lblTimeline}" text="{path: 'timeline', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd'}}"/>
                 </attributes>
                 
             </ObjectHeader>
@@ -34,38 +34,46 @@
                 <ToolbarSpacer id="projectHeaderActionsSpacer"/>
                 <Button
                     id="editButton"
-                    text="Edit"
+                    text="{i18n>btnEdit}"
                     icon="sap-icon://edit"
                     press="onEdit"
                     visible="{= !${viewModel>/editMode}}"
                     type="Transparent"/>
                 <Button
                     id="saveButton"
-                    text="Save"
+                    text="{i18n>btnSave}"
                     icon="sap-icon://save"
                     press="onSave"
                     visible="{viewModel>/editMode}"
                     type="Emphasized"/>
                 <Button
                     id="cancelButton"
-                    text="Cancel"
+                    text="{i18n>btnCancel}"
                     icon="sap-icon://decline"
                     press="onCancelEdit"
                     visible="{viewModel>/editMode}"
                     type="Transparent"/>
                 <Button
                     id="viewAnalysesButton"
-                    text="View Analyses"
+                    text="{i18n>btnViewAnalyses}"
                     icon="sap-icon://activities"
                     press="onViewAnalyses"
                     type="Transparent"/>
                 <Button
                     id="manageUsersButton"
-                    text="Manage Users"
+                    text="{i18n>btnManageUsers}"
                     icon="sap-icon://permission"
                     press="onManageUsers"
                     type="Emphasized"/>
             </OverflowToolbar>
+            <MessageStrip
+                id="projectEditModeMessage"
+                visible="{viewModel>/editMode}"
+                text="{i18n>editModeActiveMsg}"
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin sapUiSmallMarginTop"
+            />
             
             <IconTabBar
                 id="projectIconTabBar"
@@ -73,7 +81,7 @@
                 <items>
                     <IconTabFilter
                         id="generalInfoTab"
-                        text="General Information"
+                        text="{i18n>tabGeneralInfo}"
                         key="general"
                         icon="sap-icon://hint">
                         <form:SimpleForm
@@ -94,19 +102,19 @@
                             columnsM="1"
                             singleContainerFullSize="false">
                             <form:content>
-                                <Label id="clientNameLabel" text="Client Name"/>
+                                <Label id="clientNameLabel" text="{i18n>lblClientName}"/>
                                 <Input 
                                     id="clientNameInput" 
                                     value="{clientName}"
                                     editable="{viewModel>/editMode}"/>
                                 
-                                <Label id="projectNameLabel" text="Project Name"/>
+                                <Label id="projectNameLabel" text="{i18n>lblProjectName}"/>
                                 <Input 
                                     id="projectNameInput" 
                                     value="{projectName}"
                                     editable="{viewModel>/editMode}"/>
                                 
-                                <Label id="projectTypeLabel" text="Project Type"/>
+                                <Label id="projectTypeLabel" text="{i18n>lblProjectType}"/>
                                 <Select
                                     id="projectTypeSelect"
                                     selectedKey="{projectType}"
@@ -119,14 +127,14 @@
                                     </items>
                                 </Select>
                                 
-                                <Label id="expectedDurationLabel" text="Expected Duration (months)"/>
+                                <Label id="expectedDurationLabel" text="{i18n>lblExpectedDuration}"/>
                                 <Input 
                                     id="expectedDurationInput" 
                                     value="{expectedDuration}"
                                     type="Number"
                                     editable="{viewModel>/editMode}"/>
                                 
-                                <Label id="timelineLabel" text="Timeline"/>
+                                <Label id="timelineLabel" text="{i18n>lblTimeline}"/>
                                 <DatePicker
                                     id="timelineDatePicker"
                                     value="{
@@ -138,7 +146,7 @@
                                     valueFormat="yyyy-MM-dd"
                                     enabled="{viewModel>/editMode}"/>
                                 
-                                <Label id="statusLabel" text="Status"/>
+                                <Label id="statusLabel" text="{i18n>projectStatus}"/>
                                 <Select
                                     id="statusSelect"
                                     selectedKey="{status}"
@@ -156,7 +164,7 @@
                     
                     <IconTabFilter
                         id="technicalConfigTab"
-                        text="Technical Configuration"
+                        text="{i18n>tabTechnicalConfig}"
                         key="technical"
                         icon="sap-icon://settings">
                         <form:SimpleForm
@@ -164,7 +172,7 @@
                             editable="true"
                             layout="ResponsiveGridLayout">
                             <form:content>
-                                <Label id="techFlavorLabel" text="S/4HANA Flavor"/>
+                                <Label id="techFlavorLabel" text="{i18n>lblS4HanaFlavor}"/>
                                 <Select
                                     id="s4HanaFlavorSelect"
                                     selectedKey="{s4HanaFlavor}"
@@ -176,19 +184,19 @@
                                     </items>
                                 </Select>
                                 
-                                <Label id="availableBtpServicesLabel" text="Available BTP Services"/>
+                                <Label id="availableBtpServicesLabel" text="{i18n>lblAvailableBtpServices}"/>
                                 <Input 
                                     id="availableBtpServicesInput" 
                                     value="{availableBTPServices}"
                                     editable="{viewModel>/editMode}"/>
                                 
-                                <Label id="thirdPartyServicesLabel" text="Third Party Services"/>
+                                <Label id="thirdPartyServicesLabel" text="{i18n>lblThirdPartyServices}"/>
                                 <Input 
                                     id="thirdPartyServicesInput" 
                                     value="{thirdPartyServices}"
                                     editable="{viewModel>/editMode}"/>
                                 
-                                <Label id="technicalTeamSizeLabel" text="Technical Team Size"/>
+                                <Label id="technicalTeamSizeLabel" text="{i18n>lblTechTeamSize}"/>
                                 <Input 
                                     id="technicalTeamSizeInput" 
                                     value="{technicalTeamSize}"
@@ -200,7 +208,7 @@
                     
                     <IconTabFilter
                         id="governanceTab"
-                        text="Governance"
+                        text="{i18n>tabGovernance}"
                         key="governance"
                         icon="sap-icon://create-form">
                         <form:SimpleForm
@@ -208,7 +216,7 @@
                             editable="true"
                             layout="ResponsiveGridLayout">
                             <form:content>
-                                <Label id="governanceModelLabel" text="Governance Model"/>
+                                <Label id="governanceModelLabel" text="{i18n>lblGovernanceModel}"/>
                                 <Select
                                     id="governanceModelSelect"
                                     selectedKey="{governanceModel}"
@@ -220,13 +228,13 @@
                                     </items>
                                 </Select>
                                 
-                                <Label id="complianceRequirementsLabel" text="Compliance Requirements"/>
+                                <Label id="complianceRequirementsLabel" text="{i18n>lblComplianceRequirements}"/>
                                 <Input 
                                     id="complianceRequirementsInput" 
                                     value="{complianceRequirements}"
                                     editable="{viewModel>/editMode}"/>
                                 
-                                <Label id="governanceBusinessCriticalityLabel" text="Business Criticality"/>
+                                <Label id="governanceBusinessCriticalityLabel" text="{i18n>colBusinessCriticality}"/>
                                 <Select
                                     id="businessCriticalitySelect"
                                     selectedKey="{businessCriticality}"
@@ -239,7 +247,7 @@
                                     </items>
                                 </Select>
                                 
-                                <Label id="budgetRangeLabel" text="Budget Range"/>
+                                <Label id="budgetRangeLabel" text="{i18n>lblBudgetRange}"/>
                                 <Input 
                                     id="budgetRangeInput" 
                                     value="{budgetRange}"
@@ -255,9 +263,10 @@
                 <ToolbarSpacer id="projectFooterSpacer"/>
                 <Button
                     id="projectNewAnalysisButton"
-                    text="New Analysis"
+                    text="{i18n>btnNewAnalysis}"
                     icon="sap-icon://add"
                     type="Emphasized"
+                    tooltip="Start a new analysis for this project"
                     press="onNewAnalysis"/>
             </OverflowToolbar>
         </footer>

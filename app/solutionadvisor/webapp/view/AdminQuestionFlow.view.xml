@@ -21,18 +21,21 @@
                 icon="sap-icon://create"
                 type="Emphasized"
                 press="onCreate"
+                tooltip="Create a new question flow entry"
             />
             <Button
                 id="downloadTemplateButton"
                 text="Download Template"
                 icon="sap-icon://download"
                 press="onDownloadTemplate"
+                tooltip="Download Excel template for mass upload"
             />
             <Button
                 id="exportButton"
                 text="Export"
                 icon="sap-icon://excel-attachment"
                 press="onExport"
+                tooltip="Export all question flows to Excel"
             />
             <unified:FileUploader
                 id="fileUploader"
@@ -43,6 +46,7 @@
                 change="onMassUpload"
                 fileType="xlsx"
                 mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                tooltip="Upload Excel file to import question flows"
             />
         </headerContent>
 
@@ -136,6 +140,7 @@
                         text="Clear Filters"
                         icon="sap-icon://clear-filter"
                         press="onClearFilters"
+                        tooltip="Reset all filters"
                     />
                     <Button
                         id="qfApplyFiltersButton"
@@ -143,6 +148,7 @@
                         icon="sap-icon://filter"
                         type="Emphasized"
                         press="onApplyFilters"
+                        tooltip="Apply the selected filters to the list"
                     />
                 </Toolbar>
 
@@ -166,6 +172,7 @@
                 <!-- Question Flow Table -->
                 <Table
                     id="questionFlowTable"
+                    ariaLabelledBy="qfRecordTitle"
                     items="{
                         path: 'admin>/QuestionFlow',
                         parameters: {

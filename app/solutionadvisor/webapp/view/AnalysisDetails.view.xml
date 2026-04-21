@@ -9,7 +9,7 @@
 >
     <Page
         id="analysisDetails_Page"
-        title="Analysis Details"
+        title="{i18n>analysisDetailsTitle}"
         showHeader="true"
         showNavButton="true"
         navButtonPress="onNavBack"
@@ -38,50 +38,68 @@
                 <attributes>
                     <ObjectAttribute
                         id="analysisDetails_ObjectTypeAttr"
-                        title="Object Type"
+                        title="{i18n>attrObjectType}"
                         text="{objectType}"
                     />
                     <ObjectAttribute
                         id="analysisDetails_BusinessAreaAttr"
-                        title="Business Area"
+                        title="{i18n>attrBusinessArea}"
                         text="{businessArea/displayName}"
                     />
                     <ObjectAttribute
                         id="analysisDetails_ComplexityAttr"
-                        title="Complexity"
+                        title="{i18n>attrComplexity}"
                         text="{complexity}"
                     />
                     <ObjectAttribute
                         id="analysisDetails_RiskAssessmentAttr"
-                        title="Risk Assessment"
+                        title="{i18n>attrRiskAssessment}"
                         text="{riskAssessment}"
                     />
                     <ObjectAttribute
                         id="analysisDetails_AnalysisDateAttr"
-                        title="Analysis Date"
+                        title="{i18n>attrAnalysisDate}"
                         text="{path: 'analysisDate', type: 'sd.solutionadvisor.types.FlexibleDateTime', formatOptions: {pattern: 'yyyy-MM-dd HH:mm'}}"
                     />
                 </attributes>
             </ObjectHeader>
 
+            <MessageStrip
+                id="analysisDetailsHelpMessage"
+                text="{i18n>analysisHelpMsg}"
+                type="Information"
+                showIcon="true"
+                class="sapUiSmallMargin"
+            />
+
+            <MessageStrip
+                id="analysisDetailsInProgressMessage"
+                visible="{= ${status} === 'In Progress' }"
+                text="{i18n>analysisInProgressWarning}"
+                type="Warning"
+                showIcon="true"
+                class="sapUiSmallMargin sapUiNoMarginTop"
+            />
+
             <!-- Scoring Dashboard - Responsive -->
             <Panel
                 id="analysisDetails_ScoringPanel"
-                headerText="Scoring Metrics Dashboard"
+                headerText="{i18n>analysisScoringDashboard}"
             >
                 <headerToolbar>
                     <Toolbar id="analysisDetails_ScoringToolbar">
                         <Title
                             id="analysisDetails_ScoringToolbarTitle"
-                            text="Scoring Metrics Dashboard"
+                            text="{i18n>analysisScoringDashboard}"
                         />
                         <ToolbarSpacer
                             id="analysisDetails_ScoringToolbarSpacer"
                         />
                         <Button
                             id="analysisDetails_ScoringDrillDownBtn"
-                            text="View Breakdown"
+                            text="{i18n>btnViewBreakdown}"
                             icon="sap-icon://drill-down"
+                            tooltip="Open the detailed scoring breakdown"
                             press="onScoringDrillDown"
                             type="Transparent"
                         />
@@ -102,18 +120,14 @@
                         <GenericTile
                             id="analysisDetails_TechDebtTile"
                             class="scoringTile"
-                            header="Technical Debt"
-                            subheader="Lower is better"
-                            press="onScoringDrillDown"
+                            header="{i18n>analysisTechDebtHeader}"
+                            subheader="{i18n>analysisTechDebtSubheader}"
                         >
                             <tileContent>
-                                <TileContent
-                                    id="analysisDetails_TechDebtContent"
-                                >
+                                <TileContent id="analysisDetails_TechDebtTileContent">
                                     <content>
                                         <NumericContent
                                             id="analysisDetails_TechDebtNumeric"
-                                            value="{technicalDebtScore}"
                                             scale=""
                                             indicator="{= ${technicalDebtScore} &lt; 30 ? 'Up' : ${technicalDebtScore} &lt; 60 ? 'None' : 'Down' }"
                                             valueColor="{= ${technicalDebtScore} &lt; 30 ? 'Good' : ${technicalDebtScore} &lt; 60 ? 'Critical' : 'Error' }"
@@ -126,18 +140,14 @@
                         <GenericTile
                             id="analysisDetails_CloudReadyTile"
                             class="scoringTile"
-                            header="Cloud Readiness"
-                            subheader="Higher is better"
-                            press="onScoringDrillDown"
+                            header="{i18n>analysisCloudReadyHeader}"
+                            subheader="{i18n>analysisCloudReadySubheader}"
                         >
                             <tileContent>
-                                <TileContent
-                                    id="analysisDetails_CloudReadyContent"
-                                >
+                                <TileContent id="analysisDetails_CloudReadyTileContent">
                                     <content>
                                         <NumericContent
                                             id="analysisDetails_CloudReadyNumeric"
-                                            value="{cloudReadinessScore}"
                                             scale=""
                                             indicator="{= ${cloudReadinessScore} &gt; 70 ? 'Up' : ${cloudReadinessScore} &gt; 40 ? 'None' : 'Down' }"
                                             valueColor="{= ${cloudReadinessScore} &gt; 70 ? 'Good' : ${cloudReadinessScore} &gt; 40 ? 'Critical' : 'Error' }"
@@ -150,18 +160,14 @@
                         <GenericTile
                             id="analysisDetails_UpgradeImpTile"
                             class="scoringTile"
-                            header="Upgrade Impact"
-                            subheader="Lower is better"
-                            press="onScoringDrillDown"
+                            header="{i18n>analysisUpgradeImpHeader}"
+                            subheader="{i18n>analysisUpgradeImpSubheader}"
                         >
                             <tileContent>
-                                <TileContent
-                                    id="analysisDetails_UpgradeImpContent"
-                                >
+                                <TileContent id="analysisDetails_UpgradeImpTileContent">
                                     <content>
                                         <NumericContent
                                             id="analysisDetails_UpgradeImpNumeric"
-                                            value="{upgradeImpactScore}"
                                             scale=""
                                             indicator="{= ${upgradeImpactScore} &lt; 30 ? 'Up' : ${upgradeImpactScore} &lt; 60 ? 'None' : 'Down' }"
                                             valueColor="{= ${upgradeImpactScore} &lt; 30 ? 'Good' : ${upgradeImpactScore} &lt; 60 ? 'Critical' : 'Error' }"
@@ -174,18 +180,14 @@
                         <GenericTile
                             id="analysisDetails_CompositeHealthTile"
                             class="scoringTile"
-                            header="Composite Health"
-                            subheader="Overall health"
-                            press="onScoringDrillDown"
+                            header="{i18n>analysisCompositeHealthHeader}"
+                            subheader="{i18n>analysisCompositeHealthSubheader}"
                         >
                             <tileContent>
-                                <TileContent
-                                    id="analysisDetails_CompositeHealthContent"
-                                >
+                                <TileContent id="analysisDetails_CompositeHealthTileContent">
                                     <content>
                                         <NumericContent
                                             id="analysisDetails_CompositeHealthNumeric"
-                                            value="{compositeHealthScore}"
                                             scale=""
                                             indicator="{= ${compositeHealthScore} &gt; 70 ? 'Up' : ${compositeHealthScore} &gt; 40 ? 'None' : 'Down' }"
                                             valueColor="{= ${compositeHealthScore} &gt; 70 ? 'Good' : ${compositeHealthScore} &gt; 40 ? 'Critical' : 'Error' }"
@@ -211,7 +213,7 @@
                 <items>
                     <IconTabFilter
                         id="analysisDetails_ResultsTab"
-                        text="Decision Results"
+                        text="{i18n>tabDecisionResults}"
                         key="results"
                         icon="sap-icon://decision"
                     >
@@ -223,7 +225,7 @@
                             <form:content>
                                 <Label
                                     id="analysisDetails_RecommendedLevelLabel"
-                                    text="Recommended Clean Core Level"
+                                    text="{i18n>lblRecommendedLevel}"
                                 />
                                 <ObjectStatus
                                     id="analysisDetails_RecommendedLevelValue"
@@ -233,7 +235,7 @@
 
                                 <Label
                                     id="analysisDetails_ReasoningLabel"
-                                    text="Reasoning"
+                                    text="{i18n>lblReasoning}"
                                 />
                                 <Text
                                     id="analysisDetails_ReasoningText"
@@ -242,7 +244,7 @@
 
                                 <Label
                                     id="analysisDetails_EffortLabel"
-                                    text="Estimated Effort"
+                                    text="{i18n>lblEstimatedEffort}"
                                 />
                                 <Text
                                     id="analysisDetails_EffortText"
@@ -251,7 +253,7 @@
 
                                 <Label
                                     id="analysisDetails_ComplexityLabel"
-                                    text="Technical Complexity"
+                                    text="{i18n>lblTechnicalComplexity}"
                                 />
                                 <Text
                                     id="analysisDetails_ComplexityText"
@@ -260,7 +262,7 @@
 
                                 <Label
                                     id="analysisDetails_BusinessImpactLabel"
-                                    text="Business Impact"
+                                    text="{i18n>lblBusinessImpact}"
                                 />
                                 <Text
                                     id="analysisDetails_BusinessImpactText"
@@ -272,7 +274,7 @@
 
                     <IconTabFilter
                         id="analysisDetails_ObjectTab"
-                        text="Object Details"
+                        text="{i18n>tabObjectDetails}"
                         key="object"
                         icon="sap-icon://detail-view"
                     >
@@ -284,7 +286,7 @@
                             <form:content>
                                 <Label
                                     id="analysisDetails_ObjRicefwIdLabel"
-                                    text="RICEFW ID"
+                                    text="{i18n>ricefwId}"
                                 />
                                 <Text
                                     id="analysisDetails_ObjRicefwIdText"
@@ -293,7 +295,7 @@
 
                                 <Label
                                     id="analysisDetails_ObjTypeLabel"
-                                    text="Object Type"
+                                    text="{i18n>objectType}"
                                 />
                                 <Text
                                     id="analysisDetails_ObjTypeText"
@@ -302,7 +304,7 @@
 
                                 <Label
                                     id="analysisDetails_ObjNameLabel"
-                                    text="Object Name"
+                                    text="{i18n>objectName}"
                                 />
                                 <Text
                                     id="analysisDetails_ObjNameText"
@@ -311,7 +313,7 @@
 
                                 <Label
                                     id="analysisDetails_ObjDescLabel"
-                                    text="Description"
+                                    text="{i18n>lblDescription}"
                                 />
                                 <Text
                                     id="analysisDetails_ObjDescText"
@@ -320,7 +322,7 @@
 
                                 <Label
                                     id="analysisDetails_ObjAnalysisDateLabel"
-                                    text="Analysis Date"
+                                    text="{i18n>attrAnalysisDate}"
                                 />
                                 <Text
                                     id="analysisDetails_ObjAnalysisDateText"
@@ -329,7 +331,7 @@
 
                                 <Label
                                     id="analysisDetails_ObjStatusLabel"
-                                    text="Status"
+                                    text="{i18n>colStatus}"
                                 />
                                 <ObjectStatus
                                     id="analysisDetails_ObjStatusValue"
@@ -342,7 +344,7 @@
 
                     <IconTabFilter
                         id="analysisDetails_RiskTab"
-                        text="Risk &amp; Compliance"
+                        text="{i18n>tabRiskCompliance}"
                         key="risk"
                         icon="sap-icon://warning"
                     >
@@ -354,7 +356,7 @@
                             <form:content>
                                 <Label
                                     id="analysisDetails_RiskAssessLabel"
-                                    text="Risk Assessment"
+                                    text="{i18n>attrRiskAssessment}"
                                 />
                                 <ObjectStatus
                                     id="analysisDetails_RiskAssessValue"
@@ -364,7 +366,7 @@
 
                                 <Label
                                     id="analysisDetails_RiskBusinessImpactLabel"
-                                    text="Business Impact"
+                                    text="{i18n>lblBusinessImpact}"
                                 />
                                 <Text
                                     id="analysisDetails_RiskBusinessImpactText"
@@ -373,7 +375,7 @@
 
                                 <Label
                                     id="analysisDetails_ComplianceLabel"
-                                    text="Compliance Status"
+                                    text="{i18n>lblComplianceStatus}"
                                 />
                                 <ObjectStatus
                                     id="analysisDetails_ComplianceValue"
@@ -386,7 +388,7 @@
 
                     <IconTabFilter
                         id="analysisDetails_FlowchartTab"
-                        text="Decision Flowchart"
+                        text="{i18n>tabDecisionFlowchart}"
                         key="flowchart"
                         icon="sap-icon://org-chart"
                     >
@@ -397,7 +399,7 @@
                         >
                             <MessageStrip
                                 id="analysisDetails_FlowchartInfoStrip"
-                                text="Visual representation of the decision path taken during analysis"
+                                text="{i18n>analysisFlowchartInfo}"
                                 type="Information"
                                 showIcon="true"
                                 class="sapUiSmallMarginBottom"
@@ -411,7 +413,7 @@
                     
                     <IconTabFilter
                         id="analysisDetails_ConstraintsTab"
-                        text="Constraints"
+                        text="{i18n>tabConstraints}"
                         key="constraints"
                         icon="sap-icon://warning2"
                     >
@@ -427,27 +429,29 @@
                 <ToolbarSpacer id="analysisDetails_FooterSpacer" />
                 <Button
                     id="analysisDetails_ViewFlowchartBtn"
-                    text="View Flowchart"
+                    text="{i18n>btnViewFlowchart}"
                     icon="sap-icon://org-chart"
                     press="onViewFlowchart"
+                    tooltip="View the decision path flowchart for this analysis"
                 />
                 <Button
                     id="analysisDetails_RestartBtn"
-                    text="Restart Analysis"
+                    text="{i18n>btnRestartAnalysis}"
                     type="Emphasized"
                     icon="sap-icon://refresh"
                     press="onRestartAnalysis"
+                    tooltip="Restart the wizard to re-run the analysis from the beginning"
                 />
                 <Button
                     id="analysisDetails_RecalculateScoresBtn"
-                    text="Recalculate Scores"
+                    text="{i18n>btnRecalculateScores}"
                     icon="sap-icon://customer-financial-fact-sheet"
                     press="onRecalculateScores"
                     tooltip="Recalculate scoring metrics without re-running the wizard"
                 />
                 <Button
                     id="analysisDetails_SaveAnalysisBtn"
-                    text="Save Analysis"
+                    text="{i18n>btnSaveAnalysis}"
                     type="Accept"
                     icon="sap-icon://save"
                     press="onSaveAnalysis"
@@ -456,9 +460,10 @@
                 />
                 <Button
                     id="analysisDetails_ExportFlowchartPNGBtn"
-                    text="Export PNG"
+                    text="{i18n>btnExportPNG}"
                     icon="sap-icon://camera"
                     press="onExportFlowchartPNG"
+                    tooltip="Export the decision flowchart as a PNG image"
                 />
             </OverflowToolbar>
         </footer>

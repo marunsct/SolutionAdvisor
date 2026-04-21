@@ -7,7 +7,7 @@
 >
     <Page
         id="wizardPage"
-        title="New Clean Core Analysis"
+        title="{i18n>wizardPageTitle}"
         showHeader="true"
         showNavButton="true"
         navButtonPress="onNavBack"
@@ -25,7 +25,7 @@
                 <!-- Step 1: Project Selection -->
                 <WizardStep
                     id="projectStep"
-                    title="Select Project"
+                    title="{i18n>selectProject}"
                     validated="false"
                     activate="onProjectStepActivate"
                 >
@@ -36,15 +36,16 @@
                         <MessageStrip
                             id="projectAutoSelectedInfo"
                             visible="{wizardModel>/autoSelectedProject}"
-                            text="Project automatically selected from previous screen"
+                            text="{i18n>wizardProjectAutoSelected}"
                             type="Success"
                             showIcon="true"
                             class="sapUiSmallMarginBottom"
                         />
                         <Label
                             id="projectLabel"
-                            text="Select Project"
+                            text="{i18n>selectProject}"
                             required="true"
+                            labelFor="projectComboBox"
                         />
                         <ComboBox
                             id="projectComboBox"
@@ -75,7 +76,7 @@
                 <!-- Step 2: Object Information -->
                 <WizardStep
                     id="objectStep"
-                    title="Object Information"
+                    title="{i18n>objectInformation}"
                     validated="false"
                     activate="onObjectStepActivate"
                 >
@@ -83,6 +84,14 @@
                         id="objectStepVBox"
                         class="sapUiSmallMargin"
                     >
+                        <MessageStrip
+                            id="objectValidationMessage"
+                            visible="{wizardModel>/objectValidationVisible}"
+                            text="{wizardModel>/objectValidationMessage}"
+                            type="Warning"
+                            showIcon="true"
+                            class="sapUiSmallMarginBottom"
+                        />
                         <HBox
                             id="ricefwIdHintHBox"
                             alignItems="Center"
@@ -90,8 +99,9 @@
                         >
                             <Label
                                 id="ricefwIdLabel"
-                                text="RICEFW ID"
+                                text="{i18n>ricefwId}"
                                 required="true"
+                                labelFor="ricefwIdInput"
                             />
                             <Button
                                 id="hintButtonObject"
@@ -112,9 +122,10 @@
 
                         <Label
                             id="objectTypeLabel"
-                            text="Object Type"
+                            text="{i18n>objectType}"
                             required="true"
                             class="sapUiTinyMarginTop"
+                            labelFor="objectTypeComboBox"
                         />
                         <ComboBox
                             id="objectTypeComboBox"
@@ -135,9 +146,10 @@
 
                         <Label
                             id="objectNameLabel"
-                            text="Object Name"
+                            text="{i18n>objectName}"
                             required="true"
                             class="sapUiTinyMarginTop"
+                            labelFor="objectNameInput"
                         />
                         <Input
                             id="objectNameInput"
@@ -148,8 +160,9 @@
 
                         <Label
                             id="objectDescriptionLabel"
-                            text="Object Description"
+                            text="{i18n>wizardObjectDescLabel}"
                             class="sapUiTinyMarginTop"
+                            labelFor="objectDescriptionInput"
                         />
                         <TextArea
                             id="objectDescriptionInput"
@@ -161,8 +174,9 @@
                         <!-- Business Area Selection -->
                         <Label
                             id="businessAreaLabel"
-                            text="Business Area"
+                            text="{i18n>wizardBusinessAreaLabel}"
                             class="sapUiTinyMarginTop"
+                            labelFor="businessAreaComboBox"
                         />
                         <ComboBox
                             id="businessAreaComboBox"
@@ -188,8 +202,9 @@
                         <!-- Complexity Selection -->
                         <Label
                             id="complexityLabel"
-                            text="Complexity"
+                            text="{i18n>wizardComplexityLabel}"
                             class="sapUiTinyMarginTop"
+                            labelFor="complexityComboBox"
                         />
                         <ComboBox
                             id="complexityComboBox"
@@ -211,7 +226,7 @@
                 <!-- Step 3: Clean Core Guidance -->
                 <WizardStep
                     id="guidanceStep"
-                    title="Clean Core Guidance"
+                    title="{i18n>wizardStepGuidance}"
                     validated="true"
                     activate="onGuidanceStepActivate"
                 >
@@ -222,20 +237,20 @@
                     >
                         <Title
                             id="guidanceStepTitle"
-                            text="Learn About Clean Core Levels"
+                            text="{i18n>wizardLearnCleanCoreTitle}"
                             level="H3"
                             class="sapUiMediumMarginTop"
                         />
                         <Text
                             id="guidanceStepDescription"
-                            text="Before starting the analysis, explore the Clean Core levels (A, B, C, D) and understand what each level means for your selected object type. This will help you make informed decisions during the wizard."
+                            text="{i18n>wizardLearnCleanCoreDesc}"
                             class="sapUiSmallMarginTop sapUiSmallMarginBottom"
                             textAlign="Center"
                             width="80%"
                         />
                         <Button
                             id="learnCleanCoreLevelsButton"
-                            text="Learn Clean Core Levels"
+                            text="{i18n>wizardLearnCleanCoreBtn}"
                             type="Emphasized"
                             icon="sap-icon://learning-assistant"
                             press="onLearnCleanCoreLevels"
@@ -247,8 +262,9 @@
                 <!-- Step 4: Ready to Start -->
                 <WizardStep
                     id="readyStep"
-                    title="Ready to Start"
+                    title="{i18n>wizardStepReady}"
                     validated="true"
+                    activate="onReadyStepActivate"
                 >
                     <VBox
                         id="readyStepVBox"
@@ -256,9 +272,14 @@
                     >
                         <MessageStrip
                             id="readyMessageStrip"
-                            text="You will now be guided through a series of questions to determine the optimal Clean Core level for your object. Click 'Start Analysis' to begin."
+                            text="{i18n>wizardReadyStripText}"
                             type="Information"
                             showIcon="true"
+                        />
+                        <Text
+                            id="readyHelperText"
+                            text="{i18n>wizardReadyHelperTip}"
+                            class="sapUiSmallMarginTop sapUiTinyMarginBottom"
                         />
 
                         <VBox
@@ -267,7 +288,7 @@
                         >
                             <Title
                                 id="summaryTitle"
-                                text="Summary"
+                                text="{i18n>wizardSummaryTitle}"
                                 level="H3"
                             />
                             <VBox
@@ -276,7 +297,7 @@
                             >
                                 <Label
                                     id="summaryProjectLabel"
-                                    text="Project:"
+                                    text="{i18n>wizardSummaryProject}"
                                 />
                                 <Text
                                     id="summaryProject"
@@ -285,7 +306,7 @@
 
                                 <Label
                                     id="summaryRicefwIdLabel"
-                                    text="RICEFW ID:"
+                                    text="{i18n>wizardSummaryRicefwId}"
                                     class="sapUiTinyMarginTop"
                                 />
                                 <Text
@@ -295,7 +316,7 @@
 
                                 <Label
                                     id="summaryObjectTypeLabel"
-                                    text="Object Type:"
+                                    text="{i18n>wizardSummaryObjectType}"
                                     class="sapUiTinyMarginTop"
                                 />
                                 <Text
@@ -305,7 +326,7 @@
 
                                 <Label
                                     id="summaryObjectNameLabel"
-                                    text="Object Name:"
+                                    text="{i18n>wizardSummaryObjectName}"
                                     class="sapUiTinyMarginTop"
                                 />
                                 <Text
@@ -315,7 +336,7 @@
 
                                 <Label
                                     id="summaryBusinessAreaLabel"
-                                    text="Business Area:"
+                                    text="{i18n>wizardSummaryBusinessArea}"
                                     class="sapUiTinyMarginTop"
                                 />
                                 <Text
@@ -325,7 +346,7 @@
 
                                 <Label
                                     id="summaryComplexityLabel"
-                                    text="Complexity:"
+                                    text="{i18n>wizardSummaryComplexity}"
                                     class="sapUiTinyMarginTop"
                                 />
                                 <Text
@@ -340,9 +361,10 @@
                 <!-- Step 5: Dynamic Questions -->
                 <WizardStep
                     id="questionStep"
-                    title="Analysis Questions"
+                    title="{i18n>wizardStepQuestions}"
                     validated="false"
                     visible="{= !!${wizardModel>/currentQuestion}}"
+                    activate="onQuestionStepActivate"
                 >
                     <!-- Question Panel -->
                     <Panel
@@ -420,7 +442,7 @@
                             >
                                 <Button
                                     id="detailedHintButton"
-                                    text="Show Detailed Hint"
+                                    text="{i18n>wizardShowDetailedHint}"
                                     icon="sap-icon://hint"
                                     press="onShowDetailedHint"
                                     class="sapUiTinyMarginEnd sapUiTinyMarginBottom"
@@ -429,7 +451,7 @@
                                 />
                                 <Button
                                     id="nextQuestionButton"
-                                    text="Next Question"
+                                    text="{wizardModel>/questionActionText}"
                                     type="Emphasized"
                                     enabled="{= ${wizardModel>/selectedAnswerIndex} >= 0 &amp;&amp; !${wizardModel>/questionCompleted}}"
                                     press="onSubmitAnswer"
@@ -451,7 +473,7 @@
                         >
                             <MessageStrip
                                 id="completionMessage"
-                                text="Analysis Complete!"
+                                text="{i18n>wizardAnalysisComplete}"
                                 type="Success"
                                 showIcon="true"
                                 class="sapUiMediumMarginBottom"
@@ -459,8 +481,8 @@
 
                             <Title
                                 id="recommendationLevelTitle"
-                                text="Recommended Clean Core Level"
-                                level="H2"
+                                text="{i18n>wizardRecommendedLevel}"
+                                    level="H2"
                                 class="sapUiSmallMarginBottom"
                             />
                             <Title
@@ -478,7 +500,7 @@
                             <!-- Scoring Dashboard - Responsive Layout -->
                             <Title
                                 id="scoringTitle"
-                                text="Scoring Metrics"
+                                text="{i18n>wizardScoringMetricsTitle}"
                                 level="H4"
                                 class="sapUiSmallMarginBottom"
                             />
@@ -496,7 +518,8 @@
                                 >
                                     <Label
                                         id="technicalDebtLabel"
-                                        text="Technical Debt Score"
+                                        text="{i18n>technicalDebtScore}"
+                                        labelFor="technicalDebtIndicator"
                                         class="sapUiTinyMarginBottom"
                                     />
                                     <ProgressIndicator
@@ -508,7 +531,7 @@
                                     />
                                     <Text
                                         id="technicalDebtHelp"
-                                        text="Lower is better"
+                                        text="{i18n>wizardLowerIsBetter}"
                                         class="sapUiTinyText"
                                     />
                                 </VBox>
@@ -520,7 +543,8 @@
                                 >
                                     <Label
                                         id="cloudReadinessLabel"
-                                        text="Cloud Readiness Score"
+                                        text="{i18n>cloudReadinessScore}"
+                                        labelFor="cloudReadinessIndicator"
                                         class="sapUiTinyMarginBottom"
                                     />
                                     <ProgressIndicator
@@ -532,7 +556,7 @@
                                     />
                                     <Text
                                         id="cloudReadinessHelp"
-                                        text="Higher is better"
+                                        text="{i18n>wizardHigherIsBetter}"
                                         class="sapUiTinyText"
                                     />
                                 </VBox>
@@ -544,7 +568,8 @@
                                 >
                                     <Label
                                         id="upgradeImpactLabel"
-                                        text="Upgrade Impact Score"
+                                        text="{i18n>upgradeImpactScore}"
+                                        labelFor="upgradeImpactIndicator"
                                         class="sapUiTinyMarginBottom"
                                     />
                                     <ProgressIndicator
@@ -556,7 +581,7 @@
                                     />
                                     <Text
                                         id="upgradeImpactHelp"
-                                        text="Lower is better"
+                                        text="{i18n>wizardLowerIsBetter}"
                                         class="sapUiTinyText"
                                     />
                                 </VBox>
@@ -568,7 +593,8 @@
                                 >
                                     <Label
                                         id="compositeHealthLabel"
-                                        text="Composite Health Score"
+                                        text="{i18n>compositeHealthScore}"
+                                        labelFor="compositeHealthIndicator"
                                         class="sapUiTinyMarginBottom"
                                     />
                                     <ProgressIndicator
@@ -580,7 +606,7 @@
                                     />
                                     <Text
                                         id="compositeHealthHelp"
-                                        text="Higher is better"
+                                        text="{i18n>wizardHigherIsBetter}"
                                         class="sapUiTinyText"
                                     />
                                 </VBox>
@@ -592,12 +618,12 @@
                                 class="sapUiShowOnPhone sapUiMediumMarginBottom"
                                 expandable="true"
                                 expanded="true"
-                                headerText="Scoring Summary"
+                                headerText="{i18n>wizardMobileScoringSummary}"
                             >
                                 <VBox id="mobileScoresVBox" class="sapUiSmallMargin">
                                     <List
                                         id="mobileScoresList"
-                                        noDataText="No scoring data available"
+                                        noDataText="{i18n>wizardNoScoringData}"
                                     >
                                         <CustomListItem id="mobileTechDebtItem">
                                             <HBox
@@ -609,12 +635,12 @@
                                                 <VBox id="mobileTechDebtLabelVBox" width="60%">
                                                     <Text
                                                         id="mobileTechDebtText"
-                                                        text="Technical Debt"
+                                                        text="{i18n>analysisTechDebtHeader}"
                                                         class="sapUiMediumText"
                                                     />
                                                     <Text
                                                         id="mobileTechDebtHelpText"
-                                                        text="Lower is better"
+                                                        text="{i18n>wizardLowerIsBetter}"
                                                         class="sapUiTinyText"
                                                     />
                                                 </VBox>
@@ -643,12 +669,12 @@
                                                 <VBox id="mobileCloudReadinessLabelVBox" width="60%">
                                                     <Text
                                                         id="mobileCloudReadinessText"
-                                                        text="Cloud Readiness"
+                                                        text="{i18n>analysisCloudReadyHeader}"
                                                         class="sapUiMediumText"
                                                     />
                                                     <Text
                                                         id="mobileCloudReadinessHelpText"
-                                                        text="Higher is better"
+                                                        text="{i18n>wizardHigherIsBetter}"
                                                         class="sapUiTinyText"
                                                     />
                                                 </VBox>
@@ -677,12 +703,12 @@
                                                 <VBox id="mobileUpgradeImpactLabelVBox" width="60%">
                                                     <Text
                                                         id="mobileUpgradeImpactText"
-                                                        text="Upgrade Impact"
+                                                        text="{i18n>analysisUpgradeImpHeader}"
                                                         class="sapUiMediumText"
                                                     />
                                                     <Text
                                                         id="mobileUpgradeImpactHelpText"
-                                                        text="Lower is better"
+                                                        text="{i18n>wizardLowerIsBetter}"
                                                         class="sapUiTinyText"
                                                     />
                                                 </VBox>
@@ -711,12 +737,11 @@
                                                 <VBox id="mobileCompositeHealthLabelVBox" width="60%">
                                                     <Text
                                                         id="mobileCompositeHealthText"
-                                                        text="Composite Health"
-                                                        class="sapUiMediumText"
+                                                        text="{i18n>analysisCompositeHealthHeader}"
                                                     />
                                                     <Text
                                                         id="mobileCompositeHealthHelpText"
-                                                        text="Overall health"
+                                                        text="{i18n>analysisCompositeHealthSubheader}"
                                                         class="sapUiTinyText"
                                                     />
                                                 </VBox>
@@ -740,14 +765,14 @@
                             </Panel>
                             <Button
                                 id="viewDetailsButton"
-                                text="View Analysis Details"
+                                text="{i18n>wizardViewAnalysisDetails}"
                                 type="Emphasized"
                                 press="onViewAnalysisDetails"
                                 class="sapUiMediumMarginTop"
                             />
                             <Button
                                 id="closeWizardButton"
-                                text="Close"
+                                text="{i18n>wizardClose}"
                                 press="onCloseWizard"
                                 class="sapUiMediumMarginTop sapUiSmallMarginBegin"
                             />
@@ -760,14 +785,14 @@
             <OverflowToolbar id="wizardFooter">
                 <Button
                     id="ricefwHistoryButton"
-                    text="View History"
+                    text="{i18n>wizardViewHistory}"
                     icon="sap-icon://history"
                     press="onShowRicefwHistory"
                     visible="{= ${wizardModel>/ricefwId} !== '' }"
                 />
                 <Button
                     id="saveDraftButton"
-                    text="Save Draft"
+                    text="{i18n>saveDraft}"
                     icon="sap-icon://save"
                     press="onSaveDraft"
                     visible="{= ${wizardModel>/projectID} !== '' }"
@@ -775,26 +800,26 @@
                 <ToolbarSpacer id="wizardFooterSpacer" />
                 <Button
                     id="wizardCancelButton"
-                    text="Cancel"
+                    text="{i18n>wizardCancel}"
                     press="onCancel"
                     visible="{= !${wizardModel>/finalRecommendation} }"
                 />
                 <Button
                     id="wizardCloseFooterButton"
-                    text="Close"
+                    text="{i18n>wizardClose}"
                     press="onCloseWizard"
                     visible="{= !!${wizardModel>/finalRecommendation} }"
                 />
                 <Button
                     id="wizardNextButton"
-                    text="Next"
+                    text="{i18n>wizardContinue}"
                     type="Emphasized"
                     press="onNextStep"
                     visible="{= !${wizardModel>/finalRecommendation} }"
                 />
                 <Button
                     id="wizardStartButton"
-                    text="Start Analysis"
+                    text="{i18n>wizardStartAnalysis}"
                     type="Emphasized"
                     visible="false"
                     press="onStartAnalysis"

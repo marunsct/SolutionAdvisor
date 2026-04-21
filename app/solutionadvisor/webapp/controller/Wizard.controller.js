@@ -66,6 +66,9 @@ sap.ui.define([
                 objectName: "",
                 objectDescription: "",
                 autoSelectedProject: false,
+                objectValidationVisible: false,
+                objectValidationMessage: "",
+                questionActionText: "Next Question",
 
                 // Business Area & Complexity (Step 2)
                 businessArea_ID: "",
@@ -448,7 +451,10 @@ sap.ui.define([
                         objectType: oAnalysis.objectType,
                         objectName: oAnalysis.objectName,
                         objectDescription: oAnalysis.objectDescription || "",
-                        autoSelectedProject: true
+                        autoSelectedProject: true,
+                        objectValidationVisible: false,
+                        objectValidationMessage: "",
+                        questionActionText: "Next Question"
                     });
 
                     // Restore UI input fields
@@ -589,6 +595,9 @@ sap.ui.define([
                     objectName: oAnalysis.objectName,
                     objectDescription: oAnalysis.objectDescription || "",
                     autoSelectedProject: true,
+                    objectValidationVisible: false,
+                    objectValidationMessage: "",
+                    questionActionText: "Next Question",
                     currentQuestion: null,
                     selectedAnswer: null,
                     selectedAnswerIndex: -1,
@@ -751,6 +760,9 @@ sap.ui.define([
                 objectName: "",
                 objectDescription: "",
                 autoSelectedProject: false,
+                objectValidationVisible: false,
+                objectValidationMessage: "",
+                questionActionText: "Next Question",
 
                 // Business Area & Complexity (Step 2)
                 businessArea_ID: "",
@@ -811,11 +823,19 @@ sap.ui.define([
         },
 
         onProjectStepActivate() {
-            this._updateNextButtonState();
+            this._syncFooterWithCurrentStep();
         },
 
         onObjectStepActivate() {
-            this._updateNextButtonState();
+            this._syncFooterWithCurrentStep();
+        },
+
+        onReadyStepActivate() {
+            this._syncFooterWithCurrentStep();
+        },
+
+        onQuestionStepActivate() {
+            this._syncFooterWithCurrentStep();
         },
 
         /**
@@ -824,6 +844,8 @@ sap.ui.define([
          * @public
          */
         onGuidanceStepActivate() {
+            this._syncFooterWithCurrentStep();
+
             const oWizardModel = this.getView().getModel("wizardModel");
             const sObjectType = oWizardModel.getProperty("/objectType");
             
@@ -999,6 +1021,7 @@ sap.ui.define([
                 oInput.setValueStateText("Invalid format. Expected: [RICEFYW]-[0-9]{4}-[A-Z]{3}");
             } else {
                 oInput.setValueState("None");
+                oInput.setValueStateText("");
             }
 
             this._validateObjectStep();
@@ -1006,8 +1029,8 @@ sap.ui.define([
 
         onObjectTypeSelect(oEvent) {
             const oSelectedItem = oEvent.getParameter("selectedItem");
+            const oWizardModel = this.getView().getModel("wizardModel");
             if (oSelectedItem) {
-                const oWizardModel = this.getView().getModel("wizardModel");
                 oWizardModel.setProperty("/objectType", oSelectedItem.getKey());
 
                 // Reset lazy models so user-triggered expansion loads fresh data
@@ -1030,6 +1053,8 @@ sap.ui.define([
                     loaded: false,
                     loading: false
                 });
+            } else {
+                oWizardModel.setProperty("/objectType", "");
             }
             this._validateObjectStep();
         },
@@ -1600,12 +1625,73 @@ sap.ui.define([
 
         _validateObjectStep() {
             const oWizardModel = this.getView().getModel("wizardModel");
-            const sRicefwId = oWizardModel.getProperty("/ricefwId");
-            const sObjectType = oWizardModel.getProperty("/objectType");
-            const sObjectName = oWizardModel.getProperty("/objectName");
+            const sRicefwId = (oWizardModel.getProperty("/ricefwId") || "").trim();
+            const sObjectType = (oWizardModel.getProperty("/objectType") || "").trim();
+            const sObjectName = (oWizardModel.getProperty("/objectName") || "").trim();
 
             const pattern = /^[RICEFYW]-[0-9]{4}-[A-Z]{3}$/;
-            const bValid = pattern.test(sRicefwId) && Boolean(sObjectType) && Boolean(sObjectName);
+            const bRicefwValid = pattern.test(sRicefwId);
+            const bObjectTypeValid = Boolean(sObjectType);
+            const bObjectNameValid = Boolean(sObjectName);
+            const bValid = bRicefwValid && bObjectTypeValid && bObjectNameValid;
+
+            const oRicefwInput = this.byId("ricefwIdInput");
+            const oObjectTypeComboBox = this.byId("objectTypeComboBox");
+            const oObjectNameInput = this.byId("objectNameInput");
+
+            if (oRicefwInput) {
+                if (!sRicefwId) {
+                    oRicefwInput.setValueState("None");
+                    oRicefwInput.setValueStateText("");
+                } else if (!bRicefwValid) {
+                    oRicefwInput.setValueState("Error");
+                    oRicefwInput.setValueStateText("Use format [RICEFYW]-[0-9]{4}-[A-Z]{3}");
+                } else {
+                    oRicefwInput.setValueState("Success");
+                    oRicefwInput.setValueStateText("");
+                }
+            }
+
+            if (oObjectTypeComboBox) {
+                if (!bObjectTypeValid) {
+                    oObjectTypeComboBox.setValueState("Error");
+                    oObjectTypeComboBox.setValueStateText("Select an object type");
+                } else {
+                    oObjectTypeComboBox.setValueState("Success");
+                    oObjectTypeComboBox.setValueStateText("");
+                }
+            }
+
+            if (oObjectNameInput) {
+                if (!bObjectNameValid) {
+                    oObjectNameInput.setValueState("Error");
+                    oObjectNameInput.setValueStateText("Enter an object name");
+                } else {
+                    oObjectNameInput.setValueState("Success");
+                    oObjectNameInput.setValueStateText("");
+                }
+            }
+
+            const aMissingItems = [];
+            if (!sRicefwId) {
+                aMissingItems.push("RICEFW ID");
+            } else if (!bRicefwValid) {
+                aMissingItems.push("valid RICEFW ID format");
+            }
+            if (!bObjectTypeValid) {
+                aMissingItems.push("Object Type");
+            }
+            if (!bObjectNameValid) {
+                aMissingItems.push("Object Name");
+            }
+
+            if (aMissingItems.length > 0) {
+                oWizardModel.setProperty("/objectValidationVisible", true);
+                oWizardModel.setProperty("/objectValidationMessage", `Complete: ${aMissingItems.join(", ")}`);
+            } else {
+                oWizardModel.setProperty("/objectValidationVisible", false);
+                oWizardModel.setProperty("/objectValidationMessage", "");
+            }
 
             this.byId("objectStep").setValidated(bValid);
             this._updateNextButtonState();
@@ -1629,30 +1715,61 @@ sap.ui.define([
 
                 oWizard.nextStep();
 
-                // Show start button, hide next button
-                this.byId("wizardNextButton").setVisible(false);
-                this.byId("wizardStartButton").setVisible(true);
+                // Guidance step activation now controls footer state consistently
+            } else if (stepId === "guidanceStep") {
+                oWizard.nextStep();
+            } else if (stepId === "readyStep") {
+                // Defensive: if Next is visible on this step, behave like Start Analysis
+                this.onStartAnalysis();
             }
+
+            this._syncFooterWithCurrentStep();
         },
 
         _updateNextButtonState() {
+            this._syncFooterWithCurrentStep();
+        },
+
+        _syncFooterWithCurrentStep() {
             const oWizard = this.byId("cleanCoreWizard");
             const currentStep = oWizard.getCurrentStep();
             // ✅ FIX: Normalize step ID to handle container prefixes consistently
             const stepId = this._getStepId(currentStep);
             const oNextButton = this.byId("wizardNextButton");
+            const oStartButton = this.byId("wizardStartButton");
             const oSaveDraftButton = this.byId("saveDraftButton");
+
+            if (!oNextButton || !oSaveDraftButton || !oStartButton) {
+                return;
+            }
+
+            // Base state
+            oNextButton.setVisible(false);
+            oNextButton.setEnabled(false);
+            oNextButton.setText("Continue");
+            oNextButton.setTooltip("");
+            oStartButton.setVisible(false);
+            oSaveDraftButton.setVisible(false);
 
             if (stepId === "projectStep") {
                 const bValidated = this.byId("projectStep").getValidated();
+                oNextButton.setVisible(true);
                 oNextButton.setEnabled(bValidated);
-                // Hide save draft button on project step (no session yet)
-                oSaveDraftButton.setVisible(false);
+                oNextButton.setText("Continue to Object Information");
+                oNextButton.setTooltip("Move to Object Information");
             } else if (stepId === "objectStep") {
                 const bValidated = this.byId("objectStep").getValidated();
+                oNextButton.setVisible(true);
                 oNextButton.setEnabled(bValidated);
-                // Hide save draft button on object step (no session yet)
-                oSaveDraftButton.setVisible(false);
+                oNextButton.setText("Continue to Clean Core Guidance");
+                oNextButton.setTooltip("Move to Clean Core Guidance");
+            } else if (stepId === "guidanceStep") {
+                oNextButton.setVisible(true);
+                oNextButton.setEnabled(true);
+                oNextButton.setText("Continue to Review");
+                oNextButton.setTooltip("Review your setup before starting analysis");
+            } else if (stepId === "readyStep") {
+                oStartButton.setVisible(true);
             } else if (stepId === "questionStep") {
                 // Show save draft button on question step (session is active)
                 oSaveDraftButton.setVisible(true);
@@ -1687,6 +1804,8 @@ sap.ui.define([
             oOperation.execute().then(() => {
                 const oResult = oOperation.getBoundContext().getObject();
 
+                MessageToast.show("Loading your first analysis question...");
+
                 // Store session and analysis IDs
                 this._sessionId = oResult.sessionID;
                 this._analysisId = oResult.analysisID;
@@ -1695,24 +1814,25 @@ sap.ui.define([
                 oWizardModel.setProperty("/selectedAnswer", null);
                 oWizardModel.setProperty("/selectedAnswerIndex", -1);
 
-                // Store first question in model
-                this._displayQuestion(oResult.firstQuestion);
-
                 // Initialize step counters
                 oWizardModel.setProperty("/currentStep", 1);
                 oWizardModel.setProperty("/totalSteps", oResult.totalSteps);
+
+                // Store first question in model
+                this._displayQuestion(oResult.firstQuestion);
 
                 // Update progress with actual question number and total steps
                 this._updateProgress(oResult.firstQuestion.questionId, oResult.totalSteps);
 
                 // Update wizard navigation - go to question step
                 const oWizard = this.byId("cleanCoreWizard");
-                oWizard.nextStep();
+                const oQuestionStep = this.byId("questionStep");
+                oQuestionStep.setVisible(true);
+                sap.ui.getCore().applyChanges();
+                oWizard.goToStep(oQuestionStep, true);
 
                 // Update button visibility
-                this.byId("wizardStartButton").setVisible(false);
-                this.byId("wizardNextButton").setVisible(false);
-                this.byId("saveDraftButton").setVisible(true);
+                this._syncFooterWithCurrentStep();
 
                 // Lazy: do not auto-load constraints/examples; they'll load on panel expand
 
@@ -1770,6 +1890,11 @@ sap.ui.define([
             oWizardModel.setProperty("/selectedAnswer", null);
             oWizardModel.setProperty("/selectedAnswerIndex", -1);
             oWizardModel.setProperty("/questionCompleted", false);
+
+            const iCurrentStep = Number(oWizardModel.getProperty("/currentStep") || 0);
+            const iTotalSteps = Number(oWizardModel.getProperty("/totalSteps") || 0);
+            const sActionText = iTotalSteps > 0 && iCurrentStep >= iTotalSteps ? "Finish Analysis" : "Next Question";
+            oWizardModel.setProperty("/questionActionText", sActionText);
         },
 
         // Handle answer selection

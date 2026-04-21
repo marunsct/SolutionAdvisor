@@ -18,7 +18,7 @@
             <Button
                 id="adminRefreshButton"
                 icon="sap-icon://refresh"
-                tooltip="Refresh counts"
+                tooltip="Refresh table counts and recent changes"
                 press="onRefresh"
             />
         </headerContent>
@@ -57,6 +57,13 @@
                     showIcon="true"
                     class="sapUiSmallMarginBottom"
                 />
+                <MessageStrip
+                    id="adminHelpMessage"
+                    text="Choose a maintenance tile to open its dedicated editor. Use Recent Changes to verify recent administrative activity."
+                    type="Success"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"
+                />
 
                 <!-- Admin Tiles -->
                 <layout:Grid
@@ -73,6 +80,7 @@
                         class="sapUiTinyMargin"
                         header="{adminModel>title}"
                         subheader="{adminModel>subtitle}"
+                        tooltip="{= ${adminModel>title} + ' - open maintenance screen' }"
                         press="onTilePress"
                         frameType="TwoByOne"
                     >
@@ -106,6 +114,9 @@
                             id="recentChangesTable"
                             noDataText="No recent changes recorded. Audit logging will begin tracking changes once the database is deployed."
                             mode="None"
+                            growing="true"
+                            growingThreshold="10"
+                            growingScrollToLoad="true"
                             items="{
                                 path: 'admin>/AuditLog',
                                 sorter: {

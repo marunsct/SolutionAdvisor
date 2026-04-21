@@ -25,6 +25,13 @@
         
         <headerContent>
             <m:VBox id="headerContentVBox">
+                <m:MessageStrip
+                    id="guidanceHelpMessage"
+                    text="Use the anchor bar to compare Levels A to D and focus on trade-offs between maintainability, upgrade impact, and cloud readiness."
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"
+                />
                 <m:Text id="introductionText" text="{guidance>/guidance/introduction}" class="sapUiSmallMarginBottom" />
                 <m:Text
                     id="apiExplanationText"
@@ -39,7 +46,7 @@
             <ObjectPageSection id="levelsSection" title="Clean Core Levels - Detailed Breakdown">
                 <subSections>
                     <!-- Level A -->
-                    <ObjectPageSubSection id="levelASubSection" title="{= ${guidance>/levelA/title} || '🟩 Level A - Cleanest (Gold Standard)' }">
+                    <ObjectPageSubSection id="levelASubSection" title="{= ${guidance>/levelA/title} || 'Level A - Cleanest (Gold Standard)' }">
                         <blocks>
                             <m:VBox id="levelAVBox" class="sapUiNoMargin">
                                 <m:VBox id="levelAContentBox" class="sapUiTinyMarginBottom">
@@ -104,7 +111,7 @@
                     </ObjectPageSubSection>
                     
                     <!-- Level B -->
-                    <ObjectPageSubSection id="levelBSubSection" title="{= ${guidance>/levelB/title} || '🟦 Level B - Classic but Acceptable' }">
+                    <ObjectPageSubSection id="levelBSubSection" title="{= ${guidance>/levelB/title} || 'Level B - Classic but Acceptable' }">
                         <blocks>
                             <m:VBox id="levelBVBox" class="sapUiNoMargin">
                                 <m:VBox id="levelBContentBox" class="sapUiSmallMarginBottom">
@@ -169,7 +176,7 @@
                     </ObjectPageSubSection>
                     
                     <!-- Level C -->
-                    <ObjectPageSubSection id="levelCSubSection" title="{= ${guidance>/levelC/title} || '🟨 Level C - Risky Legacy' }">
+                    <ObjectPageSubSection id="levelCSubSection" title="{= ${guidance>/levelC/title} || 'Level C - Risky Legacy' }">
                         <blocks>
                             <m:VBox id="levelCVBox" class="sapUiNoMargin">
                                 <m:VBox id="levelCContentBox" class="sapUiSmallMarginBottom">
@@ -234,7 +241,7 @@
                     </ObjectPageSubSection>
                     
                     <!-- Level D -->
-                    <ObjectPageSubSection id="levelDSubSection" title="{= ${guidance>/levelD/title} || '🟥 Level D - Do Not Do This (Modifications)' }">
+                    <ObjectPageSubSection id="levelDSubSection" title="{= ${guidance>/levelD/title} || 'Level D - Do Not Do This (Modifications)' }">
                         <blocks>
                             <m:VBox id="levelDVBox" class="sapUiNoMargin">
                                 <m:VBox id="levelDContentBox" class="sapUiSmallMarginBottom">

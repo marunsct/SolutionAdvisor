@@ -29,7 +29,8 @@
                 id="searchLevelField"
                 width="300px"
                 search="onSearch"
-                placeholder="Search levels..."/>
+                placeholder="Search levels..."
+                tooltip="Search by level code or name"/>
         </headerContent>
         
         <content>
@@ -51,6 +52,7 @@
                 <!-- Levels Table -->
                 <Table
                     id="levelsTable"
+                    ariaLabelledBy="adminLevelsTitle"
                     items="{
                         path: 'admin>/CleanCoreLevels',
                         parameters: {
@@ -58,6 +60,10 @@
                         }
                     }"
                     mode="SingleSelectMaster"
+                    growing="true"
+                    growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
                     busy="{viewModel>/busy}"
                     noDataText="No levels found. Click Create to add new levels.">
                     
@@ -68,16 +74,16 @@
                         <Column id="levelsLevelNameColumn" width="20%">
                             <Text id="levelsLevelNameHeader" text="Level Name"/>
                         </Column>
-                        <Column id="levelsDescriptionColumn" width="25%">
+                        <Column id="levelsDescriptionColumn" width="25%" demandPopin="true" minScreenWidth="Tablet">
                             <Text id="levelsDescriptionHeader" text="Description"/>
                         </Column>
-                        <Column id="levelsTechDebtColumn" width="12%">
+                        <Column id="levelsTechDebtColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="levelsTechDebtHeader" text="Tech Debt Multiplier"/>
                         </Column>
-                        <Column id="levelsCloudReadinessColumn" width="12%">
+                        <Column id="levelsCloudReadinessColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="levelsCloudReadinessHeader" text="Cloud Readiness Multiplier"/>
                         </Column>
-                        <Column id="levelsUpgradeImpactColumn" width="12%">
+                        <Column id="levelsUpgradeImpactColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="levelsUpgradeImpactHeader" text="Upgrade Impact Multiplier"/>
                         </Column>
                         <Column id="levelsActionsColumn" width="9%" hAlign="End">

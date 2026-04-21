@@ -6,18 +6,19 @@
     xmlns:f="sap.f">
     <Page
         id="projectsListPage"
-        title="Projects"
+        title="{i18n>projectsListTitle}"
         showHeader="true">
         <headerContent>
             <Button
                 id="projectsAnalyticsButton"
-                text="Analytics Dashboard"
+                text="{i18n>viewAnalytics}"
                 icon="sap-icon://sales-quote"
                 press="onNavigateToAnalytics"
+                tooltip="Open the analytics dashboard"
                 type="Emphasized"/>
             <Button
                 id="adminButton"
-                text="Admin"
+                text="{i18n>adminPanel}"
                 icon="sap-icon://settings"
                 press="onNavigateToAdmin"
                 tooltip="Master Data Maintenance"
@@ -25,6 +26,12 @@
         </headerContent>
         <content>
             <VBox id="projectsListVBox" class="sapUiSmallMargin">
+                <MessageStrip
+                    id="projectsListHelpMessage"
+                    text="{i18n>projectsListHelpMsg}"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
                 <HeaderContainer
                     id="projectsHeaderContainer"
                     orientation="Horizontal"
@@ -32,8 +39,8 @@
                     <GenericTile
                         id="totalProjectsTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Total Projects"
-                        subheader="All Projects"
+                        header="{i18n>projectsTotal}"
+                        subheader="{i18n>projectsAllSubheader}"
                         press="onTilePress">
                         <TileContent id="totalProjectsTileContent">
                             <NumericContent
@@ -46,8 +53,8 @@
                     <GenericTile
                         id="activeProjectsTile"
                         class="sapUiTinyMarginBegin sapUiTinyMarginTop"
-                        header="Active Projects"
-                        subheader="In Progress"
+                        header="{i18n>projectsActive}"
+                        subheader="{i18n>projectsInProgressSubheader}"
                         press="onTilePress">
                         <TileContent id="activeProjectsTileContent">
                             <NumericContent
@@ -72,72 +79,82 @@
                     mode="SingleSelectLeft"
                     selectionChange="onSelectionChange"
                     growing="true"
-                    growingThreshold="20">
+                    growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
+                    ariaLabelledBy="projectsTableTitle"
+                    noDataText="{i18n>projectsNoData}">
                     <headerToolbar>
                         <OverflowToolbar id="projectsTableToolbar">
-                            <Title id="projectsTableTitle" text="Projects" level="H2"/>
+                            <Title id="projectsTableTitle" text="{i18n>projectsListTitle}" level="H2"/>
                             <ToolbarSpacer id="projectsTableToolbarSpacer"/>
                             <SearchField
                                 id="projectsSearchField"
                                 width="200px"
                                 search="onSearch"
-                                placeholder="Search projects..."/>
+                                tooltip="Search by client name or project name"
+                                placeholder="{i18n>projectsSearchPlaceholder}"/>
                             <Button
                                 id="viewProjectAnalysesButton"
-                                text="View Analyses"
+                                text="{i18n>btnViewAnalyses}"
                                 icon="sap-icon://activities"
                                 press="onViewProjectAnalyses"
                                 enabled="{viewModel>/hasSelection}"
+                                tooltip="Open analyses for the selected project"
                                 type="Transparent"/>
                             <Button
                                 id="editProjectButton"
-                                text="To Project"
+                                text="{i18n>btnOpenProject}"
                                 icon="sap-icon://navigation-right-arrow"
                                 press="onEditProject"
                                 enabled="{viewModel>/hasSelection}"
-                                visible="{= ${user>/isAdmin} !== false }"/>
+                                tooltip="Open the selected project details"
+                                visible="{viewModel>/isAdmin}"/>
                             <Button
                                 id="deleteProjectButton"
-                                text="Delete Project"
+                                text="{i18n>btnDeleteProject}"
                                 icon="sap-icon://delete"
                                 press="onDeleteProject"
                                 enabled="{viewModel>/hasSelection}"
-                                visible="{user>/isAdmin}"
+                                tooltip="Delete the selected project"
+                                visible="{viewModel>/isAdmin}"
                                 type="Reject"/>
                             <Button
                                 id="newProjectButton"
-                                text="New Project"
+                                text="{i18n>btnNewProject}"
                                 icon="sap-icon://create"
                                 type="Emphasized"
+                                tooltip="Create a new project"
                                 press="onCreateProject"/>
                             <Button
                                 id="viewAllAnalysesButton"
-                                text="View All Analyses"
+                                text="{i18n>btnViewAllAnalyses}"
                                 icon="sap-icon://activities"
+                                tooltip="Open the full analyses list across all projects"
                                 press="onViewAllAnalyses"/>
                         </OverflowToolbar>
                     </headerToolbar>
                     <columns>
                         <Column id="clientNameColumn">
-                            <Text id="clientNameHeader" text="Client Name"/>
+                            <Text id="clientNameHeader" text="{i18n>clientName}"/>
                         </Column>
                         <Column id="projectNameColumn">
-                            <Text id="projectNameHeader" text="Project Name"/>
+                            <Text id="projectNameHeader" text="{i18n>projectName}"/>
                         </Column>
-                        <Column id="projectTypeColumn">
-                            <Text id="projectTypeHeader" text="Project Type"/>
+                        <Column id="projectTypeColumn" demandPopin="true" minScreenWidth="Tablet">
+                            <Text id="projectTypeHeader" text="{i18n>projectType}"/>
                         </Column>
-                        <Column id="s4FlavorColumn">
-                            <Text id="s4FlavorHeader" text="S/4HANA Flavor"/>
+                        <Column id="s4FlavorColumn" demandPopin="true" minScreenWidth="Desktop">
+                            <Text id="s4FlavorHeader" text="{i18n>colS4Flavor}"/>
                         </Column>
                         <Column id="statusColumn">
-                            <Text id="statusHeader" text="Status"/>
+                            <Text id="statusHeader" text="{i18n>colStatus}"/>
                         </Column>
-                        <Column id="timelineColumn">
-                            <Text id="timelineHeader" text="Timeline"/>
+                        <Column id="timelineColumn" demandPopin="true" minScreenWidth="Desktop">
+                            <Text id="timelineHeader" text="{i18n>colTimeline}"/>
                         </Column>
-                        <Column id="businessCriticalityColumn">
-                            <Text id="businessCriticalityHeader" text="Business Criticality"/>
+                        <Column id="businessCriticalityColumn" demandPopin="true" minScreenWidth="Desktop">
+                            <Text id="businessCriticalityHeader" text="{i18n>colBusinessCriticality}"/>
                         </Column>
                     </columns>
                     <items>

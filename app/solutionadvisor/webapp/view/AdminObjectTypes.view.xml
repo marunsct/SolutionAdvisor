@@ -29,7 +29,8 @@
                 id="searchObjectTypeField"
                 width="300px"
                 search="onSearch"
-                placeholder="Search object types..."/>
+                placeholder="Search object types..."
+                tooltip="Search by code, name, or description"/>
         </headerContent>
         
         <content>
@@ -51,6 +52,7 @@
                 <!-- Object Types Table -->
                 <Table
                     id="objectTypesTable"
+                    ariaLabelledBy="adminObjectTypesTitle"
                     items="{
                         path: 'admin>/ObjectTypes',
                         parameters: {
@@ -58,6 +60,10 @@
                         }
                     }"
                     mode="SingleSelectMaster"
+                    growing="true"
+                    growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
                     busy="{viewModel>/busy}"
                     noDataText="No object types found.">
                     
@@ -65,19 +71,19 @@
                         <Column id="typeCodeColumn" width="10%">
                             <Text id="typeCodeHeader" text="Code"/>
                         </Column>
-                        <Column id="typeIconColumn" width="8%">
+                        <Column id="typeIconColumn" width="8%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="typeIconHeader" text="Icon"/>
                         </Column>
                         <Column id="typeNameColumn" width="20%">
                             <Text id="typeNameHeader" text="Type Name"/>
                         </Column>
-                        <Column id="typeDescriptionColumn" width="35%">
+                        <Column id="typeDescriptionColumn" width="35%" demandPopin="true" minScreenWidth="Tablet">
                             <Text id="typeDescriptionHeader" text="Description"/>
                         </Column>
-                        <Column id="displayOrderColumn" width="12%">
+                        <Column id="displayOrderColumn" width="12%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="displayOrderHeader" text="Display Order"/>
                         </Column>
-                        <Column id="typeActiveColumn" width="8%">
+                        <Column id="typeActiveColumn" width="8%" demandPopin="true" minScreenWidth="Desktop">
                             <Text id="typeActiveHeader" text="Active"/>
                         </Column>
                         <Column id="typeActionsColumn" width="7%" hAlign="End">

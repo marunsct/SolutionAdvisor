@@ -79,6 +79,15 @@ sap.ui.define([
         projects: []
       });
       this.getView().setModel(oFilterModel, "filterModel");
+
+      const oUiStateModel = new JSONModel({
+        statusVisible: false,
+        statusText: "",
+        statusType: "Information",
+        hasData: true,
+        lastUpdated: ""
+      });
+      this.getView().setModel(oUiStateModel, "uiState");
     },
     
     /**
@@ -136,10 +145,12 @@ sap.ui.define([
      * Load analytics data from backend with current filters
      * @private
      */
-    _loadAnalyticsData: function() {
+    _loadAnalyticsData: function(mOptions) {
+      const oOptions = mOptions || {};
       const oView = this.getView();
       const oModel = oView.getModel();
       const oFilterModel = oView.getModel("filterModel");
+      const oUiStateModel = oView.getModel("uiState");
 
       // Show busy indicator
       oView.setBusy(true);
@@ -177,12 +188,34 @@ sap.ui.define([
         
         // Setup charts after data is loaded
         this._setupCharts();
+
+        const iTotalAnalyses = Number(oResult?.totalAnalyses || 0);
+        const sUpdatedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+        if (iTotalAnalyses === 0) {
+          oUiStateModel.setProperty("/statusVisible", true);
+          oUiStateModel.setProperty("/statusType", "Information");
+          oUiStateModel.setProperty("/statusText", "No analytics data found for the selected filters. Try broadening your filter criteria.");
+          oUiStateModel.setProperty("/hasData", false);
+        } else {
+          oUiStateModel.setProperty("/statusVisible", true);
+          oUiStateModel.setProperty("/statusType", "Success");
+          oUiStateModel.setProperty("/statusText", `Showing analytics for ${iTotalAnalyses} analyses.`);
+          oUiStateModel.setProperty("/hasData", true);
+        }
+        oUiStateModel.setProperty("/lastUpdated", sUpdatedAt);
         
         oView.setBusy(false);
-        MessageToast.show("Analytics data loaded successfully");
+        if (oOptions.showToast) {
+          MessageToast.show(oOptions.toastMessage || "Analytics updated");
+        }
       }).catch((oError) => {
         Log.error("Failed to load analytics data:", oError);
         oView.setBusy(false);
+        oUiStateModel.setProperty("/statusVisible", true);
+        oUiStateModel.setProperty("/statusType", "Error");
+        oUiStateModel.setProperty("/statusText", "Failed to load analytics data. Please try again.");
+        oUiStateModel.setProperty("/hasData", false);
         MessageBox.error("Failed to load analytics data. Please try again.");
       });
     },
@@ -199,8 +232,10 @@ sap.ui.define([
      * Apply filters and reload analytics data
      */
     onApplyFilters: function() {
-      this._loadAnalyticsData();
-      MessageToast.show("Filters applied successfully");
+      this._loadAnalyticsData({
+        showToast: true,
+        toastMessage: "Filters applied"
+      });
     },
     
     /**
@@ -221,15 +256,20 @@ sap.ui.define([
       this.byId("cleanCoreLevelFilter")?.setSelectedKeys([]);
       this.byId("projectFilter")?.setSelectedKey(null);
       
-      this._loadAnalyticsData();
-      MessageToast.show("Filters cleared");
+      this._loadAnalyticsData({
+        showToast: true,
+        toastMessage: "Filters cleared"
+      });
     },
     
     /**
      * Refresh analytics data
      */
     onRefresh: function() {
-      this._loadAnalyticsData();
+      this._loadAnalyticsData({
+        showToast: true,
+        toastMessage: "Analytics refreshed"
+      });
     },
 
     /**
