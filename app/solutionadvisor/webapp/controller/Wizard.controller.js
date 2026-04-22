@@ -835,6 +835,21 @@ sap.ui.define([
         },
 
         onQuestionStepActivate() {
+            const oWizardModel = this.getView().getModel("wizardModel");
+            const bHasQuestionContent = !!oWizardModel.getProperty("/currentQuestion") || !!oWizardModel.getProperty("/finalRecommendation");
+
+            if (!bHasQuestionContent) {
+                const oWizard = this.byId("cleanCoreWizard");
+                const oReadyStep = this.byId("readyStep");
+
+                if (oWizard && oReadyStep) {
+                    oWizard.goToStep(oReadyStep, true);
+                }
+
+                this._syncFooterWithCurrentStep();
+                return;
+            }
+
             this._syncFooterWithCurrentStep();
         },
 
@@ -1738,6 +1753,7 @@ sap.ui.define([
             const oNextButton = this.byId("wizardNextButton");
             const oStartButton = this.byId("wizardStartButton");
             const oSaveDraftButton = this.byId("saveDraftButton");
+            const oWizardModel = this.getView().getModel("wizardModel");
 
             if (!oNextButton || !oSaveDraftButton || !oStartButton) {
                 return;
@@ -1771,8 +1787,14 @@ sap.ui.define([
             } else if (stepId === "readyStep") {
                 oStartButton.setVisible(true);
             } else if (stepId === "questionStep") {
-                // Show save draft button on question step (session is active)
-                oSaveDraftButton.setVisible(true);
+                const bHasQuestionContent = !!oWizardModel.getProperty("/currentQuestion") || !!oWizardModel.getProperty("/finalRecommendation");
+
+                if (bHasQuestionContent) {
+                    // Show save draft button on question step once the session is active.
+                    oSaveDraftButton.setVisible(true);
+                } else {
+                    oStartButton.setVisible(true);
+                }
             } else if (stepId === "summaryStep") {
                 // Hide save draft button on summary step (analysis is complete)
                 oSaveDraftButton.setVisible(false);
@@ -1827,7 +1849,6 @@ sap.ui.define([
                 // Update wizard navigation - go to question step
                 const oWizard = this.byId("cleanCoreWizard");
                 const oQuestionStep = this.byId("questionStep");
-                oQuestionStep.setVisible(true);
                 sap.ui.getCore().applyChanges();
                 oWizard.goToStep(oQuestionStep, true);
 

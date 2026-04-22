@@ -363,7 +363,6 @@
                     id="questionStep"
                     title="{i18n>wizardStepQuestions}"
                     validated="false"
-                    visible="{= !!${wizardModel>/currentQuestion}}"
                     activate="onQuestionStepActivate"
                 >
                     <!-- Question Panel -->
