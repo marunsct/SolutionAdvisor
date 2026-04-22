@@ -246,9 +246,11 @@ sap.ui.define([
         _getStepId(step) {
             if (!step) return "";
             // If it's an object with getId method, call it
-            const stepId = step.getId ? step.getId() : (typeof step === 'string' ? step : "");
-            // Remove container prefix if present (e.g., "container-sd.solutionadvisor---Wizard--projectStep" -> "projectStep")
-            return stepId.replace(/^container-.*?--(.+)$/, "$1");
+            const fullId = step.getId ? step.getId() : (typeof step === 'string' ? step : "");
+            // Extract local ID by taking everything after the last "--" separator.
+            // This handles all prefix formats: "container-*--id", "appId---View--id", "view--id", etc.
+            const lastSepIndex = fullId.lastIndexOf("--");
+            return lastSepIndex >= 0 ? fullId.substring(lastSepIndex + 2) : fullId;
         },
 
         _updateProgress(currentQuestionId, totalSteps) {
@@ -1787,12 +1789,16 @@ sap.ui.define([
             } else if (stepId === "readyStep") {
                 oStartButton.setVisible(true);
             } else if (stepId === "questionStep") {
-                const bHasQuestionContent = !!oWizardModel.getProperty("/currentQuestion") || !!oWizardModel.getProperty("/finalRecommendation");
+                const bHasQuestion = !!oWizardModel.getProperty("/currentQuestion");
+                const bHasFinalRecommendation = !!oWizardModel.getProperty("/finalRecommendation");
 
-                if (bHasQuestionContent) {
-                    // Show save draft button on question step once the session is active.
+                if (bHasFinalRecommendation) {
+                    // Analysis complete — Close button handles itself via binding; no extra action button needed
+                } else if (bHasQuestion) {
+                    // Active question in progress — show Save Draft
                     oSaveDraftButton.setVisible(true);
                 } else {
+                    // Step activated before analysis started — show Start button
                     oStartButton.setVisible(true);
                 }
             } else if (stepId === "summaryStep") {

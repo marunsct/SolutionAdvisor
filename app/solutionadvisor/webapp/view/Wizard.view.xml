@@ -794,7 +794,7 @@
                     text="{i18n>saveDraft}"
                     icon="sap-icon://save"
                     press="onSaveDraft"
-                    visible="{= ${wizardModel>/projectID} !== '' }"
+                    visible="false"
                 />
                 <ToolbarSpacer id="wizardFooterSpacer" />
                 <Button
@@ -814,7 +814,7 @@
                     text="{i18n>wizardContinue}"
                     type="Emphasized"
                     press="onNextStep"
-                    visible="{= !${wizardModel>/finalRecommendation} }"
+                    visible="false"
                 />
                 <Button
                     id="wizardStartButton"
